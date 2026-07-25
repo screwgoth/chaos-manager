@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: INCEPTION - Units Generation (Part 2 complete, awaiting approval)
+- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Functional Design (planning, awaiting answers)
 
 ## Workspace State
 - **Existing Code**: No
@@ -49,7 +49,9 @@ requirements independent of the disabled security extension.
 - [x] User Stories — APPROVED 2026-07-25T10:00:00Z (43 stories, 5 personas)
 - [x] Workflow Planning — APPROVED 2026-07-25T10:15:00Z with revisions R1 and R2
 - [x] Application Design — APPROVED 2026-07-25T10:55:00Z (10 components, 9 services, 8 frontend folders, 2-unit seam)
-- [x] Units Generation — Part 1 APPROVED 2026-07-25T11:15:00Z; Part 2 artifacts complete (2 units, 43 stories mapped), AWAITING USER APPROVAL
+- [x] Units Generation — APPROVED 2026-07-25T11:25:00Z (2 units, 43 stories mapped)
+
+**🔵 INCEPTION PHASE COMPLETE** — all stages approved or deliberately skipped.
 
 ## Units of Work
 | # | Unit name | Stories | Must | Should | Slice 1 | Demonstrable alone |
@@ -64,7 +66,7 @@ requirements independent of the disabled security extension.
 - **⚠️ X-1 revisit trigger**: org-scope visibility is NOT enforced while `core-domain` is the only completed unit. Acceptable only under the single-track, no-external-users assumption (plan Q7:A). If pilot users get access before `supporting-platform` completes, switch to a restrictive stand-in or pull C-09 Authorization into Unit 1.
 
 ### 🟢 CONSTRUCTION PHASE — Unit 1: `core-domain`
-- [ ] Functional Design — EXECUTE (+ R2 folded-in obligations 1, 2, 3, 6)
+- [ ] Functional Design — IN PROGRESS, awaiting answers to `construction/plans/core-domain-functional-design-plan.md` (+ R2 folded-in obligations 1, 2, 3, 6)
 - [ ] NFR Requirements — EXECUTE (closes OD-01, OD-03)
 - [ ] NFR Design — SKIPPED (R2)
 - [ ] Infrastructure Design — EXECUTE
