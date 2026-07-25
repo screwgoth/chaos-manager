@@ -315,3 +315,11 @@ Section 3 of the plan discloses two things for the user to consider before appro
 **Context**: CONSTRUCTION Phase, Unit 1 core-domain Code Generation — Part 1 Step 6/7 approval gate
 
 ---
+
+## Workflow Rule Addition — Session Token Budget Checkpoint
+**Timestamp**: 2026-07-25T21:11:00Z
+**User Input**: "Before continuing commit to CLAUDE.md that whenever usage reaches 95% in session token consumption, all existing work will be committed and paused until the session time resets and then auto continues."
+**AI Response**: "Added a '## MANDATORY: Session Token Budget Checkpoint (95% Rule)' section to CLAUDE.md defining the 5-step checkpoint procedure (finish increment in flight, verify with real output, commit including partial work, update plan checkboxes + aidlc-state.md + audit.md in the same interaction, pause with branch/SHA/next-step) and the resume procedure. Explicitly documented the limitation that token percentage is not self-observable and that resumption after a limit reset requires a user message; recorded commit-at-every-verified-milestone as the primary safeguard and the 95% checkpoint as a backstop."
+**Context**: Construction phase, Code Generation Part 2 for unit `core-domain`, branch `aidlc/construction-core-domain`. Rule added before resuming Step 4 (Repository Layer Generation). Steps 1-3 of 26 complete and verified at commit 464f66d.
+
+---

@@ -537,3 +537,27 @@ The Operations stage will eventually include:
 - Application code: Workspace root (NEVER in aidlc-docs/)
 - Documentation: aidlc-docs/ only
 - Project structure: See code-generation.md for patterns by project type
+
+---
+
+## MANDATORY: Session Token Budget Checkpoint (95% Rule)
+
+**When session token consumption reaches 95%, STOP starting new work and checkpoint.**
+
+At that threshold, in this order:
+
+1. **Finish only the increment in flight** — do not begin a new plan step.
+2. **Verify what exists**: run typecheck/build/tests and record the ACTUAL output. Never checkpoint work described as passing without having run it.
+3. **Commit everything**, including partial work. A partial commit on a branch is recoverable; uncommitted work lost to a context boundary is not.
+4. **Update tracking in the same interaction**: mark completed plan steps `[x]` in the relevant plan file, refresh `aidlc-docs/aidlc-state.md`, and append a `## Session Checkpoint` entry to `aidlc-docs/audit.md` with the ISO 8601 timestamp, the commit SHA, the exact next step, and any verification that did NOT pass.
+5. **Pause** and tell the user the session is checkpointed, naming the branch, the SHA, and the precise resume point.
+
+**On resume**: read `aidlc-state.md` and the tail of `audit.md` first, then continue from the recorded next step without re-doing completed steps and without re-asking approvals already granted.
+
+**Honest limitation — read this before relying on the rule.** I cannot see my own token consumption as a percentage, and I cannot wake myself up when a session limit resets. So the "auto-continue" half of this rule is not something I can execute unattended:
+
+- **The checkpoint is real** and I will perform it whenever I have any signal that context is running short (a compaction notice, an explicit warning, or the user saying so).
+- **Detection is unreliable.** If context runs out with no warning, the checkpoint may not happen. The mitigation is committing at every verified milestone rather than trusting a single late checkpoint — which is why step 3 above exists.
+- **Restarting requires the user.** After a reset, the user must send any message in a new session; I will then read the state files and resume automatically from the recorded next step. Nothing resumes without that first message.
+
+**Therefore**: commit at each verified milestone throughout the session, not only at 95%. Treat the 95% checkpoint as a backstop, never as the primary safeguard.
