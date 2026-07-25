@@ -5,7 +5,11 @@
 **Unit**: `core-domain` (Unit 1 of 2)
 **Stage**: Functional Design
 **Date**: 2026-07-25
-**Status**: Awaiting answers and approval
+**Status**: All 14 answers received 2026-07-25T11:35:00Z; Step 5 analysis found no ambiguities. Generation COMPLETE — all checklist steps [x].
+
+## Resolved Decisions
+
+Q1=B append-only history table (closes OD-02) · Q2=C mutate in place + history record (makes the model bi-temporal) · Q3=C decimal to one place 0.1-100.0 · Q4=B multiple concurrent assignments to one project permitted · Q5=A auto-end open assignments on deactivate/close · Q6=A transactional check-then-write with row-level member lock · Q7=A application-side computation over fetched rows · Q8=A server-side session records with opaque token · Q9=B sliding 30-minute inactivity window · Q10=A Argon2id · Q11=A reserved attributes column (discharges FR-C-05) · Q12=A structured violations array · Q13=A server-state library + local form state + session context · Q14=A blocking modal for over-allocation
 
 ## Unit Context
 
@@ -54,7 +58,7 @@ C) **Event-sourced assignments** — the assignment is a fold over an event log.
 
 X) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: B
 
 ## Question 2 — What happens when an assignment is edited
 This interacts directly with Question 1 and is the subtlest decision in the unit. If a manager changes an assignment's percentage from 50% to 80% today, what should "allocation as of last month" report?
@@ -69,7 +73,7 @@ D) **Mutate in place and accept that as-of queries reflect current values** — 
 
 X) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: C
 
 ## Question 3 — Allocation percentage rules
 FR-A-01 and AS-01 fix capacity at 100% per member. What constrains a single assignment's percentage?
@@ -82,7 +86,7 @@ C) **Decimals allowed to one place, 0.1–100** — supports fine-grained splits
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: C
 
 ## Question 4 — Multiple assignments to the same project
 Can one member hold two concurrent assignments to the same project?
@@ -95,7 +99,7 @@ C) **No, but allow it if the date ranges do not overlap** — sequential re-enga
 
 X) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: B
 
 ## Question 5 — Deactivating a member or closing a project with active assignments
 US-MEM-05 and US-PRJ-02 preserve history, but what happens to assignments that extend into the future?
@@ -108,7 +112,7 @@ C) **Refuse the deactivation or closure until assignments are ended manually** �
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 6 — Over-allocation concurrency (Application Design carry-forward)
 Two managers assigning the same member simultaneously could each pass the over-allocation check and both write, producing an unflagged over-allocation.
@@ -121,7 +125,7 @@ C) **Accept the race** — over-allocation is a warning rather than a hard rule,
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 7 — Allocation computation strategy (discharges R2-1 and R2-6)
 Q2:A of Application Design fixed that the *rules* live in C-04. Where does the *computation* happen?
@@ -136,7 +140,7 @@ D) **Maintain a denormalized allocation-by-period table updated on every assignm
 
 X) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 8 — Session handling (discharges R2-2)
 C-08 owns session lifecycle. What shape should a session take?
@@ -149,7 +153,7 @@ C) **Server-side sessions in memory** — simplest, but every restart signs ever
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 9 — Session expiry behaviour
 FR-AU-04 requires expiry after inactivity. What exactly?
@@ -164,7 +168,7 @@ D) **Sliding window plus an absolute maximum lifetime** — both
 
 X) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: B
 
 ## Question 10 — Password hashing (US-ENB-02)
 FR-AU-02 mandates salted hashes from a current algorithm. Which family?
@@ -179,7 +183,7 @@ D) **No preference — pick one and record the rationale**
 
 X) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 11 — Phase 2 custom fields extension point (discharges FR-C-05)
 The model must permit admin-defined custom fields later without restructuring core entities.
@@ -192,7 +196,7 @@ C) **Document the intended approach only, add nothing to the schema** — a migr
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 12 — Validation error response shape
 Six stories require field-level feedback with all reasons reported, not just the first (US-MEM-07, US-PRJ-05, US-ASN-06 in this unit).
@@ -205,7 +209,7 @@ C) **First error only** — contradicts the "all reasons" acceptance criteria; l
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 13 — Frontend state management (for `frontend-components.md`)
 F-01 through F-08 need a state approach.
@@ -218,7 +222,7 @@ C) **Plain `fetch` in `useEffect` with local state only** — no dependencies, m
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 14 — Over-allocation warning interaction (F-04)
 US-ASN-05 is a two-step confirm. How should it appear?
@@ -231,78 +235,78 @@ C) **Inline warning plus an explicit "allow over-allocation" checkbox the user m
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ---
 
 # Section B — Mandatory Artifacts
 
-- [ ] Generate `aidlc-docs/construction/core-domain/functional-design/domain-entities.md`
-- [ ] Generate `aidlc-docs/construction/core-domain/functional-design/business-logic-model.md`
-- [ ] Generate `aidlc-docs/construction/core-domain/functional-design/business-rules.md`
-- [ ] Generate `aidlc-docs/construction/core-domain/functional-design/frontend-components.md` (unit includes frontend)
+- [x] Generate `aidlc-docs/construction/core-domain/functional-design/domain-entities.md`
+- [x] Generate `aidlc-docs/construction/core-domain/functional-design/business-logic-model.md`
+- [x] Generate `aidlc-docs/construction/core-domain/functional-design/business-rules.md`
+- [x] Generate `aidlc-docs/construction/core-domain/functional-design/frontend-components.md` (unit includes frontend)
 
 ---
 
 # Section C — Execution Checklist
 
 ## C.1 — Preparation
-- [ ] Re-read `unit-of-work.md` Unit 1 scope and `unit-of-work-story-map.md` Unit 1 stories
-- [ ] Re-read `application-design/component-methods.md` for the established signatures
-- [ ] Re-read the 30 Unit 1 stories' Given/When/Then criteria — they are the behavioural specification
-- [ ] Confirm the Section A answers and restate the decisions
-- [ ] Confirm no extension rules apply (all three disabled)
+- [x] Re-read `unit-of-work.md` Unit 1 scope and `unit-of-work-story-map.md` Unit 1 stories
+- [x] Re-read `application-design/component-methods.md` for the established signatures
+- [x] Re-read the 30 Unit 1 stories' Given/When/Then criteria — they are the behavioural specification
+- [x] Confirm the Section A answers and restate the decisions
+- [x] Confirm no extension rules apply (all three disabled)
 
 ## C.2 — Domain entities
-- [ ] Define each entity: attributes, types, optionality, defaults
-- [ ] Define entity relationships and cardinalities
-- [ ] Define identity and natural keys used for duplicate detection
-- [ ] Define lifecycle states and permitted transitions for Member, Project, Assignment
-- [ ] Apply the OD-02 and Question 2 decisions to the Assignment entity
-- [ ] Apply the FR-C-05 extension point per Question 11
-- [ ] Verify all entity and attribute names are domain-neutral (FR-C-01)
-- [ ] Write `domain-entities.md`
+- [x] Define each entity: attributes, types, optionality, defaults
+- [x] Define entity relationships and cardinalities
+- [x] Define identity and natural keys used for duplicate detection
+- [x] Define lifecycle states and permitted transitions for Member, Project, Assignment
+- [x] Apply the OD-02 and Question 2 decisions to the Assignment entity
+- [x] Apply the FR-C-05 extension point per Question 11
+- [x] Verify all entity and attribute names are domain-neutral (FR-C-01)
+- [x] Write `domain-entities.md`
 
 ## C.3 — Business logic model
-- [ ] Model the allocation algorithm in full: overlap detection, range segmentation, summation, availability inversion
-- [ ] Model over-allocation detection including sub-period identification
-- [ ] Model the assignment create and edit workflows including the two-step override
-- [ ] Model the as-of-date historical reconstruction query
-- [ ] Model authentication and session establishment, keeping the C-07/C-08 boundary separable (R2-3)
-- [ ] Document the data access strategy and allocation-persistence boundary (R2-1)
-- [ ] Document the performance approach against NFR-S-03 (R2-6)
-- [ ] Document session handling design (R2-2)
-- [ ] Specify the complete, stable `IAuthorizationComponent` interface and the permissive stand-in's exact behaviour (X-1)
-- [ ] Write `business-logic-model.md`
+- [x] Model the allocation algorithm in full: overlap detection, range segmentation, summation, availability inversion
+- [x] Model over-allocation detection including sub-period identification
+- [x] Model the assignment create and edit workflows including the two-step override
+- [x] Model the as-of-date historical reconstruction query
+- [x] Model authentication and session establishment, keeping the C-07/C-08 boundary separable (R2-3)
+- [x] Document the data access strategy and allocation-persistence boundary (R2-1)
+- [x] Document the performance approach against NFR-S-03 (R2-6)
+- [x] Document session handling design (R2-2)
+- [x] Specify the complete, stable `IAuthorizationComponent` interface and the permissive stand-in's exact behaviour (X-1)
+- [x] Write `business-logic-model.md`
 
 ## C.4 — Business rules
-- [ ] Enumerate validation rules per entity with their error conditions
-- [ ] Enumerate cross-entity constraints: contract windows, member active periods, project open state
-- [ ] Enumerate allocation and over-allocation rules
-- [ ] Enumerate reference data and org unit integrity rules
-- [ ] Enumerate deactivation and closure cascade rules per Question 5
-- [ ] Define the concurrency rule for the check-then-write window per Question 6
-- [ ] Define the validation error shape per Question 12
-- [ ] Trace every rule to the story or FR that requires it
-- [ ] Write `business-rules.md`
+- [x] Enumerate validation rules per entity with their error conditions
+- [x] Enumerate cross-entity constraints: contract windows, member active periods, project open state
+- [x] Enumerate allocation and over-allocation rules
+- [x] Enumerate reference data and org unit integrity rules
+- [x] Enumerate deactivation and closure cascade rules per Question 5
+- [x] Define the concurrency rule for the check-then-write window per Question 6
+- [x] Define the validation error shape per Question 12
+- [x] Trace every rule to the story or FR that requires it
+- [x] Write `business-rules.md`
 
 ## C.5 — Frontend components
-- [ ] Define the component hierarchy per feature folder (F-01 to F-08)
-- [ ] Define props and state for each significant component
-- [ ] Define user interaction flows, including the over-allocation confirm per Question 14
-- [ ] Define form validation rules and how field-level errors are surfaced
-- [ ] Map each component to the API endpoints it consumes
-- [ ] Define the state management approach per Question 13
-- [ ] Specify `data-testid` naming convention for automation-friendly markup
-- [ ] Write `frontend-components.md`
+- [x] Define the component hierarchy per feature folder (F-01 to F-08)
+- [x] Define props and state for each significant component
+- [x] Define user interaction flows, including the over-allocation confirm per Question 14
+- [x] Define form validation rules and how field-level errors are surfaced
+- [x] Map each component to the API endpoints it consumes
+- [x] Define the state management approach per Question 13
+- [x] Specify `data-testid` naming convention for automation-friendly markup
+- [x] Write `frontend-components.md`
 
 ## C.6 — Validation and completion
-- [ ] Verify every one of the 30 Unit 1 stories is addressed by entities, rules, or components
-- [ ] Verify all four assigned R2 obligations (R2-1, R2-2, R2-3, R2-6) are visibly discharged — if any is not, the R2 fold has failed and NFR Design must be reinstated
-- [ ] Verify OD-02 is closed and FR-C-05 has a designed extension point
-- [ ] Verify the design remains technology-agnostic — no database product, framework, or library mandated except where Section A explicitly chose one
-- [ ] Validate all content per `common/content-validation.md`
-- [ ] Mark all checkboxes in this plan `[x]`
-- [ ] Update `aidlc-docs/aidlc-state.md`
-- [ ] Log completion and approval prompt in `aidlc-docs/audit.md`
-- [ ] Present the standardized 2-option completion message
+- [x] Verify every one of the 30 Unit 1 stories is addressed by entities, rules, or components
+- [x] Verify all four assigned R2 obligations (R2-1, R2-2, R2-3, R2-6) are visibly discharged — if any is not, the R2 fold has failed and NFR Design must be reinstated
+- [x] Verify OD-02 is closed and FR-C-05 has a designed extension point
+- [x] Verify the design remains technology-agnostic — no database product, framework, or library mandated except where Section A explicitly chose one
+- [x] Validate all content per `common/content-validation.md`
+- [x] Mark all checkboxes in this plan `[x]`
+- [x] Update `aidlc-docs/aidlc-state.md`
+- [x] Log completion and approval prompt in `aidlc-docs/audit.md`
+- [x] Present the standardized 2-option completion message

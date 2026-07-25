@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Functional Design (planning, awaiting answers)
+- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Infrastructure Design (planning, awaiting answers)
 
 ## Workspace State
 - **Existing Code**: No
@@ -66,10 +66,10 @@ requirements independent of the disabled security extension.
 - **⚠️ X-1 revisit trigger**: org-scope visibility is NOT enforced while `core-domain` is the only completed unit. Acceptable only under the single-track, no-external-users assumption (plan Q7:A). If pilot users get access before `supporting-platform` completes, switch to a restrictive stand-in or pull C-09 Authorization into Unit 1.
 
 ### 🟢 CONSTRUCTION PHASE — Unit 1: `core-domain`
-- [ ] Functional Design — IN PROGRESS, awaiting answers to `construction/plans/core-domain-functional-design-plan.md` (+ R2 folded-in obligations 1, 2, 3, 6)
-- [ ] NFR Requirements — EXECUTE (closes OD-01, OD-03)
+- [x] Functional Design — APPROVED 2026-07-25T11:45:00Z (4 docs; R2 obligations 1, 2, 3, 6 discharged; OD-02 closed, FR-C-05 discharged)
+- [x] NFR Requirements — APPROVED 2026-07-25T12:12:00Z (2 docs; OD-01 and OD-03 CLOSED)
 - [ ] NFR Design — SKIPPED (R2)
-- [ ] Infrastructure Design — EXECUTE
+- [ ] Infrastructure Design — IN PROGRESS, awaiting answers to `construction/plans/core-domain-infrastructure-design-plan.md`
 - [ ] Code Generation — EXECUTE
 
 ### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
@@ -88,17 +88,26 @@ requirements independent of the disabled security extension.
 ## Open Decisions Carried Forward
 | ID | Decision | Assigned To |
 |---|---|---|
-| OD-01 | Database technology selection | NFR Requirements |
-| OD-02 | Allocation history modeling (date-ranged rows only vs. rows plus history table) | Functional Design |
-| OD-03 | Node.js API framework and React tooling selection | NFR Requirements |
-| ~~OD-04~~ | ~~Member capacity modeling~~ — CLOSED 2026-07-25: uniform 100%, part-time not modeled | Closed at User Stories planning |
-| FR-C-05 | Data model must permit Phase 2 custom fields — structural constraint with no user story | Functional Design |
+| ~~OD-01~~ | ~~Database technology~~ — **CLOSED 2026-07-25: PostgreSQL 16+** | Closed at core-domain NFR Requirements |
+| ~~OD-02~~ | ~~Allocation history modeling~~ — **CLOSED 2026-07-25**: append-only `AssignmentHistory` snapshot table + mutate-in-place, yielding a bi-temporal model. As-of-date queries resolve against history, not current rows. | Closed at core-domain Functional Design |
+| ~~OD-03~~ | ~~Node.js API framework and React tooling~~ — **CLOSED 2026-07-25: Fastify + Vite/React SPA** (Next.js selected then reverted at CQ1:A for conflicting with the single-Node-process and Fastify decisions) | Closed at core-domain NFR Requirements |
+| ~~OD-04~~ | ~~Member capacity modeling~~ — **CLOSED 2026-07-25**: uniform 100%, part-time not modeled | Closed at User Stories planning |
+| ~~FR-C-05~~ | ~~Phase 2 custom fields extension point~~ — **DISCHARGED 2026-07-25**: reserved schema-less `attributes` column on Member and Project, unused in Phase 1 (BR-C-09) | Closed at core-domain Functional Design |
+
+**No open decisions remain.** All four (OD-01…OD-04) plus FR-C-05 are closed.
+
+## Technology Stack (applies to both units)
+PostgreSQL 16+ · Kysely (query builder, hand-written allocation SQL) · Kysely migrator · Fastify ·
+Vite + React SPA · TanStack Query v5 · date-fns (date-only UTC convention) · Zod · Tailwind (hand-built) ·
+Jest · Node 22 LTS + npm · TypeScript `strict` + `noUncheckedIndexedAccess` · Docker Compose (app + PostgreSQL)
 
 ## Current Status
-- **Lifecycle Phase**: INCEPTION (final stage)
-- **Current Stage**: Units Generation Complete
-- **Next Stage**: CONSTRUCTION PHASE — Unit 1 `core-domain` Functional Design
-- **Status**: Awaiting user approval of units
+- **Lifecycle Phase**: 🟢 CONSTRUCTION
+- **Current Unit**: Unit 1 of 2 — `core-domain`
+- **Current Stage**: Infrastructure Design (Part 1 planning, awaiting answers)
+- **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅
+- **Next Stage**: Code Generation for `core-domain`, then the full loop for `supporting-platform`
+- **Status**: Awaiting answers to `construction/plans/core-domain-infrastructure-design-plan.md`
 
 ## Artifact Index
 | Artifact | Path |
@@ -123,3 +132,13 @@ requirements independent of the disabled security extension.
 | Units of work | `aidlc-docs/inception/application-design/unit-of-work.md` |
 | Unit dependencies | `aidlc-docs/inception/application-design/unit-of-work-dependency.md` |
 | Unit-to-story map | `aidlc-docs/inception/application-design/unit-of-work-story-map.md` |
+| `core-domain` FD plan | `aidlc-docs/construction/plans/core-domain-functional-design-plan.md` |
+| `core-domain` domain entities | `aidlc-docs/construction/core-domain/functional-design/domain-entities.md` |
+| `core-domain` business logic | `aidlc-docs/construction/core-domain/functional-design/business-logic-model.md` |
+| `core-domain` business rules | `aidlc-docs/construction/core-domain/functional-design/business-rules.md` |
+| `core-domain` frontend components | `aidlc-docs/construction/core-domain/functional-design/frontend-components.md` |
+| `core-domain` NFR requirements plan | `aidlc-docs/construction/plans/core-domain-nfr-requirements-plan.md` |
+| `core-domain` NFR clarifications | `aidlc-docs/construction/plans/core-domain-nfr-requirements-clarification-questions.md` |
+| `core-domain` NFR requirements | `aidlc-docs/construction/core-domain/nfr-requirements/nfr-requirements.md` |
+| `core-domain` tech stack decisions | `aidlc-docs/construction/core-domain/nfr-requirements/tech-stack-decisions.md` |
+| `core-domain` infra design plan | `aidlc-docs/construction/plans/core-domain-infrastructure-design-plan.md` |
