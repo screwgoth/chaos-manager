@@ -195,7 +195,7 @@ R2 fold has failed and NFR Design should be reinstated.
 | Check | Result |
 |---|---|
 | Every Must-priority FR maps to a component | **Pass** — see [components.md](components.md) §5 |
-| All 42 stories supported by the component set | **Pass** — see [services.md](services.md) story coverage; US-ENB-02/03 are properties of C-07, US-ENB-04 of the layering contract |
+| All 43 stories supported by the component set | **Pass** — see [services.md](services.md) story coverage; US-ENB-02/03 are properties of C-07, US-ENB-04 of the layering contract |
 | No circular dependencies | **Pass** — two near-cycles deliberately broken, documented in [component-dependency.md](component-dependency.md) §1 |
 | Domain-neutral naming throughout (FR-C-01) | **Pass** — no component, entity, field, method, or endpoint name carries IT/Engineering-specific vocabulary. Member, Project, Assignment, OrgUnit, Role, Skill, ProjectType all apply unchanged to Sales or Ops. |
 | Unit count within R1 cap of 3 | **Pass** — 2 units |

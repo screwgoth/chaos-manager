@@ -225,7 +225,7 @@ Required regardless of answers above.
 
 ## C.7 — Validation and completion
 - [x] Verify every Must-priority functional requirement maps to at least one component
-- [x] Verify all 42 stories are supported by the component set
+- [x] Verify all 43 stories are supported by the component set
 - [x] Verify no component name or method name contains team-type-specific vocabulary
 - [x] Consolidate into `application-design.md`
 - [x] Mark all checkboxes in this plan `[x]`

@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: INCEPTION - Units Generation (Part 1 Planning, awaiting answers)
+- **Current Stage**: INCEPTION - Units Generation (Part 2 complete, awaiting approval)
 
 ## Workspace State
 - **Existing Code**: No
@@ -46,17 +46,38 @@ requirements independent of the disabled security extension.
 - [x] Workspace Detection — COMPLETED 2026-07-25T08:33:00Z
 - [x] Reverse Engineering — SKIPPED (greenfield project, no existing code)
 - [x] Requirements Analysis — APPROVED 2026-07-25T09:20:00Z
-- [x] User Stories — APPROVED 2026-07-25T10:00:00Z (42 stories, 5 personas)
+- [x] User Stories — APPROVED 2026-07-25T10:00:00Z (43 stories, 5 personas)
 - [x] Workflow Planning — APPROVED 2026-07-25T10:15:00Z with revisions R1 and R2
 - [x] Application Design — APPROVED 2026-07-25T10:55:00Z (10 components, 9 services, 8 frontend folders, 2-unit seam)
-- [ ] Units Generation — Part 1 (Planning) IN PROGRESS, awaiting answers to unit-of-work-plan.md
+- [x] Units Generation — Part 1 APPROVED 2026-07-25T11:15:00Z; Part 2 artifacts complete (2 units, 43 stories mapped), AWAITING USER APPROVAL
 
-### 🟢 CONSTRUCTION PHASE
-- [ ] Functional Design — EXECUTE (per unit) — scope expanded by R2 with 6 folded-in NFR obligations
-- [ ] NFR Requirements — EXECUTE (per unit)
-- [ ] NFR Design — SKIPPED (R2 — folded into Functional Design)
-- [ ] Infrastructure Design — EXECUTE (per unit)
-- [ ] Code Generation — EXECUTE (per unit, ALWAYS)
+## Units of Work
+| # | Unit name | Stories | Must | Should | Slice 1 | Demonstrable alone |
+|---|---|---|---|---|---|---|
+| 1 | `core-domain` | 30 | 29 | 1 | All 6 | Yes |
+| 2 | `supporting-platform` | 13 | 6 | 7 | 0 | No — by design |
+
+- **Deployment**: single deployable monolith; units are logical modules
+- **Code layout**: `backend/src/{unit-name}/`, `backend/tests/{unit-name}/`, `frontend/src/{unit-name}/`, plus a `shared/` module in each tree
+- **Build order**: sequential — `core-domain` then `supporting-platform`
+- **Cross-unit dependencies**: X-1 (Unit 1 uses a permissive authorization stand-in that Unit 2 replaces), X-2 (Unit 2 import consumes Unit 1 interfaces), X-3 (one shared database schema)
+- **⚠️ X-1 revisit trigger**: org-scope visibility is NOT enforced while `core-domain` is the only completed unit. Acceptable only under the single-track, no-external-users assumption (plan Q7:A). If pilot users get access before `supporting-platform` completes, switch to a restrictive stand-in or pull C-09 Authorization into Unit 1.
+
+### 🟢 CONSTRUCTION PHASE — Unit 1: `core-domain`
+- [ ] Functional Design — EXECUTE (+ R2 folded-in obligations 1, 2, 3, 6)
+- [ ] NFR Requirements — EXECUTE (closes OD-01, OD-03)
+- [ ] NFR Design — SKIPPED (R2)
+- [ ] Infrastructure Design — EXECUTE
+- [ ] Code Generation — EXECUTE
+
+### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
+- [ ] Functional Design — EXECUTE (+ R2 folded-in obligations 4, 5)
+- [ ] NFR Requirements — EXECUTE
+- [ ] NFR Design — SKIPPED (R2)
+- [ ] Infrastructure Design — EXECUTE
+- [ ] Code Generation — EXECUTE
+
+### 🟢 CONSTRUCTION PHASE — after all units
 - [ ] Build and Test — EXECUTE (ALWAYS)
 
 ### 🟡 OPERATIONS PHASE
@@ -72,10 +93,10 @@ requirements independent of the disabled security extension.
 | FR-C-05 | Data model must permit Phase 2 custom fields — structural constraint with no user story | Functional Design |
 
 ## Current Status
-- **Lifecycle Phase**: INCEPTION
-- **Current Stage**: Workflow Planning Complete
-- **Next Stage**: Application Design
-- **Status**: Awaiting user approval of execution plan
+- **Lifecycle Phase**: INCEPTION (final stage)
+- **Current Stage**: Units Generation Complete
+- **Next Stage**: CONSTRUCTION PHASE — Unit 1 `core-domain` Functional Design
+- **Status**: Awaiting user approval of units
 
 ## Artifact Index
 | Artifact | Path |
@@ -97,3 +118,6 @@ requirements independent of the disabled security extension.
 | Services | `aidlc-docs/inception/application-design/services.md` |
 | Component dependencies | `aidlc-docs/inception/application-design/component-dependency.md` |
 | Unit of work plan | `aidlc-docs/inception/plans/unit-of-work-plan.md` |
+| Units of work | `aidlc-docs/inception/application-design/unit-of-work.md` |
+| Unit dependencies | `aidlc-docs/inception/application-design/unit-of-work-dependency.md` |
+| Unit-to-story map | `aidlc-docs/inception/application-design/unit-of-work-story-map.md` |

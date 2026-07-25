@@ -8,7 +8,7 @@
 
 - **Original Request**: Build a team management application tracking on-roll and off-roll members shuffling across multiple projects; agnostic to team type; enterprise-grade web application with enterprise features in later phases.
 - **User Impact**: **Direct** — the entire product is a user-facing interface. Every Phase 1 requirement exists to answer a question a human asks.
-- **Complexity Level**: **Complex** — 55 functional requirements across 9 groups, 5 role-based permission scopes, temporal allocation logic.
+- **Complexity Level**: **Complex** — 59 functional requirements across 9 groups, 5 role-based permission scopes, temporal allocation logic.
 - **Stakeholders**: Admin, Resource/Delivery Manager, Team Lead/Line Manager, Team Member, Executive. Pilot department is IT & Engineering, with Sales and Ops as subsequent adopters.
 
 ## Assessment Criteria Met

@@ -15,9 +15,9 @@
 
 ## Context Loaded
 
-- `aidlc-docs/inception/requirements/requirements.md` (approved) — 55 functional requirements, 7 NFR groups, 4 open decisions (OD-04 since closed)
+- `aidlc-docs/inception/requirements/requirements.md` (approved) — 59 functional requirements, 7 NFR groups, 4 open decisions (OD-04 since closed)
 - `aidlc-docs/inception/requirements/requirement-verification-questions.md` + `requirements-clarification-questions.md` (answered)
-- `aidlc-docs/inception/user-stories/stories.md` (approved) — 42 stories, 33 Must / 9 Should, Slice 1 identified, 9-wave sequence
+- `aidlc-docs/inception/user-stories/stories.md` (approved) — 43 stories, 35 Must / 8 Should, Slice 1 identified, 9-wave sequence
 - `aidlc-docs/inception/user-stories/personas.md` (approved) — 3 full personas + 2 thin variants
 - Reverse engineering artifacts: **none** — greenfield project
 
@@ -45,7 +45,7 @@ cross-package impact, no component relationship graph.
 - **Code**: entire application — React frontend, Node.js/TypeScript API, data access layer, database schema and migrations
 - **Dependencies**: all new — Node runtime, API framework, ORM or query builder, React and its build tooling, password-hashing library, CSV/Excel parsing library
 - **Configuration**: environment-based configuration for database connection, session settings, and the configurable contract-expiry window (US-MEM-06)
-- **Testing**: unit tests produced by the Build and Test stage. Note NFR-Q-01 defers a formal test suite and CI, so the 42 stories' Given/When/Then criteria serve as manual acceptance checks
+- **Testing**: unit tests produced by the Build and Test stage. Note NFR-Q-01 defers a formal test suite and CI, so the 43 stories' Given/When/Then criteria serve as manual acceptance checks
 
 ### 1.4 Infrastructure Layer Impact
 
@@ -188,7 +188,7 @@ Phase 3: OPERATIONS
 - [ ] Application Design — **EXECUTE**
   - **Rationale**: Every execution criterion is met. This is a greenfield system where all components are new; component responsibilities, the service layer, and inter-component dependencies have no existing structure to inherit. Skipping it would push architecture decisions into Code Generation, where they get made implicitly and inconsistently. It also resolves the interface between allocation computation and the views that consume it — the highest-value design decision in the project.
 - [ ] Units Generation — **EXECUTE** *(revised R1)*
-  - **Rationale**: Four criteria met — new data models, a new API surface, non-trivial business logic in allocation, and 42 stories that need grouping into buildable increments. The Construction phase runs its per-unit loop over whatever units this stage produces, so skipping it would force all 42 stories through a single undifferentiated Code Generation pass.
+  - **Rationale**: Four criteria met — new data models, a new API surface, non-trivial business logic in allocation, and 43 stories that need grouping into buildable increments. The Construction phase runs its per-unit loop over whatever units this stage produces, so skipping it would force all 43 stories through a single undifferentiated Code Generation pass.
   - **Revision R1 constraint**: **target 2 units, hard cap 3.** Units will be drawn along the coarsest defensible seam rather than along the seven feature areas. The most likely split is (a) a core unit carrying the domain — members, projects, assignments, allocation computation, views — and (b) a supporting unit carrying access control, authentication, reference-data administration, and import. If Units Generation cannot produce a coherent 2-unit split, it will produce 3 and state why. It will not produce more than 3 without returning to you first.
 
 ### 🟢 CONSTRUCTION PHASE
@@ -275,7 +275,7 @@ replaces the current allocation spreadsheet.
 
 1. Running web application — React frontend, Node.js/TypeScript API, relational database, containerized for on-premises deployment
 2. Slice 1 demonstrable end-to-end: sign in → create member → create project → assign with percentage and date range → view resulting allocation
-3. All 33 Must-priority stories implemented
+3. All 35 Must-priority stories implemented
 4. Over-allocation detection with visible, overridable warnings
 5. Current-state allocation view and forward-looking availability view with skill, role, org-unit, and employment-type filters
 6. CSV/Excel import for members and projects with row-level error and duplicate-conflict reporting
@@ -288,7 +288,7 @@ replaces the current allocation spreadsheet.
 | Gate | Criterion |
 |---|---|
 | Every approval gate | Stage artifacts reviewed and explicitly approved before the next stage begins |
-| Requirement coverage | All 44 Must-priority functional requirements traceable to implemented stories |
+| Requirement coverage | All 49 Must-priority functional requirements traceable to implemented stories |
 | Slice 1 | Independently demonstrable before breadth work begins (DA-01) |
 | Allocation correctness | Summation across overlapping date ranges, partial-period over-allocation, and as-of-date queries verified against the Given/When/Then criteria in `stories.md` |
 | Access control | Org-scope enforcement verified server-side, not only in the UI (US-ENB-01) |

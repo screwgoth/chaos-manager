@@ -175,3 +175,27 @@
 **Context**: INCEPTION Phase, Units Generation — Part 1 Step 9 approval gate
 
 ---
+
+## Units Generation — Part 1 APPROVED; Commit; Part 2 Generation Executed
+**Timestamp**: 2026-07-25T11:15:00Z
+**User Input**: "Commit all the existing generated file and then proceed to generation"
+**AI Response**: "Part 1 plan APPROVED. Committed all AI-DLC documentation artifacts to branch aidlc/inception-requirements as commit 3fd3b8a (user stories, personas, story generation plan, user stories assessment, execution plan with revisions R1 and R2, application design plan and clarifications, five application design artifacts, unit of work plan, plus updates to aidlc-state.md, audit.md, and requirements.md). Left .claude/settings.json uncommitted and informed the user — it is a locally generated permission allowlist from this session's tool approvals, not an AI-DLC artifact.
+
+CORRECTIONS TO PREVIOUSLY APPROVED ARTIFACTS: before mapping stories to units, re-derived all counts programmatically and found arithmetic errors in figures I had previously stated. Story headings in stories.md number 43, not 42; priority tags number 35 Must and 8 Should, not 33 and 9; requirements.md contains 59 FR rows (49 Must, 9 Should, 1 N/A), not 55; and the Must-priority FR coverage figure is 49, not 44. No requirement or story content was added, removed, or altered — only the stated totals were wrong. Corrected the figures across stories.md, aidlc-state.md, execution-plan.md, user-stories-assessment.md, application-design.md, application-design-plan.md, and unit-of-work-plan.md, and recorded the correction table in unit-of-work.md. Coverage remains complete: all 49 Must-priority FRs map to stories; 8 of 9 Should-priority FRs are covered, the exception being FR-C-05 which is a structural design constraint carried to Functional Design.
+
+CORRECTIONS TO APPLICATION DESIGN: assigning every component and story to exactly one unit surfaced two internal inconsistencies in my own Application Design artifacts. Correction 1 — F-06 admin frontend was assigned to Unit 2 while its backend counterparts C-05 OrgUnit, C-06 ReferenceData, S-07 and S-08 were all in Unit 1; leaving it in Unit 2 would have split stories US-ADM-01, US-ADM-02, and US-ADM-03 across both units, violating both the full-stack-unit property established at CQ1:A and the requirement that each story be assigned exactly once. F-06 moved to Unit 1. Correction 2 — Application Design stated Unit 2 carries US-ENB-03 and US-ENB-04 completion, but both are properties created when Unit 1 is built (the C-07/C-08 separation and the layering invariant respectively); assigning them to Unit 2 would leave them unowned during Unit 1. Both moved to Unit 1, with Unit 2 obliged to uphold rather than own them. Neither correction changes the unit count, the seam, or the Slice 1 contents.
+
+PART 2 GENERATION: created three artifacts in aidlc-docs/inception/application-design/. (1) unit-of-work.md — decomposition approach, full definitions of both units including scope by layer, database entities owned, published and consumed interfaces, story counts, independent-demonstrability assessment, and the R2 folded-in NFR obligations assigned to each unit's Functional Design; the complete on-disk code organization strategy as an ASCII tree with rationale; both correction tables; and an 11-row validation table. (2) unit-of-work-dependency.md — unit dependency matrix with explicit acyclicity reasoning showing the apparent two-way relationship is not a cycle because the interface lives in the shared module; Mermaid diagram plus mandatory text alternative; three cross-unit dependencies documented in detail (X-1 authorization stand-in with its consequence stated plainly and a documented revisit trigger, X-2 import forward dependency, X-3 shared database schema); build sequence with the 9-stage-execution count; wave-order-versus-unit-order reconciliation identifying Wave 5 RBAC as the one material divergence; within-unit ordering for both units including hard ordering constraints; interface contract table; and a risk table. (3) unit-of-work-story-map.md — all 43 stories assigned by feature area with priority and Slice 1 flags, assignment notes for the corrected stories, Slice 1 verification confirming it does not straddle the seam, wave-to-unit mapping, requirement coverage by unit, and a validation table.
+
+VERIFICATION: programmatically confirmed the story map contains 30 Unit 1 rows plus 13 Unit 2 rows equals 43, with 43 distinct story IDs matching exactly the 43 story headings in stories.md and no story missing or duplicated. Marked all 40 plan checkboxes [x]. Updated aidlc-state.md with a Units of Work table, per-unit Construction stage tracking for both units, the X-1 revisit trigger, and the artifact index."
+**Context**: INCEPTION Phase, Units Generation — Part 2 Generation complete
+
+---
+
+## Units Generation — Completion Approval Prompt
+**Timestamp**: 2026-07-25T11:20:00Z
+**User Input**: "(pending — approval prompt being presented)"
+**AI Response**: "Presenting Units Generation completion message. Disclosing to the user: the count corrections to previously approved artifacts, the two Application Design corrections, and the X-1 consequence with its revisit trigger. Next stage if approved: CONSTRUCTION PHASE, Unit 1 core-domain Functional Design. Awaiting explicit approval."
+**Context**: INCEPTION Phase, Units Generation — Step 16/17 approval gate
+
+---

@@ -619,11 +619,11 @@ basic session role resolution, and all validation stories. Those broaden the sli
 
 | Priority | Count | Stories |
 |---|---|---|
-| **Must** | 33 | US-ACC-01, 02, 03, 05 · US-MEM-01, 02, 03, 04, 05, 07 · US-PRJ-01, 02, 03, 04, 05 · US-ASN-01, 02, 03, 05, 06, 07 · US-VIS-01, 02, 03, 04 · US-IMP-01, 02, 03, 04 · US-ADM-01, 02, 03 · US-ENB-01, 02, 03 |
-| **Should** | 9 | US-ACC-04 · US-MEM-06 · US-ASN-04 · US-VIS-05, 06, 07 · US-IMP-05 · US-ENB-04 |
+| **Must** | 35 | US-ACC-01, 02, 03, 05 · US-MEM-01, 02, 03, 04, 05, 07 · US-PRJ-01, 02, 03, 04, 05 · US-ASN-01, 02, 03, 05, 06, 07 · US-VIS-01, 02, 03, 04 · US-IMP-01, 02, 03, 04 · US-ADM-01, 02, 03 · US-ENB-01, 02, 03 |
+| **Should** | 8 | US-ACC-04 · US-MEM-06 · US-ASN-04 · US-VIS-05, 06, 07 · US-IMP-05 · US-ENB-04 |
 | **Could** | 0 | — |
 
-**Total**: 42 stories. No Could-priority stories exist, because Phase 1 scope was already narrowed
+**Total**: 43 stories. No Could-priority stories exist, because Phase 1 scope was already narrowed
 during Requirements Analysis — everything discretionary was deferred to a later phase rather than
 carried as a low priority here.
 
@@ -716,7 +716,7 @@ Every **Must**-priority functional requirement maps to at least one story.
 | FR-I-03 | Should | US-IMP-05 |
 | FR-I-04 | Must | US-IMP-04 |
 
-**Coverage result**: all 44 Must-priority functional requirements are covered. Of the Should-priority
+**Coverage result**: all 49 Must-priority functional requirements are covered. Of the Should-priority
 requirements, all are covered except **FR-C-05** (data model must permit custom fields in Phase 2),
 which is a structural design constraint rather than a user-facing capability and therefore carries no
 story; it is carried forward to Functional Design.

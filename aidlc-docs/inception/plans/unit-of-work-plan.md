@@ -3,7 +3,7 @@
 **Project**: C.H.A.O.S (chaos-manager)
 **Stage**: INCEPTION → Units Generation (Part 1: Planning)
 **Date**: 2026-07-25
-**Status**: All 8 answers received 2026-07-25T11:05:00Z — Step 7 analysis found no ambiguities or contradictions. Awaiting approval to proceed to Part 2 Generation.
+**Status**: All 8 answers received 2026-07-25T11:05:00Z — Step 7 analysis found no ambiguities or contradictions. Part 1 APPROVED 2026-07-25T11:15:00Z. Part 2 Generation COMPLETE — all checklist steps [x].
 
 ## Resolved Decomposition Decisions
 
@@ -168,59 +168,59 @@ you say otherwise.
 
 Required regardless of answers above.
 
-- [ ] Generate `aidlc-docs/inception/application-design/unit-of-work.md` with unit definitions and responsibilities
-- [ ] Generate `aidlc-docs/inception/application-design/unit-of-work-dependency.md` with dependency matrix
-- [ ] Generate `aidlc-docs/inception/application-design/unit-of-work-story-map.md` mapping stories to units
-- [ ] Document code organization strategy in `unit-of-work.md` (greenfield — see `code-generation.md` structure patterns)
-- [ ] Validate unit boundaries and dependencies
-- [ ] Ensure all stories are assigned to units
+- [x] Generate `aidlc-docs/inception/application-design/unit-of-work.md` with unit definitions and responsibilities
+- [x] Generate `aidlc-docs/inception/application-design/unit-of-work-dependency.md` with dependency matrix
+- [x] Generate `aidlc-docs/inception/application-design/unit-of-work-story-map.md` mapping stories to units
+- [x] Document code organization strategy in `unit-of-work.md` (greenfield — see `code-generation.md` structure patterns)
+- [x] Validate unit boundaries and dependencies
+- [x] Ensure all stories are assigned to units
 
 ---
 
 # Section C — Generation Execution Checklist
 
 ## C.1 — Preparation
-- [ ] Re-read `application-design/components.md` and `component-dependency.md` §5 for the established seam
-- [ ] Re-read `stories.md` §9 for the Slice 1 set, MoSCoW priorities, and the 9-wave sequence
-- [ ] Confirm the answers from Section A and restate the decomposition decisions
+- [x] Re-read `application-design/components.md` and `component-dependency.md` §5 for the established seam
+- [x] Re-read `stories.md` §9 for the Slice 1 set, MoSCoW priorities, and the 9-wave sequence
+- [x] Confirm the answers from Section A and restate the decomposition decisions
 
 ## C.2 — Unit definitions
-- [ ] Define each unit: name, purpose, scope, and responsibilities
-- [ ] Assign every component (C-01 to C-12) and frontend feature folder (F-01 to F-08) to exactly one unit
-- [ ] Assign every service (S-01 to S-09) to exactly one unit
-- [ ] Record which database entities each unit owns
-- [ ] Record each unit's expected interfaces and contracts
-- [ ] Document the code organization strategy on disk per the Q3 and Q4 answers
-- [ ] Write `unit-of-work.md`
+- [x] Define each unit: name, purpose, scope, and responsibilities
+- [x] Assign every component (C-01 to C-12) and frontend feature folder (F-01 to F-08) to exactly one unit
+- [x] Assign every service (S-01 to S-09) to exactly one unit
+- [x] Record which database entities each unit owns
+- [x] Record each unit's expected interfaces and contracts
+- [x] Document the code organization strategy on disk per the Q3 and Q4 answers
+- [x] Write `unit-of-work.md`
 
 ## C.3 — Dependencies
-- [ ] Build the unit dependency matrix
-- [ ] Document each cross-unit dependency, its direction, and how it is satisfied
-- [ ] Document the X-1 authorization stand-in resolution per the Q6 answer, including its consequence
-- [ ] Document the X-2 import dependency
-- [ ] Verify no circular dependencies between units
-- [ ] Determine and record the build sequence per the Q5 answer
-- [ ] Write `unit-of-work-dependency.md`
+- [x] Build the unit dependency matrix
+- [x] Document each cross-unit dependency, its direction, and how it is satisfied
+- [x] Document the X-1 authorization stand-in resolution per the Q6 answer, including its consequence
+- [x] Document the X-2 import dependency
+- [x] Verify no circular dependencies between units
+- [x] Determine and record the build sequence per the Q5 answer
+- [x] Write `unit-of-work-dependency.md`
 
 ## C.4 — Story mapping
-- [ ] Assign all 42 stories to units
-- [ ] Verify every story is assigned exactly once, with no story unassigned and none duplicated
-- [ ] Confirm the Slice 1 set (US-ACC-01, US-ENB-02, US-MEM-01, US-PRJ-01, US-ASN-01, US-VIS-01) falls within a single unit
-- [ ] Record per-unit story counts by MoSCoW priority
-- [ ] Map the 9-wave build sequence onto the units and note where wave order and unit order diverge
-- [ ] Write `unit-of-work-story-map.md`
+- [x] Assign all 43 stories to units
+- [x] Verify every story is assigned exactly once, with no story unassigned and none duplicated
+- [x] Confirm the Slice 1 set (US-ACC-01, US-ENB-02, US-MEM-01, US-PRJ-01, US-ASN-01, US-VIS-01) falls within a single unit
+- [x] Record per-unit story counts by MoSCoW priority
+- [x] Map the 9-wave build sequence onto the units and note where wave order and unit order diverge
+- [x] Write `unit-of-work-story-map.md`
 
 ## C.5 — Validation
-- [ ] Verify unit count is within the R1 cap of 3
-- [ ] Verify every Must-priority functional requirement is covered by an assigned story
-- [ ] Verify each unit is independently buildable given its declared dependencies
-- [ ] Verify each unit is independently demonstrable, or state explicitly why it is not
-- [ ] Verify unit names are domain-neutral per FR-C-01
-- [ ] Confirm the six R2 folded-in NFR obligations are assigned to the unit whose Functional Design will address them
+- [x] Verify unit count is within the R1 cap of 3
+- [x] Verify every Must-priority functional requirement is covered by an assigned story
+- [x] Verify each unit is independently buildable given its declared dependencies
+- [x] Verify each unit is independently demonstrable, or state explicitly why it is not
+- [x] Verify unit names are domain-neutral per FR-C-01
+- [x] Confirm the six R2 folded-in NFR obligations are assigned to the unit whose Functional Design will address them
 
 ## C.6 — Completion
-- [ ] Validate all content per `common/content-validation.md` before file creation
-- [ ] Mark all checkboxes in this plan `[x]`
-- [ ] Update `aidlc-docs/aidlc-state.md` with the unit list and per-unit Construction stage tracking
-- [ ] Log completion and approval prompt in `aidlc-docs/audit.md`
-- [ ] Present the completion message and await approval
+- [x] Validate all content per `common/content-validation.md` before file creation
+- [x] Mark all checkboxes in this plan `[x]`
+- [x] Update `aidlc-docs/aidlc-state.md` with the unit list and per-unit Construction stage tracking
+- [x] Log completion and approval prompt in `aidlc-docs/audit.md`
+- [x] Present the completion message and await approval
