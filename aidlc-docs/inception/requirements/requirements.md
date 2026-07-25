@@ -284,7 +284,7 @@ A manager can answer **"who is available next month?"** in under a minute.
 
 | ID | Assumption |
 |---|---|
-| AS-01 | Allocation percentages are integers or simple decimals; 100% represents a member's full working capacity. Part-time employees are represented by a capacity attribute rather than by inflating percentages. **To be confirmed at Functional Design.** |
+| AS-01 | Allocation percentages are integers or simple decimals; 100% represents a member's full working capacity. **RESOLVED 2026-07-25 (story-generation-plan.md Q10:B): all members are assumed to have 100% capacity in Phase 1. Part-time and fractional-capacity members are NOT modeled** — a person working 60% of a full week appears as fully available at 100% and may be booked to 100%. Explicit member capacity is deferred to a later phase. |
 | AS-02 | Over-allocation is a warning with override rather than a hard block (FR-A-06), on the grounds that real staffing situations legitimately exceed 100% temporarily. |
 | AS-03 | Assignment date ranges are inclusive of both start and end date. |
 | AS-04 | "Availability next month" means unallocated capacity percentage over a date range, not a binary free/busy flag. |
@@ -298,7 +298,7 @@ A manager can answer **"who is available next month?"** in under a minute.
 | OD-01 | Database technology (PostgreSQL, MySQL, SQLite, or other). Relational is strongly implied by date-ranged allocation queries and referential integrity needs, but not yet selected. | NFR Requirements stage |
 | OD-02 | Whether allocation history is modeled as date-ranged assignment rows only, or as assignment rows plus a separate history table. | Functional Design stage |
 | OD-03 | Node.js API framework selection and React application tooling. | NFR Requirements stage |
-| OD-04 | Whether member capacity is modeled explicitly (to support part-time members) or assumed uniformly 100%. Relates to AS-01. | Functional Design stage |
+| OD-04 | ~~Whether member capacity is modeled explicitly (to support part-time members) or assumed uniformly 100%.~~ **CLOSED 2026-07-25** — uniform 100% capacity; part-time members not modeled in Phase 1. See AS-01. | Closed at User Stories planning |
 
 ---
 
