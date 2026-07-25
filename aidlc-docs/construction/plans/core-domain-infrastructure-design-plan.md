@@ -148,52 +148,52 @@ D) Other (please describe after [Answer]: tag below)
 
 # Section B — Mandatory Artifacts
 
-- [ ] Generate `aidlc-docs/construction/core-domain/infrastructure-design/infrastructure-design.md`
-- [ ] Generate `aidlc-docs/construction/core-domain/infrastructure-design/deployment-architecture.md`
-- [ ] Generate `aidlc-docs/construction/shared-infrastructure.md` (both units share one deployable)
+- [x] Generate `aidlc-docs/construction/core-domain/infrastructure-design/infrastructure-design.md`
+- [x] Generate `aidlc-docs/construction/core-domain/infrastructure-design/deployment-architecture.md`
+- [x] Generate `aidlc-docs/construction/shared-infrastructure.md` (both units share one deployable)
 
 ---
 
 # Section C — Execution Checklist
 
 ## C.1 — Preparation
-- [ ] Re-read `core-domain/nfr-requirements/*` for the confirmed stack and operability targets
-- [ ] Confirm the Section A answers and restate the decisions
+- [x] Re-read `core-domain/nfr-requirements/*` for the confirmed stack and operability targets
+- [x] Confirm the Section A answers and restate the decisions
 
 ## C.2 — Infrastructure design
-- [ ] Map each logical component to its infrastructure home (app container, database container, proxy, volume)
-- [ ] Specify container images, base images, and the multi-stage build approach
-- [ ] Specify the complete environment variable contract, marking which values are secrets
-- [ ] Specify resource limits and disk sizing
-- [ ] Specify the database volume and its persistence guarantee
-- [ ] Specify TLS termination and the resulting cookie flags
-- [ ] Specify logging destination and the health endpoint contract
-- [ ] Record the async/messaging determination with justification
-- [ ] Write `infrastructure-design.md`
+- [x] Map each logical component to its infrastructure home (app container, database container, proxy, volume)
+- [x] Specify container images, base images, and the multi-stage build approach
+- [x] Specify the complete environment variable contract, marking which values are secrets
+- [x] Specify resource limits and disk sizing
+- [x] Specify the database volume and its persistence guarantee
+- [x] Specify TLS termination and the resulting cookie flags
+- [x] Specify logging destination and the health endpoint contract
+- [x] Record the async/messaging determination with justification
+- [x] Write `infrastructure-design.md`
 
 ## C.3 — Deployment architecture
-- [ ] Produce the deployment topology diagram with a text alternative
-- [ ] Specify the Compose service definitions, dependencies, and startup order
-- [ ] Specify the migration execution point in the startup sequence
-- [ ] Specify first-time setup: schema creation, seed reference data, and the initial admin account
-- [ ] Specify the upgrade and rollback procedure
-- [ ] Specify the backup procedure per the Q6 answer
-- [ ] Write `deployment-architecture.md`
+- [x] Produce the deployment topology diagram with a text alternative
+- [x] Specify the Compose service definitions, dependencies, and startup order
+- [x] Specify the migration execution point in the startup sequence
+- [x] Specify first-time setup: schema creation, seed reference data, and the initial admin account
+- [x] Specify the upgrade and rollback procedure
+- [x] Specify the backup procedure per the Q6 answer
+- [x] Write `deployment-architecture.md`
 
 ## C.4 — Shared infrastructure
-- [ ] Record what both units share and what each owns
-- [ ] Record the schema-ownership rule and migration ordering across units
-- [ ] Record how Unit 2's arrival changes the deployment (it should not, beyond new code in the same image)
-- [ ] Write `shared-infrastructure.md`
+- [x] Record what both units share and what each owns
+- [x] Record the schema-ownership rule and migration ordering across units
+- [x] Record how Unit 2's arrival changes the deployment (it should not, beyond new code in the same image)
+- [x] Write `shared-infrastructure.md`
 
 ## C.5 — Validation and completion
-- [ ] Verify nothing requires a cloud managed service (NFR-T-04)
-- [ ] Verify the single-Node-process constraint holds (unit plan Q3:A)
-- [ ] Verify restart safety — no in-memory state whose loss corrupts data (U1-NFR-A-03)
-- [ ] Verify no secret is committed to the repository (U1-NFR-O-06)
-- [ ] Verify no credential or token can reach a log line (U1-NFR-O-04)
-- [ ] Validate all content per `common/content-validation.md`
-- [ ] Mark all checkboxes in this plan `[x]`
-- [ ] Update `aidlc-docs/aidlc-state.md`
-- [ ] Log completion and approval prompt in `aidlc-docs/audit.md`
-- [ ] Present the standardized 2-option completion message
+- [x] Verify nothing requires a cloud managed service (NFR-T-04)
+- [x] Verify the single-Node-process constraint holds (unit plan Q3:A)
+- [x] Verify restart safety — no in-memory state whose loss corrupts data (U1-NFR-A-03)
+- [x] Verify no secret is committed to the repository (U1-NFR-O-06)
+- [x] Verify no credential or token can reach a log line (U1-NFR-O-04)
+- [x] Validate all content per `common/content-validation.md`
+- [x] Mark all checkboxes in this plan `[x]`
+- [x] Update `aidlc-docs/aidlc-state.md`
+- [x] Log completion and approval prompt in `aidlc-docs/audit.md`
+- [x] Present the standardized 2-option completion message

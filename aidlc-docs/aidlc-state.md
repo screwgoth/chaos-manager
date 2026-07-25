@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Infrastructure Design (planning, awaiting answers)
+- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Infrastructure Design (complete, awaiting approval)
 
 ## Workspace State
 - **Existing Code**: No
@@ -69,7 +69,7 @@ requirements independent of the disabled security extension.
 - [x] Functional Design — APPROVED 2026-07-25T11:45:00Z (4 docs; R2 obligations 1, 2, 3, 6 discharged; OD-02 closed, FR-C-05 discharged)
 - [x] NFR Requirements — APPROVED 2026-07-25T12:12:00Z (2 docs; OD-01 and OD-03 CLOSED)
 - [ ] NFR Design — SKIPPED (R2)
-- [ ] Infrastructure Design — IN PROGRESS, awaiting answers to `construction/plans/core-domain-infrastructure-design-plan.md`
+- [x] Infrastructure Design — artifacts complete (3 docs incl. shared-infrastructure.md), AWAITING USER APPROVAL
 - [ ] Code Generation — EXECUTE
 
 ### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
@@ -104,10 +104,10 @@ Jest · Node 22 LTS + npm · TypeScript `strict` + `noUncheckedIndexedAccess` ·
 ## Current Status
 - **Lifecycle Phase**: 🟢 CONSTRUCTION
 - **Current Unit**: Unit 1 of 2 — `core-domain`
-- **Current Stage**: Infrastructure Design (Part 1 planning, awaiting answers)
-- **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅
+- **Current Stage**: Infrastructure Design complete, awaiting approval
+- **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅ · Infrastructure Design ✅ (pending approval)
 - **Next Stage**: Code Generation for `core-domain`, then the full loop for `supporting-platform`
-- **Status**: Awaiting answers to `construction/plans/core-domain-infrastructure-design-plan.md`
+- **Status**: Awaiting approval of infrastructure design; Code Generation is the last stage for this unit
 
 ## Artifact Index
 | Artifact | Path |
@@ -142,3 +142,6 @@ Jest · Node 22 LTS + npm · TypeScript `strict` + `noUncheckedIndexedAccess` ·
 | `core-domain` NFR requirements | `aidlc-docs/construction/core-domain/nfr-requirements/nfr-requirements.md` |
 | `core-domain` tech stack decisions | `aidlc-docs/construction/core-domain/nfr-requirements/tech-stack-decisions.md` |
 | `core-domain` infra design plan | `aidlc-docs/construction/plans/core-domain-infrastructure-design-plan.md` |
+| `core-domain` infrastructure design | `aidlc-docs/construction/core-domain/infrastructure-design/infrastructure-design.md` |
+| `core-domain` deployment architecture | `aidlc-docs/construction/core-domain/infrastructure-design/deployment-architecture.md` |
+| Shared infrastructure (both units) | `aidlc-docs/construction/shared-infrastructure.md` |
