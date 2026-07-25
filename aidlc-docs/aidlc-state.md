@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Infrastructure Design (complete, awaiting approval)
+- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Code Generation (Part 1 plan complete, awaiting approval)
 
 ## Workspace State
 - **Existing Code**: No
@@ -69,8 +69,8 @@ requirements independent of the disabled security extension.
 - [x] Functional Design — APPROVED 2026-07-25T11:45:00Z (4 docs; R2 obligations 1, 2, 3, 6 discharged; OD-02 closed, FR-C-05 discharged)
 - [x] NFR Requirements — APPROVED 2026-07-25T12:12:00Z (2 docs; OD-01 and OD-03 CLOSED)
 - [ ] NFR Design — SKIPPED (R2)
-- [x] Infrastructure Design — artifacts complete (3 docs incl. shared-infrastructure.md), AWAITING USER APPROVAL
-- [ ] Code Generation — EXECUTE
+- [x] Infrastructure Design — APPROVED 2026-07-25T12:35:00Z (3 docs incl. shared-infrastructure.md)
+- [ ] Code Generation — Part 1 plan complete (26 steps), AWAITING PLAN APPROVAL before any code is written
 
 ### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
 - [ ] Functional Design — EXECUTE (+ R2 folded-in obligations 4, 5)
@@ -104,10 +104,10 @@ Jest · Node 22 LTS + npm · TypeScript `strict` + `noUncheckedIndexedAccess` ·
 ## Current Status
 - **Lifecycle Phase**: 🟢 CONSTRUCTION
 - **Current Unit**: Unit 1 of 2 — `core-domain`
-- **Current Stage**: Infrastructure Design complete, awaiting approval
-- **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅ · Infrastructure Design ✅ (pending approval)
+- **Current Stage**: Code Generation Part 1 (planning) complete, awaiting plan approval
+- **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅ · Infrastructure Design ✅
 - **Next Stage**: Code Generation for `core-domain`, then the full loop for `supporting-platform`
-- **Status**: Awaiting approval of infrastructure design; Code Generation is the last stage for this unit
+- **Status**: Awaiting approval of the code generation plan. **No application code exists yet.**
 
 ## Artifact Index
 | Artifact | Path |
@@ -145,3 +145,4 @@ Jest · Node 22 LTS + npm · TypeScript `strict` + `noUncheckedIndexedAccess` ·
 | `core-domain` infrastructure design | `aidlc-docs/construction/core-domain/infrastructure-design/infrastructure-design.md` |
 | `core-domain` deployment architecture | `aidlc-docs/construction/core-domain/infrastructure-design/deployment-architecture.md` |
 | Shared infrastructure (both units) | `aidlc-docs/construction/shared-infrastructure.md` |
+| `core-domain` code generation plan | `aidlc-docs/construction/plans/core-domain-code-generation-plan.md` |
