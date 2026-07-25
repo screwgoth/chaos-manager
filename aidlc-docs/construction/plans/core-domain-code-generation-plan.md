@@ -3,7 +3,8 @@
 **Project**: C.H.A.O.S (chaos-manager)
 **Phase**: 🟢 CONSTRUCTION · **Unit**: `core-domain` (1 of 2) · **Stage**: Code Generation (Part 1: Planning)
 **Date**: 2026-07-25
-**Status**: Awaiting approval — no code written until this plan is approved
+**Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 IN PROGRESS — Steps 1-3 complete, Step 4 next.
+**Branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
 
 > **This plan is the single source of truth for Code Generation.** Part 2 executes exactly these steps in
 > this order and marks each `[x]` on completion. No step is added, skipped, or reordered during execution
@@ -66,32 +67,32 @@ chaos-manager/                        <- workspace root, application code here
 ## 2. Generation Steps
 
 ### Step 1 — Project Structure Setup
-- [ ] Create `backend/` and `frontend/` workspaces with `package.json` each (Node 22, npm)
-- [ ] `tsconfig.json` in both: `strict: true`, `noUncheckedIndexedAccess: true`
-- [ ] `frontend/vite.config.ts` with `/api` dev proxy to `localhost:3000`
-- [ ] `frontend/tailwind.config.js`, `postcss.config.js`, base stylesheet
-- [ ] `jest.config.js` in both workspaces (ts-jest; jsdom for frontend)
-- [ ] `.gitignore` — `node_modules`, `dist`, `.env`, coverage
-- [ ] `.env.example` with all 15 variables from the infrastructure config contract, **no real secrets**
-- [ ] ESLint + Prettier configuration in both workspaces
+- [x] Create `backend/` and `frontend/` workspaces with `package.json` each (Node 22, npm)
+- [x] `tsconfig.json` in both: `strict: true`, `noUncheckedIndexedAccess: true`
+- [x] `frontend/vite.config.ts` with `/api` dev proxy to `localhost:3000`
+- [x] `frontend/tailwind.config.js`, `postcss.config.js`, base stylesheet
+- [x] `jest.config.js` in both workspaces (ts-jest; jsdom for frontend)
+- [x] `.gitignore` — `node_modules`, `dist`, `.env`, coverage
+- [x] `.env.example` with all 15 variables from the infrastructure config contract, **no real secrets**
+- [x] ESLint + Prettier configuration in both workspaces
 
 ### Step 2 — Shared Foundations (`backend/src/shared/`)
-- [ ] `types/` — all shared types from `component-methods.md`: ids, `DateRange`, `Percentage`, `EmploymentType`, `UserRole`, `AccessScope`, `ScopeFilter`, `Page<T>`
-- [ ] `types/authorization.ts` — **the complete, final `IAuthorizationComponent` interface** (X-1: must not be widened by Unit 2)
-- [ ] `types/components.ts` — `IMemberComponent`, `IProjectComponent`, `IOrgUnitComponent`, `IReferenceDataComponent` interfaces published to Unit 2
-- [ ] `util/tenths.ts` — **integer-tenths percentage arithmetic** (BR-A-03): parse, format, add, compare. No floating point.
-- [ ] `util/dates.ts` — **date-only UTC convention** (AS-03): parse `YYYY-MM-DD`, `addDays`, inclusive-range overlap, `nextDay`. No local-time construction.
-- [ ] `errors/` — `ValidationError` carrying the `violations` array (Q12:A), `NotFoundError`, `ForbiddenError`, `ConflictError`
-- [ ] `config/` — env loading with **fail-fast validation naming every missing variable** (U1-NFR-O-03), secret redaction helper
-- [ ] `repository/` — Kysely instance, transaction helper, scope-filter application helper
+- [x] `types/` — all shared types from `component-methods.md`: ids, `DateRange`, `Percentage`, `EmploymentType`, `UserRole`, `AccessScope`, `ScopeFilter`, `Page<T>`
+- [x] `types/authorization.ts` — **the complete, final `IAuthorizationComponent` interface** (X-1: must not be widened by Unit 2)
+- [x] `types/components.ts` — `IMemberComponent`, `IProjectComponent`, `IOrgUnitComponent`, `IReferenceDataComponent` interfaces published to Unit 2
+- [x] `util/tenths.ts` — **integer-tenths percentage arithmetic** (BR-A-03): parse, format, add, compare. No floating point.
+- [x] `util/dates.ts` — **date-only UTC convention** (AS-03): parse `YYYY-MM-DD`, `addDays`, inclusive-range overlap, `nextDay`. No local-time construction.
+- [x] `errors/` — `ValidationError` carrying the `violations` array (Q12:A), `NotFoundError`, `ForbiddenError`, `ConflictError`
+- [x] `config/` — env loading with **fail-fast validation naming every missing variable** (U1-NFR-O-03), secret redaction helper
+- [x] `repository/` — Kysely instance, transaction helper, scope-filter application helper
 
 ### Step 3 — Database Migration Scripts (`backend/migrations/`)
-- [ ] `001_initial_schema` — all nine tables per `domain-entities.md`
-- [ ] Constraints: FKs; unique on `member.email`, `member.external_ref`, `project.code`, `(reference_type, lower(name))`, `session.token_hash`, `user_account.username`, `user_account.linked_member_id`
-- [ ] Check constraints: `allocation_tenths BETWEEN 1 AND 1000`; `end_date >= start_date`; two-level org unit rule
-- [ ] Indexes per `domain-entities.md` §12 — including **`(member_id, start_date, end_date)`**, the most important one
-- [ ] `attributes jsonb` on `member` and `project` — **reserved, unused in Phase 1** (BR-C-09)
-- [ ] `assignment_history` with `recorded_at`, `superseded_at`, snapshot columns (Q1:B)
+- [x] `001_initial_schema` — all nine tables per `domain-entities.md`
+- [x] Constraints: FKs; unique on `member.email`, `member.external_ref`, `project.code`, `(reference_type, lower(name))`, `session.token_hash`, `user_account.username`, `user_account.linked_member_id`
+- [x] Check constraints: `allocation_tenths BETWEEN 1 AND 1000`; `end_date >= start_date`; two-level org unit rule
+- [x] Indexes per `domain-entities.md` §12 — including **`(member_id, start_date, end_date)`**, the most important one
+- [x] `attributes jsonb` on `member` and `project` — **reserved, unused in Phase 1** (BR-C-09)
+- [x] `assignment_history` with `recorded_at`, `superseded_at`, snapshot columns (Q1:B)
 
 ### Step 4 — Repository Layer Generation
 - [ ] `MemberRepository`, `ProjectRepository`, `AssignmentRepository`, `OrgUnitRepository`, `ReferenceDataRepository`, `UserAccountRepository`, `SessionRepository`, `AssignmentHistoryRepository`
@@ -144,7 +145,7 @@ chaos-manager/                        <- workspace root, application code here
 - [ ] **Allocation: the worked example from `business-logic-model.md` §1** as an executable test
 - [ ] Inclusive-boundary cases: 31 Mar/1 Apr (no overlap) vs 31 Mar/31 Mar (overlap)
 - [ ] Over-allocation sub-period identification; override flag from detection not user input
-- [ ] Exact tenths arithmetic: 33.3 + 33.3 + 33.4 == 100.0
+- [ ] Exact tenths arithmetic: order-independent summation (float `33.4 + 33.3 + 33.3` drifts to 99.99999999999999)
 - [ ] As-of reconstruction: the 50%→80% May-edit case returning 50% for March
 - [ ] Auto-end cascade counts
 - [ ] Argon2id: same password ⇒ different hashes; no plaintext anywhere

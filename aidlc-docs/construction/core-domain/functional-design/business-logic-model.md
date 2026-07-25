@@ -40,8 +40,14 @@ All percentages are handled as **integer tenths** (`50.0% → 500`, capacity `10
 floating-point arithmetic appears anywhere in allocation logic. Conversion to decimal happens only at
 the presentation boundary.
 
-*Rationale*: with Q3:C permitting one decimal place, float summation would make three assignments of
-33.3, 33.3 and 33.4 unreliable against a 100.0 threshold. Integer tenths make every comparison exact.
+*Rationale*: with Q3:C permitting one decimal place, float summation is **order-dependent**. The same
+three assignments summed in different orders give `33.3 + 33.3 + 33.4 === 100` but
+`33.4 + 33.3 + 33.3 === 99.99999999999999`. An exact comparison against the 100.0% threshold would
+therefore depend on the order rows came back from the database. Integer tenths make every sum exact.
+
+*(Correction: an earlier draft of this document claimed `33.3 + 33.3 + 33.4` was itself unreliable. It is
+not — that particular sum is exact. The real hazard is order-dependence, verified in
+`backend/tests/core-domain/tenths.test.ts`.)*
 
 ### Algorithm
 

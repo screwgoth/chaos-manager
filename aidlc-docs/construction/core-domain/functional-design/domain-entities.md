@@ -167,8 +167,9 @@ The core of the domain. A member's time-bounded, percentage-based commitment to 
 
 `allocationPercentage` is **fixed-point, never floating-point**. It is stored and computed as an
 **integer number of tenths** internally (`50.0% → 500`), converted for display only. Summation of
-percentages is therefore exact — a float representation would make `33.3 + 33.3 + 33.4 = 100.0` unreliable,
-and over-allocation detection compares against exactly `1000` tenths.
+percentages is therefore exact. A float representation is **order-dependent**:
+`33.3 + 33.3 + 33.4 === 100` but `33.4 + 33.3 + 33.3 === 99.99999999999999`, so a comparison against the
+threshold would depend on row order. Over-allocation detection compares against exactly `1000` tenths.
 
 ### Multiple assignments to one project
 
