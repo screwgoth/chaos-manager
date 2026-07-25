@@ -3,7 +3,10 @@
 **Project**: C.H.A.O.S (chaos-manager)
 **Phase**: 🟢 CONSTRUCTION · **Unit**: `core-domain` (1 of 2) · **Stage**: Code Generation (Part 1: Planning)
 **Date**: 2026-07-25
-**Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 IN PROGRESS — Steps 1-3 complete, Step 4 next.
+**Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 PAUSED at user request 2026-07-25T21:34:00Z.
+Branch `aidlc/construction-core-domain`. Steps 1-3 complete and verified. Step 4 PARTIAL (7 of 8 repositories).
+**Resume at**: `SessionRepository` in `backend/src/shared/repository/session-repository.ts`, then `repository/index.ts` barrel, then Step 5 (repository unit tests).
+**Verification at pause**: `npx tsc --noEmit` clean; `npx jest` 27/27 passing, 2 suites. No unverified claims outstanding.
 **Branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
 
 > **This plan is the single source of truth for Code Generation.** Part 2 executes exactly these steps in
@@ -95,11 +98,21 @@ chaos-manager/                        <- workspace root, application code here
 - [x] `assignment_history` with `recorded_at`, `superseded_at`, snapshot columns (Q1:B)
 
 ### Step 4 — Repository Layer Generation
+**PARTIAL — paused at user request 2026-07-25T21:34:00Z. 7 of 8 repositories done; `SessionRepository` NOT started.**
 - [ ] `MemberRepository`, `ProjectRepository`, `AssignmentRepository`, `OrgUnitRepository`, `ReferenceDataRepository`, `UserAccountRepository`, `SessionRepository`, `AssignmentHistoryRepository`
-- [ ] **`findOverlapping(memberIds[], range)` — one batched query for all members** (R2-1 rule 2; the N+1 prohibition)
-- [ ] Scope filters applied **inside** queries, never post-fetch (FR-R-08)
-- [ ] `SELECT … FOR UPDATE` member lock helper (BR-A-24)
-- [ ] All parameters bound — no string-concatenated SQL, including hand-written allocation SQL (U1-NFR-SE-06)
+  - [x] `OrgUnitRepository` — subtree resolution in one self-join, reference counting (BR-O-05)
+  - [x] `ReferenceDataRepository` — generic over ROLE/SKILL/PROJECT_TYPE, no delete method (BR-C-05)
+  - [x] `MemberRepository` — scope + filters as typed predicate factories, batched skill fetch
+  - [x] `ProjectRepository`
+  - [x] `AssignmentRepository`
+  - [x] `AssignmentHistoryRepository` — append-with-supersede (BR-A-17), `findAsOf` (BR-A-22 Path B)
+  - [x] `UserAccountRepository` — password hash confined to one method
+  - [ ] `SessionRepository` — **NEXT STEP ON RESUME**
+- [x] **`findOverlapping(memberIds[], range)` — one batched query for all members** (R2-1 rule 2; the N+1 prohibition) — `assignment-repository.ts`, with `excludeAssignmentId` for the edit case (BR-A-09)
+- [x] Scope filters applied **inside** queries, never post-fetch (FR-R-08) — `scopePredicates()` in each repository; empty permitted-org list yields `eb.lit(false)`, never an absent filter
+- [x] `SELECT … FOR UPDATE` member lock helper (BR-A-24) — pre-existing in `db.ts` (Step 3)
+- [x] All parameters bound — no string-concatenated SQL (U1-NFR-SE-06) — `ilike` patterns wrapped in the bound value, not in SQL text
+- [x] Supporting files not in the original plan text: `pg-errors.ts` (constraint → `ConflictError`), `mappers.ts` (row → domain, hash/token omitted)
 
 ### Step 5 — Repository Layer Unit Tests
 - [ ] Overlap query boundary cases: adjacent vs overlapping-by-one-day ranges

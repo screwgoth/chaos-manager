@@ -104,10 +104,14 @@ Jest · Node 22 LTS + npm · TypeScript `strict` + `noUncheckedIndexedAccess` ·
 ## Current Status
 - **Lifecycle Phase**: 🟢 CONSTRUCTION
 - **Current Unit**: Unit 1 of 2 — `core-domain`
-- **Current Stage**: Code Generation Part 1 (planning) complete, awaiting plan approval
-- **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅ · Infrastructure Design ✅
-- **Next Stage**: Code Generation for `core-domain`, then the full loop for `supporting-platform`
-- **Status**: Awaiting approval of the code generation plan. **No application code exists yet.**
+- **Current Stage**: Code Generation Part 2 (generation) — **PAUSED at user request 2026-07-25T21:34:00Z**
+- **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅ · Infrastructure Design ✅ · Code Generation Part 1 (plan approved) ✅
+- **Working branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
+- **Code progress**: Steps 1-3 of 26 complete and verified · Step 4 PARTIAL (7 of 8 repositories)
+- **Resume at**: `SessionRepository` (`backend/src/shared/repository/session-repository.ts`), then the `repository/index.ts` barrel, then Step 5 (repository unit tests). See `aidlc-docs/construction/plans/core-domain-code-generation-plan.md`.
+- **Verification at pause**: `npx tsc --noEmit` clean · `npx jest` 27/27 passing (2 suites). Nothing claimed complete that was not run.
+- **Next Stage**: finish Code Generation for `core-domain`, then the full Construction loop for `supporting-platform`, then Build and Test (once, after all units)
+- **Outstanding risk carried forward**: X-1 — while `core-domain` is the only completed unit, org-scope visibility is NOT enforced (permissive authorization stand-in). Acceptable only under the single-track, no-external-users assumption; revisit when Unit 2 lands.
 
 ## Artifact Index
 | Artifact | Path |

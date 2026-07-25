@@ -20,7 +20,13 @@ import type {
 /** SQL `date` — read as a 'YYYY-MM-DD' string, never as a JS Date instant.
  *  pg is configured to return date columns as strings (see db.ts). */
 type SqlDate = ColumnType<string, string, string>;
-type Timestamp = ColumnType<Date, Date | string, Date | string>;
+/** SQL `timestamptz` — a real instant, unlike SqlDate above.
+ *
+ *  Deliberately a plain `Date` and NOT a ColumnType: wrapping it as
+ *  `Generated<ColumnType<...>>` nests one ColumnType inside another, which defeats
+ *  Kysely's select/insert/update type extraction and made every timestamp write fail
+ *  to typecheck. Writes pass a Date; `Generated` already makes them optional on insert. */
+type Timestamp = Date;
 
 export interface OrgUnitTable {
   id: Generated<string>;

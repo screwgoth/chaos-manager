@@ -323,3 +323,26 @@ Section 3 of the plan discloses two things for the user to consider before appro
 **Context**: Construction phase, Code Generation Part 2 for unit `core-domain`, branch `aidlc/construction-core-domain`. Rule added before resuming Step 4 (Repository Layer Generation). Steps 1-3 of 26 complete and verified at commit 464f66d.
 
 ---
+
+## Session Checkpoint — Code Generation Part 2 paused (core-domain)
+**Timestamp**: 2026-07-25T21:34:00Z
+**User Input**: "Pause before starting work on a new file, save context for later. I will ask to resume after some time."
+**AI Response**: "Stopped before creating session-repository.ts. Fixed the outstanding TypeScript errors in the files already written rather than leaving a non-compiling tree, then verified: `npx tsc --noEmit` clean, `npx jest` 27/27 passing across 2 suites. Committed all work, marked Step 4 PARTIAL in the code generation plan with per-repository checkboxes, and recorded the resume point in both the plan and aidlc-state.md."
+**Context**: CONSTRUCTION phase, Unit 1 `core-domain`, Code Generation Part 2, branch `aidlc/construction-core-domain`.
+
+**Work completed this session (Step 4, partial)**:
+- `repository/pg-errors.ts` — PostgreSQL constraint violations mapped to `ConflictError` with per-constraint user-facing messages
+- `repository/mappers.ts` — row → domain mapping; `password_hash` and `token_hash` deliberately omitted from every mapper (NFR-SE-02, BR-AU-09)
+- `repository/org-unit-repository.ts` — subtree resolution in one self-join, reference counting (BR-O-05)
+- `repository/reference-data-repository.ts` — generic over ROLE/SKILL/PROJECT_TYPE, no delete method (BR-C-05)
+- `repository/member-repository.ts` — scope + filters as typed predicate factories, batched skill fetch, stable paging
+- `repository/project-repository.ts` — scope on `owning_org_unit_id`, with the own-data asymmetry documented
+- `repository/assignment-repository.ts` — batched `findOverlapping` (the N+1 prohibition), inclusive-overlap semantics (AS-03), anti-join bench query
+- `repository/assignment-history-repository.ts` — append-with-supersede (BR-A-17), `findAsOf` transaction-time query (BR-A-22 Path B)
+- `repository/user-account-repository.ts` — password hash confined to a single method by design
+
+**Defect found and fixed during this session**: `schema.ts` declared timestamps as `Generated<ColumnType<...>>`, nesting one `ColumnType` inside another. This defeated Kysely's select/insert/update type extraction and made every timestamp write fail to typecheck (20 errors). Root cause was in Step 3 code, surfaced only once Step 4 wrote against it. `Timestamp` is now a plain `Date`; `Generated` already provides insert-optionality. Typecheck clean after the fix.
+
+**NOT done — resume point**: `SessionRepository`, then the `repository/index.ts` barrel, then Step 5 (repository unit tests: overlap boundary cases, in-query scope filtering, natural-key conflicts).
+
+---
