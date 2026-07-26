@@ -13,7 +13,7 @@
 
 import type { Expression, ExpressionBuilder, SqlBool } from 'kysely';
 import type { DbOrTx } from './db';
-import { permittedOrgUnitIds } from './db';
+import { orgScopeMatches, permittedOrgUnitIds } from './db';
 import type { Database } from './schema';
 import type { ScopeFilter } from '../types/authorization';
 import type {
@@ -69,12 +69,15 @@ export interface MemberQuery {
 function scopePredicates(scope: ScopeFilter): MemberPredicate[] {
   const predicates: MemberPredicate[] = [];
 
-  const orgIds = permittedOrgUnitIds(scope);
-  if (orgIds !== null) {
+  const orgRoots = permittedOrgUnitIds(scope);
+  if (orgRoots !== null) {
     predicates.push(
-      orgIds.length === 0
+      orgRoots.length === 0
         ? (eb) => eb.lit(false)
-        : (eb) => eb('member.org_unit_id', 'in', orgIds),
+        // BR-R-08 via defect U1-D01: `orgRoots` are scope ROOTS, not the expanded set, so the
+        // subtree is expanded HERE in SQL. A bare `IN (orgRoots)` would show a Team Lead their
+        // own unit and none of its children.
+        : () => orgScopeMatches('member.org_unit_id', orgRoots),
     );
   }
 

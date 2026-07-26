@@ -51,6 +51,26 @@ async function main(): Promise<void> {
       );
     }
 
+    /**
+     * Load TOP-LEVEL org unit ids for BR-R-09 (defect U1-D01).
+     *
+     * MUST happen after migrations — `createServices` runs before the schema exists, so the
+     * authorization component starts with an empty root set. Empty under-grants safely (a
+     * Resource Manager gets their subtree rather than organisation-wide reach), so a failure
+     * here narrows access rather than widening it.
+     *
+     * ⚠️ NOT refreshed afterwards. Create a NEW ROOT org unit at runtime and a Resource Manager
+     * attached to it sees only their subtree until the process restarts. Accepted: the org tree
+     * is built during setup and root units are not routinely added.
+     */
+    const rootOrgUnits = await db
+      .selectFrom('org_unit')
+      .select('id')
+      .where('parent_org_unit_id', 'is', null)
+      .execute();
+    services.authorization.setRootOrgUnitIds(rootOrgUnits.map((row) => row.id));
+    app.log.info({ rootOrgUnits: rootOrgUnits.length }, 'authorization scope roots loaded');
+
     await seedBootstrapAdmin(services, config, app.log);
 
     await app.listen({ port: config.port, host: '0.0.0.0' });

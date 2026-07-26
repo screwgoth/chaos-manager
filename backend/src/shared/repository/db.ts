@@ -7,7 +7,14 @@
  *   - transaction boundaries live in the service layer, not here.
  */
 
-import { Kysely, PostgresDialect, type Transaction } from 'kysely';
+import {
+  Kysely,
+  PostgresDialect,
+  sql,
+  type RawBuilder,
+  type SqlBool,
+  type Transaction,
+} from 'kysely';
 import { Pool, types as pgTypes } from 'pg';
 import type { Database } from './schema';
 import type { ScopeFilter } from '../types/authorization';
@@ -48,11 +55,50 @@ export function isUnrestricted(filter: ScopeFilter): boolean {
 }
 
 /**
- * Org-unit ids the filter permits, or null for unrestricted.
- * Repositories use this to add a WHERE clause; they must never fetch-then-trim.
+ * Scope ROOT org-unit ids, or null for unrestricted.
+ *
+ * ⚠️ THESE ARE ROOTS, NOT THE EXPANDED PERMITTED SET. See `orgScopeMatches` below and
+ * defect U1-D01. Repositories must expand them via `orgScopeMatches`, never use them in a
+ * bare `IN`, or a Team Lead will see their own unit and none of its children.
  */
 export function permittedOrgUnitIds(filter: ScopeFilter): string[] | null {
   return filter.orgUnitIds === 'ALL' ? null : filter.orgUnitIds;
+}
+
+/**
+ * Expand scope roots to the set of org units they permit — INSIDE the query.
+ *
+ * WHY THIS EXISTS (defect U1-D01). `IAuthorizationComponent.resolveScope` is SYNCHRONOUS and
+ * receives only `VerifiedIdentity.homeOrgUnitId` — a single id. BR-R-08 requires a Team Lead's
+ * scope to include their unit's CHILDREN, and BR-R-09 requires a Resource Manager rooted at a
+ * top-level unit to be unrestricted. Both need a database read, which a synchronous function
+ * cannot perform. Rather than make the FINAL interface async — 90 call sites across 7 Unit 1
+ * services — the scope carries the ROOTS and the expansion happens here, in the query that was
+ * going to run anyway. Zero extra round trips, and the filter is more genuinely "inside SQL"
+ * (FR-R-08, R2-1 rule 1) than an application-assembled list ever was.
+ *
+ * BR-R-08: id = ANY(roots) OR parent_org_unit_id = ANY(roots). Org units are exactly two levels
+ * (BR-O-01), so one non-recursive level is the whole subtree — no recursive CTE needed.
+ *
+ * BR-R-09 is NOT handled here. A Resource Manager rooted at a top-level unit resolves to
+ * `'ALL'` in the authorization component, so it never reaches this function.
+ *
+ * ⚠️ Passing an already-expanded list still yields a correct (superset-free) result, because
+ * expanding a child adds nothing at two levels. That makes misuse safe rather than silently
+ * wrong — but it is misuse, and the roots contract is what the authorization component honours.
+ *
+ * PARAMETERIZED (U1-NFR-SE-06): `sql.ref` quotes the column identifier and `sql.val` binds the
+ * root ids as a single array parameter. No value is concatenated into SQL text.
+ */
+export function orgScopeMatches(
+  columnRef: 'member.org_unit_id' | 'project.owning_org_unit_id',
+  roots: readonly string[],
+): RawBuilder<SqlBool> {
+  const rootArray = [...roots];
+  return sql<SqlBool>`${sql.ref(columnRef)} in (
+    select id from org_unit
+    where id = any(${sql.val(rootArray)}) or parent_org_unit_id = any(${sql.val(rootArray)})
+  )`;
 }
 
 /**

@@ -2,8 +2,9 @@
  * THE COMPOSITION ROOT.
  *
  * Everything is wired here and nowhere else: no component constructs its own dependencies,
- * and no route reaches past its service. That is what makes the X-1 replacement a one-line
- * change — see `AUTHORIZATION` below.
+ * and no route reaches past its service. That is what made the X-1 replacement nearly a one-line
+ * change — see `AUTHORIZATION` below. It cost one line plus an optional parameter; the parameter is
+ * defect U1-D01, recorded rather than glossed.
  */
 
 import type { AppConfig } from '../../shared/config';
@@ -18,10 +19,9 @@ import {
   SessionRepository,
   UserAccountRepository,
 } from '../../shared/repository';
-import type { IAuthorizationComponent } from '../../shared/types/authorization';
 import { AllocationComponent } from '../allocation/allocation-component';
 import { AssignmentComponent } from '../assignment/assignment-component';
-import { PermissiveAuthorizationStandIn } from '../authorization-standin/authorization-standin';
+import { AuthorizationComponent } from '../../supporting-platform/authorization/authorization-component';
 import { IdentityComponent } from '../identity/identity-component';
 import { MemberComponent } from '../member/member-component';
 import { OrgUnitComponent } from '../org-unit/org-unit-component';
@@ -56,6 +56,11 @@ export interface Services {
   orgUnits: OrgUnitService;
   /** Exposed for the bootstrap admin account, not for routes. */
   identity: IdentityComponent;
+  /**
+   * Exposed ONLY so `server.ts` can load root org-unit ids after migrations (defect U1-D01).
+   * Routes must go through `accessControl`, never touch this directly.
+   */
+  authorization: AuthorizationComponent;
   sessions: SessionComponent;
 }
 
@@ -117,16 +122,21 @@ export function createServices(db: Db, config: AppConfig): Services {
   );
 
   /**
-   * ⚠️ X-1 — THE ONE LINE UNIT 2 CHANGES.
+   * ✅ X-1 RESOLVED at Unit 2. The permissive stand-in is gone and
+   * `core-domain/authorization-standin/` has been DELETED.
    *
-   * Replace with the real C-09 from `supporting-platform/authorization/`, then DELETE
-   * `core-domain/authorization-standin/` entirely. If any other line in this file or any
-   * service has to change, the interface was incomplete — a Unit 1 design defect.
+   * BR-R-05 and BR-R-07 are now genuinely enforced: a TEAM_LEAD and a non-rooted
+   * RESOURCE_MANAGER are confined to their own org unit and its children.
    *
-   * While this stand-in is wired, TEAM_LEAD and RESOURCE_MANAGER see all org units
-   * (BR-R-05 not enforced).
+   * ⚠️ Defect U1-D01: the FINAL `resolveScope` is synchronous and cannot read
+   * `parent_org_unit_id`, so BR-R-09's "is the home unit a top-level unit?" test is answered
+   * from a set of root ids. It starts EMPTY and `server.ts` loads it after migrations — which
+   * it must, because this function runs before the schema exists.
+   *
+   * Starting empty is SAFE: every Resource Manager then resolves to their subtree rather than
+   * to 'ALL', which under-grants and never over-grants. A missed refresh cannot widen access.
    */
-  const AUTHORIZATION: IAuthorizationComponent = new PermissiveAuthorizationStandIn();
+  const AUTHORIZATION = new AuthorizationComponent();
 
   // --- services ----------------------------------------------------------
   const accessControl = new AccessControlService(AUTHORIZATION);
@@ -147,5 +157,6 @@ export function createServices(db: Db, config: AppConfig): Services {
     orgUnits: new OrgUnitService(orgUnits, accessControl),
     identity,
     sessions,
+    authorization: AUTHORIZATION,
   };
 }

@@ -5,7 +5,7 @@
 
 import type { Expression, ExpressionBuilder, SqlBool } from 'kysely';
 import type { DbOrTx } from './db';
-import { permittedOrgUnitIds } from './db';
+import { orgScopeMatches, permittedOrgUnitIds } from './db';
 import type { Database } from './schema';
 import type { ScopeFilter } from '../types/authorization';
 import type {
@@ -56,12 +56,13 @@ export interface ProjectQuery {
  * actually assigned to.
  */
 function scopePredicates(scope: ScopeFilter): ProjectPredicate[] {
-  const orgIds = permittedOrgUnitIds(scope);
-  if (orgIds === null) return [];
+  const orgRoots = permittedOrgUnitIds(scope);
+  if (orgRoots === null) return [];
   return [
-    orgIds.length === 0
+    orgRoots.length === 0
       ? (eb) => eb.lit(false)
-      : (eb) => eb('project.owning_org_unit_id', 'in', orgIds),
+      // Scope ROOTS expanded to the subtree in SQL — see defect U1-D01 and `orgScopeMatches`.
+      : () => orgScopeMatches('project.owning_org_unit_id', orgRoots),
   ];
 }
 

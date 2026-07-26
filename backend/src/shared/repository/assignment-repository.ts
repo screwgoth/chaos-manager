@@ -15,7 +15,7 @@
 
 import type { Expression, ExpressionBuilder, SqlBool } from 'kysely';
 import type { DbOrTx } from './db';
-import { permittedOrgUnitIds } from './db';
+import { orgScopeMatches, permittedOrgUnitIds } from './db';
 import type { Database } from './schema';
 import type { ScopeFilter } from '../types/authorization';
 import type {
@@ -60,28 +60,56 @@ export interface AssignmentWithProject extends Assignment {
 }
 
 /**
- * Scope for assignments resolves through the MEMBER's org unit, not the project's.
- * An assignment belongs to the person whose capacity it consumes, so a manager scoped to
- * a department sees the assignments of that department's members — including their
- * assignments to projects owned elsewhere, which is exactly the cross-project view the
- * allocation feature exists to provide (US-VIS-01).
+ * BR-R-12: an assignment is in scope when the caller's scope covers the MEMBER **OR** the
+ * PROJECT's owning org unit. Both sides grant visibility.
+ *
+ * ⚠️ REWRITTEN AT UNIT 2 (Q3:C / CQ1:A). This comment previously said scope resolved through
+ * the member's org unit ALONE, and the code matched it. That was Unit 1's behaviour under the
+ * permissive stand-in, where it made no observable difference. It is now wrong on both counts,
+ * and leaving it would have left a comment contradicting the code beneath it (U2-NFR-M-05).
+ *
+ * WHY BOTH SIDES. The member side is what gives a people manager the cross-project view the
+ * allocation feature exists to provide (US-VIS-01) — including assignments to projects owned
+ * elsewhere. The project side is what lets a delivery owner see who is staffed on a project
+ * their unit owns, even when those people belong to another org unit. You cannot staff a
+ * project you own without seeing who is on it.
+ *
+ * CONSEQUENCE, recorded rather than discovered: a Team Lead can learn the NAMES of members
+ * outside their own org unit, bounded to those staffed on projects their unit owns.
+ *
+ * BR-R-13 IS NOT IMPLEMENTED HERE, AND MUST NOT BE. This predicate decides which ASSIGNMENT
+ * ROWS are visible. It must never be used to reduce a visible member's allocation TOTAL —
+ * summing after this filter would report "80% booked, 20% free" for a member at 130%, which is
+ * free capacity on someone who has none. Totals are computed over ALL of a visible member's
+ * assignments. See `business-logic-model.md` §4.
  */
 function scopePredicates(scope: ScopeFilter): AssignmentPredicate[] {
   const predicates: AssignmentPredicate[] = [];
 
-  const orgIds = permittedOrgUnitIds(scope);
-  if (orgIds !== null) {
+  const orgRoots = permittedOrgUnitIds(scope);
+  if (orgRoots !== null) {
     predicates.push(
-      orgIds.length === 0
+      orgRoots.length === 0
         ? (eb) => eb.lit(false)
         : (eb) =>
-            eb.exists(
-              eb
-                .selectFrom('member')
-                .select('member.id')
-                .whereRef('member.id', '=', 'assignment.member_id')
-                .where('member.org_unit_id', 'in', orgIds),
-            ),
+            eb.or([
+              // member side
+              eb.exists(
+                eb
+                  .selectFrom('member')
+                  .select('member.id')
+                  .whereRef('member.id', '=', 'assignment.member_id')
+                  .where(() => orgScopeMatches('member.org_unit_id', orgRoots)),
+              ),
+              // project side — BR-R-12
+              eb.exists(
+                eb
+                  .selectFrom('project')
+                  .select('project.id')
+                  .whereRef('project.id', '=', 'assignment.project_id')
+                  .where(() => orgScopeMatches('project.owning_org_unit_id', orgRoots)),
+              ),
+            ]),
     );
   }
 
@@ -262,7 +290,7 @@ export class AssignmentRepository {
     range: DateRange,
     scope: ScopeFilter,
   ): Promise<MemberId[]> {
-    const orgIds = permittedOrgUnitIds(scope);
+    const orgRoots = permittedOrgUnitIds(scope);
 
     let query = this.db
       .selectFrom('member')
@@ -283,11 +311,14 @@ export class AssignmentRepository {
         ),
       );
 
-    if (orgIds !== null) {
+    if (orgRoots !== null) {
       query =
-        orgIds.length === 0
+        orgRoots.length === 0
           ? query.where((eb) => eb.lit(false))
-          : query.where('member.org_unit_id', 'in', orgIds);
+          // Scope ROOTS expanded to the subtree in SQL (defect U1-D01). Member-side only here:
+          // this query finds members with NO assignment in the range, so there is no project to
+          // scope through — BR-R-12's project side cannot apply to a member who has no rows.
+          : query.where(() => orgScopeMatches('member.org_unit_id', orgRoots));
     }
     const ownMemberId = scope.restrictToMemberId;
     if (ownMemberId !== null) {
