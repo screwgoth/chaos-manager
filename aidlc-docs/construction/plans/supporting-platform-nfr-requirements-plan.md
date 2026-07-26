@@ -30,20 +30,28 @@ recorded as such rather than restated.
 
 ## 1. Plan Steps
 
-- [ ] N1. Scalability: scope resolution cost per request; import volume ceilings
-- [ ] N2. Performance: budget for `resolveScope`; budget for a 2,000-row import; effect of BR-R-12's added `OR` on the assignment query plan
-- [ ] N3. Availability: inherited from Unit 1; confirm import failure leaves no partial state
-- [ ] N4. Security: the FR-R-08 obligations this unit finally discharges; upload handling; refusal logging
-- [ ] N5. Reliability: import transaction atomicity; fail-closed scope resolution
-- [ ] N6. Maintainability: permission-matrix exhaustiveness; test depth for 80 matrix cells; stand-in deletion verification
-- [ ] N7. Usability: inherited; the forbidden-state rendering requirement
-- [ ] N8. Tech stack: CSV parsing and multipart handling decisions; confirm no new runtime dependency elsewhere
-- [ ] N9. Generate `nfr-requirements.md`
-- [ ] N10. Generate `tech-stack-decisions.md`
+**All 10 steps complete 2026-07-26.** Artifacts at `aidlc-docs/construction/supporting-platform/nfr-requirements/`.
+
+- [x] N1. Scalability: scope resolution cost per request; import volume ceilings
+- [x] N2. Performance: budget for `resolveScope`; budget for a 2,000-row import; effect of BR-R-12's added `OR` on the assignment query plan
+- [x] N3. Availability: inherited from Unit 1; confirm import failure leaves no partial state
+- [x] N4. Security: the FR-R-08 obligations this unit finally discharges; upload handling; refusal logging
+- [x] N5. Reliability: import transaction atomicity; fail-closed scope resolution
+- [x] N6. Maintainability: permission-matrix exhaustiveness; test depth for 80 matrix cells; stand-in deletion verification
+- [x] N7. Usability: inherited; the forbidden-state rendering requirement
+- [x] N8. Tech stack: CSV parsing and multipart handling decisions; confirm no new runtime dependency elsewhere
+- [x] N9. Generate `nfr-requirements.md`
+- [x] N10. Generate `tech-stack-decisions.md`
 
 ---
 
 ## 2. Questions
+
+> **All eight answered by AI recommendation**, at the user's instruction ("Get the best recommendations
+> for the answers and continue") on 2026-07-26. Each answer is the option I would defend on the merits;
+> the rationale for every one is in `nfr-requirements.md` §9, including the two where the runner-up had a
+> real case. Any of these can be overridden — none is structural, and changing one changes configuration
+> or test breadth, not the design.
 
 ---
 
@@ -65,8 +73,7 @@ cache is per-process so it would need rethinking if the app were ever run multi-
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
-
+[Answer]: A   *(AI recommendation, user instruction 2026-07-26)*
 ## Question 2
 BR-R-12 widens the assignment scope predicate from "member's org unit" to "member's org unit **OR**
 project's owning org unit". Both `member.org_unit_id` and `project.owning_org_unit_id` already carry
@@ -85,8 +92,7 @@ a disjunction. More SQL to maintain, and premature without a measurement.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
-
+[Answer]: A   *(AI recommendation, user instruction 2026-07-26)*
 ## Question 3
 What is an acceptable wall-clock time for a full 2,000-row member import, processed synchronously
 (Q13:A)? This sets the request timeout and decides whether the choice of synchronous processing holds.
@@ -102,8 +108,7 @@ likely to force bulk-insert paths that bypass those components — which BR-IM-1
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
-
+[Answer]: A   *(AI recommendation, user instruction 2026-07-26)*
 ## Question 4
 Fastify's default request body limit is **1 MB**, below the 5 MB import cap (BR-IM-02). How should the
 limit be raised?
@@ -116,8 +121,7 @@ sign-in would then accept a 5 MB body.
 
 C) Other (please describe after [Answer]: tag below)
 
-[Answer]:
-
+[Answer]: A   *(AI recommendation, user instruction 2026-07-26)*
 ## Question 5
 Should authorization **refusals** be logged? NFR-Q-02 defers structured logging and monitoring, and the
 Security Baseline extension is disabled — but this unit is the FR-R-08 enforcement point.
@@ -134,8 +138,7 @@ attempt is the more interesting signal.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
-
+[Answer]: A   *(AI recommendation, user instruction 2026-07-26)*
 ## Question 6
 How exhaustively should the 80-cell permission matrix (5 roles × 8 resource kinds × read/write) be
 tested?
@@ -152,8 +155,7 @@ without a matrix entry — so the test breaks at compile or run time rather than
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
-
+[Answer]: C   *(AI recommendation, user instruction 2026-07-26)*
 ## Question 7
 Import parses untrusted CSV uploaded by an Admin. Which parsing approach?
 
@@ -167,8 +169,7 @@ shifting rather than an error.
 
 C) Other (please describe after [Answer]: tag below)
 
-[Answer]:
-
+[Answer]: A   *(AI recommendation, user instruction 2026-07-26)*
 ## Question 8
 Should concurrent imports be limited? A 5 MB file plus parsed rows and Unit 1 component validation is
 held in memory for the request's duration (BR-IM-25), and only Admins can import (BR-IM-22).
@@ -181,8 +182,7 @@ already running". Bounds peak memory deterministically for a few lines of code.
 
 C) Other (please describe after [Answer]: tag below)
 
-[Answer]:
-
+[Answer]: A   *(AI recommendation, user instruction 2026-07-26)*
 ---
 
 ## 3. Inherited Without Question

@@ -696,3 +696,28 @@ Consequence: Unit 1's stated story count of 30 is understated by two, and Unit 2
 **Recorded in the plan without a question**: twelve inherited NFR positions (scale, concurrency, availability, deployment, TLS, CI, extensions, accessibility, data sensitivity, backup) restated as inherited rather than re-decided. Also noted that NFR-IN-02 already specifies CSV import, so Q7:A is consistent with the integration requirement even though FR-I-01 remains only partially satisfied.
 
 ---
+## Construction — Unit 2 `supporting-platform` — NFR Requirements COMPLETE
+**Timestamp**: 2026-07-26T15:10:00Z
+**User Input**: "Get the best recommendations for the answers and continue"
+**AI Response**: "User delegated all 8 NFR answers. Chose N-Q1:A, N-Q2:A, N-Q3:A, N-Q4:A, N-Q5:A, N-Q6:C, N-Q7:A, N-Q8:A, recorded each in the plan file marked as an AI recommendation with the date and the delegating instruction, and documented the full rationale in nfr-requirements.md section 9 — including the two questions where the runner-up had a real case (Q1 and Q8). Generated both artifacts and ticked 10/10 plan steps."
+**Context**: CONSTRUCTION phase, Unit 2 of 2, NFR Requirements complete; awaiting explicit user approval before Infrastructure Design.
+
+**Artifacts created** at `aidlc-docs/construction/supporting-platform/nfr-requirements/`:
+- `nfr-requirements.md` — 6 scalability, 7 performance, 5 availability, 14 security, 9 reliability, 11 maintainability, 8 usability requirements, plus the rationale table for all 8 delegated answers and 5 open items.
+- `tech-stack-decisions.md` — 2 new backend dependencies, 0 frontend, 0 migrations, 0 inherited choices revisited; 7 dependencies deliberately NOT added, each against a recorded decision.
+
+**Answers chosen and why (the two closest calls stated in full)**:
+- N-Q1:A query scope per request, no caching. B (cache on the session row) was the close runner-up and was REJECTED for a specific reason: a scope cached at sign-in means an admin who moves a user between org units does not change what that user can see until they sign out, and with a 30-minute idle timeout that window is long. Silent stale authorization is the exact failure this unit exists to eliminate.
+- N-Q8:A no import concurrency limit. B (one at a time per process) was rejected because it introduces a failure mode A does not have: a "running" flag not cleared because the process died mid-request blocks ALL future imports until a restart — a worse outcome than the memory it saves.
+- N-Q2:A measure before adding an index — preserves the genuine "no migration" property unless EXPLAIN overturns it.
+- N-Q3:A under 30 s for 2,000 rows. C (10 s) was rejected as a trap: at that target the implementation would be pressured toward a bulk insert bypassing Unit 1's components, which is precisely the duplication BR-IM-11 forbids.
+- N-Q4:A per-route body limit — a 5 MB limit on the sign-in endpoint has no purpose.
+- N-Q5:A log authorization refusals at warn. NFR-Q-02 defers log aggregation infrastructure, not the emission of a log line. Logs role, resource kind, operation, outcome — NEVER the target's identity, which would leak through the log the very thing the refusal withheld.
+- N-Q6:C all 80 matrix cells plus an exhaustiveness check. A per-cell test catches a CHANGED cell; only the exhaustiveness check catches a NEW ResourceKind or role added with no matrix entry, whose symptom is a silent grant or denial.
+- N-Q7:A a maintained CSV library. A hand-rolled parser fails by silently shifting columns rather than raising an error.
+
+**Three unverified performance claims recorded as such** (nfr-requirements.md section 10), so nothing reads as measured before Code Generation produces numbers: (1) the 2,000-row import 30 s budget is an estimate whose entire cost is the write phase; (2) BR-R-12's added OR must be EXPLAINed before concluding no index is needed; (3) Unit 1's endpoint timings must be RE-RUN for a scoped role, because the originals were measured against a permissive filter that added no WHERE clause at all and therefore do not transfer.
+
+**Notable NFR additions beyond the answers**: U2-NFR-S-02 makes scope resolution org-unit-bound rather than data-bound as a STRUCTURAL requirement — deriving scope by walking members would make every endpoint slow together. U2-NFR-SE-11 records the CSV-injection obligation (a cell beginning = or @ is a formula when opened in a spreadsheet) even though Phase 1 has no export feature, so a future export inherits the obligation rather than discovering it. U2-NFR-M-04/M-05 together form the X-1 completion test: the git diff over core-domain/ must show only services/index.ts, with assignment-repository.ts the one legitimate exception.
+
+---
