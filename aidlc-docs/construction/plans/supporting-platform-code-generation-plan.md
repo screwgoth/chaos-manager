@@ -136,12 +136,18 @@ PostgreSQL 16. Details of each step's outcome are in `code/authorization-summary
 
 ### Backend — Account linkage
 
-- [ ] **Step 7 — Linkage service and routes.** Link, relink-refusal and unlink, Admin-only. Refusals
+- [x] **Step 7 — Linkage service and routes.** Link, relink-refusal and unlink, Admin-only. Refusals
       **name** the existing link (BR-L-02/03). `home_org_unit_id` untouched (BR-L-05).
       *Story: US-ACC-04*
 
-- [ ] **Step 8 — Linkage tests.** Both refusal directions with the named existing link; unlink revokes a
+- [x] **Step 8 — Linkage tests.** Both refusal directions with the named existing link; unlink revokes a
       `TEAM_MEMBER`'s access entirely (BR-R-18); the database index is the real guarantee (BR-L-01).
+
+**Steps 7–8 verified 2026-07-26**: 16 tests, backend suite **467 passed / 19 suites**, 0 failures.
+Added `findByLinkedMemberId` + `setLinkedMember` (account repo) and a batched `findNamesByIds`
+(member repo). Extended `error-mapper.ts` additively to surface `ConflictError.detail`, because
+R2 obligation 5 requires the two link refusals to be distinguishable by CODE, not by prose — my
+route comment had claimed that before it was true.
 
 ### Backend — Import
 

@@ -21,6 +21,9 @@ import { registerAuthRoutes } from './core-domain/routes/auth-routes';
 import { mapError } from './core-domain/routes/error-mapper';
 import { registerMemberRoutes } from './core-domain/routes/member-routes';
 import { registerProjectRoutes } from './core-domain/routes/project-routes';
+import { AccountLinkService } from './supporting-platform/accounts/account-link-service';
+import { registerAccountRoutes } from './supporting-platform/routes/account-routes';
+import { MemberRepository, UserAccountRepository } from './shared/repository';
 import { createSessionResolver } from './core-domain/routes/session-middleware';
 
 export interface BuildAppOptions {
@@ -151,6 +154,16 @@ export function buildApp({ db, config, services: provided }: BuildAppOptions): B
   registerAssignmentRoutes(app, services);
   registerAllocationRoutes(app, services);
   registerAdminRoutes(app, services);
+
+  // --- Unit 2: supporting-platform ---------------------------------------
+  // Constructed here rather than in core-domain's composition root, so Unit 2's wiring does not
+  // add to the file the X-1 diff check watches.
+  const accountLinks = new AccountLinkService(
+    new UserAccountRepository(db),
+    new MemberRepository(db),
+    services.accessControl,
+  );
+  registerAccountRoutes(app, accountLinks);
 
   // --- static frontend ----------------------------------------------------
 

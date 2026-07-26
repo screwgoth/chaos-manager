@@ -171,6 +171,49 @@ export class UserAccountRepository {
     });
   }
 
+  /**
+   * The account linked to a member, if any — US-ACC-04 / BR-L-03.
+   *
+   * Needed so a link refusal can NAME the account already holding the link. "Already linked"
+   * without saying to what leaves an admin no next action (BR-L-02/03).
+   */
+  async findByLinkedMemberId(memberId: MemberId): Promise<UserAccount | null> {
+    if (!isUuid(memberId)) return null;
+    const row = await this.db
+      .selectFrom('user_account')
+      .selectAll()
+      .where('linked_member_id', '=', memberId)
+      .executeTakeFirst();
+    return row ? toUserAccount(row) : null;
+  }
+
+  /**
+   * Set or clear the member link — US-ACC-04.
+   *
+   * Deliberately separate from `updateRoleAndScope`: BR-L-05 requires that linking NOT alter
+   * `home_org_unit_id`, and reusing that method would make it trivially easy to pass the
+   * current role and org unit back in slightly wrong. Role scope and own-data scope are
+   * independent axes.
+   *
+   * The partial unique index on `linked_member_id` is the real guarantee for BR-L-01; the
+   * service's pre-check exists to produce a USEFUL message, not to be the enforcement. If the
+   * two ever disagree the index wins and the caller gets a conflict — the correct direction.
+   */
+  async setLinkedMember(
+    id: UserAccountId,
+    linkedMemberId: MemberId | null,
+  ): Promise<UserAccount | null> {
+    return withPgErrors(async () => {
+      const row = await this.db
+        .updateTable('user_account')
+        .set({ linked_member_id: linkedMemberId, updated_at: new Date() })
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst();
+      return row ? toUserAccount(row) : null;
+    });
+  }
+
   /** Accounts are deactivated, never deleted, so the audit trail keeps resolving. */
   async setActive(id: UserAccountId, isActive: boolean): Promise<UserAccount | null> {
     const row = await this.db

@@ -71,9 +71,23 @@ export function mapError(error: unknown): MappedError {
         ? ((error as { violations: Violation[] }).violations)
         : [];
 
+    /**
+     * `detail` is surfaced when an error carries it — currently `ConflictError` only.
+     *
+     * ADDED AT UNIT 2, additively. R2 obligation 5 (US-ENB-04, client-agnostic API) requires
+     * Unit 2's refusals to be machine-readable, and US-ACC-04's two link refusals must be
+     * distinguishable by CODE rather than by matching prose: an admin client needs to know
+     * whether to unlink this account or the other one. Every existing error carries no `detail`,
+     * so no current response shape changes.
+     */
+    const detail =
+      'detail' in error && error.detail !== undefined && error.detail !== null
+        ? { detail: error.detail as Record<string, unknown> }
+        : {};
+
     return {
       status: error.httpStatus,
-      body: { error: { code: error.code, message: error.message, violations } },
+      body: { error: { code: error.code, message: error.message, violations, ...detail } },
       logCause: null,
     };
   }

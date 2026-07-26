@@ -208,6 +208,29 @@ export class MemberRepository {
   }
 
   /**
+   * Display names for many members in ONE query — US-ACC-04's account list.
+   *
+   * Deliberately UNSCOPED, like `findLocation`: the only caller is the Admin-only account
+   * screen (BR-L-06), and an account's link must render even if the linked member sits outside
+   * any scope the caller would otherwise have. Returns names only — no email, no contract
+   * fields, nothing that would leak a member's details through a scope gap.
+   */
+  async findNamesByIds(ids: readonly MemberId[]): Promise<Map<MemberId, string>> {
+    const result = new Map<MemberId, string>();
+    const valid = keepUuids(ids);
+    if (valid.length === 0) return result;
+
+    const rows = await this.db
+      .selectFrom('member')
+      .select(['id', 'full_name'])
+      .where('id', 'in', valid)
+      .execute();
+
+    for (const row of rows) result.set(row.id, row.full_name);
+    return result;
+  }
+
+  /**
    * Skills for many members in ONE query (the N+1 prohibition, R2-1 rule 2).
    * A 200-row member list must not become 201 queries.
    */
