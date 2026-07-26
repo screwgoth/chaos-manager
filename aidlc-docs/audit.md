@@ -346,3 +346,19 @@ Section 3 of the plan discloses two things for the user to consider before appro
 **NOT done — resume point**: `SessionRepository`, then the `repository/index.ts` barrel, then Step 5 (repository unit tests: overlap boundary cases, in-query scope filtering, natural-key conflicts).
 
 ---
+
+## Code Generation Part 2 — Steps 4-6 complete (core-domain)
+**Timestamp**: 2026-07-25T22:05:00Z
+**User Input**: "Resume"
+**AI Response**: "Resumed from the recorded checkpoint. Completed SessionRepository, the repository/index.ts barrel with createRepositories(), Step 5 repository tests, and Step 6 repository-layer-summary.md. Docker was available so Step 5 was upgraded from mocked unit tests to real integration tests against PostgreSQL 16. Verified: tsc --noEmit clean; jest 68 passed / 5 suites with a database, 41 passed + 27 skipped without one. Committed as 179ac87."
+**Context**: CONSTRUCTION phase, Unit 1 `core-domain`, branch `aidlc/construction-core-domain`. Steps 1-6 of 26 now complete.
+
+**Deviation from plan (recorded deliberately)**: Step 5 specified "Repository Layer Unit Tests". Executed as integration tests against real PostgreSQL instead, because a mocked test cannot distinguish "filtered inside the query" from "fetched everything and trimmed afterwards" — and that distinction IS the rule (FR-R-08). Both forms are present: `repository-sql.test.ts` asserts compiled SQL shape with no database; `repository-integration.test.ts` asserts behaviour with one. The integration suite is skipped and REPORTED as skipped when TEST_DATABASE_URL is unset, so it can never be mistaken for passing.
+
+**Defect found by the tests and fixed**: ids reach repositories from client input (path parameters, submitted skill-id lists). A malformed id was passed straight into a query and PostgreSQL raised `invalid input syntax for type uuid`, producing an unhandled 500 rather than a 404 or a field-level validation error. Fixed with `shared/util/ids.ts` (`isUuid` / `keepUuids`) applied to every id-accepting read across all eight repositories. Regression tests added in `ids.test.ts` and `repository-integration.test.ts`.
+
+**Verification actually run** (not assumed): `npx tsc --noEmit` → exit 0. `npx jest` with TEST_DATABASE_URL → 68 passed, 5 suites, 0 failures. `npx jest` without it → 41 passed, 27 skipped, 1 suite skipped. Throwaway PostgreSQL 16 container on host port 55432; the suite drops and recreates the `public` schema in beforeAll, so it must only ever point at a disposable database.
+
+**Next step**: Step 7 — business logic for OrgUnit (C-05) and ReferenceData (C-06) components, rules BR-O-01…06 and BR-C-01…09.
+
+---
