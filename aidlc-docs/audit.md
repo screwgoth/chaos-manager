@@ -683,3 +683,16 @@ Consequence: Unit 1's stated story count of 30 is understated by two, and Unit 2
 8. BR-IM-04 — unknown import columns are ignored and named in a notice. This is what keeps BR-M-09 safe: a day_rate or po_number column has no field to land in, and the admin is told it was dropped rather than assuming it imported.
 
 ---
+## Construction — Unit 2 `supporting-platform` — Functional Design APPROVED
+**Timestamp**: 2026-07-26T14:40:00Z
+**User Input**: "Continue to Next Stage"
+**AI Response**: "Recorded explicit approval of the Unit 2 Functional Design (4 artifacts, 34/34 plan steps, R2 obligations 4 and 5 discharged). Marked the stage complete in aidlc-state.md. Proceeded to NFR Requirements and created `aidlc-docs/construction/plans/supporting-platform-nfr-requirements-plan.md` with 10 plan steps and 8 questions. Awaiting answers."
+**Context**: CONSTRUCTION phase, Unit 2 of 2. Functional Design stage-level approval gate passed. NFR Design remains SKIPPED per revision R2 (obligations folded into Functional Design). Next stage after NFR Requirements is Infrastructure Design, then Code Generation.
+
+**Note on this unit's NFR profile**: deliberately different from Unit 1's, and the plan states why. Unit 1's NFR work was dominated by the allocation algorithm (exact arithmetic, transactional atomicity, sub-second availability search). Unit 2 introduces three concerns Unit 1 never faced: (1) a code path that runs before EVERY authorized request (resolveScope), where slowness or incorrectness degrades everything rather than one feature — Unit 1's stand-in was pure computation with no I/O; (2) a large synchronous request (5 MB / 2,000 rows); (3) a security control whose correctness is NOT observable from the UI — an over-permissive matrix looks identical to a correct one until someone sees data they should not, whereas Unit 1's hashing and session work failed loudly.
+
+**Questions asked**: scope-resolution caching vs per-request query (with the staleness-is-security-relevant tradeoff stated); whether BR-R-12's added OR needs an index migration or should be measured first; acceptable wall-clock for a 2,000-row synchronous import; whether to raise Fastify's 1 MB body limit per-route or globally; whether to log authorization refusals given NFR-Q-02 defers structured logging; how exhaustively to test the 80-cell permission matrix; CSV library vs hand-rolled parser; whether to bound concurrent imports.
+
+**Recorded in the plan without a question**: twelve inherited NFR positions (scale, concurrency, availability, deployment, TLS, CI, extensions, accessibility, data sensitivity, backup) restated as inherited rather than re-decided. Also noted that NFR-IN-02 already specifies CSV import, so Q7:A is consistent with the integration requirement even though FR-I-01 remains only partially satisfied.
+
+---

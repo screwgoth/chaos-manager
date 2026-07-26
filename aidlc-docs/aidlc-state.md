@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` Functional Design **COMPLETE, awaiting user approval** (4 artifacts generated; 15 questions + 2 clarifications answered; R2 obligations 4 and 5 discharged). Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
+- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` **NFR Requirements — awaiting answers to 8 questions** in `aidlc-docs/construction/plans/supporting-platform-nfr-requirements-plan.md`. Functional Design APPROVED 2026-07-26T14:40:00Z (4 artifacts; R2 obligations 4 and 5 discharged). Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
 
 ## Workspace State
 - **Existing Code**: No at detection; a complete application now exists under `backend/`, `frontend/` and `docker/`
@@ -75,7 +75,7 @@ requirements independent of the disabled security extension.
 **🟢 UNIT 1 `core-domain` COMPLETE** — 133 files, 24,220 lines, 450 tests, 50 endpoints, 30 stories.
 
 ### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
-- [ ] Functional Design — **ARTIFACTS COMPLETE 2026-07-26, AWAITING APPROVAL** (+ R2 folded-in obligations 4, 5 both discharged). Branch `aidlc/construction-supporting-platform`. 34/34 plan steps ticked. 4 artifacts at `aidlc-docs/construction/supporting-platform/functional-design/`.
+- [x] Functional Design — **APPROVED 2026-07-26T14:40:00Z** (+ R2 folded-in obligations 4, 5 both discharged). Branch `aidlc/construction-supporting-platform`. 34/34 plan steps ticked. 4 artifacts at `aidlc-docs/construction/supporting-platform/functional-design/`.
   - **Decisions**: Q1:A code-constant permission matrix · Q2→**CQ2:B** Resource Manager root-wide only when attached to a root org unit (FR-R-07 **not** amended) · Q3:C assignment in scope via member **OR** project · Q4→**superseded by CQ1:A** (no redaction; full visibility) · Q5:A fail closed on NULL home org unit · Q6:A no assignment-request mechanism · Q7:A CSV only · Q8:A external_ref else email · Q9:A one transaction for all valid rows · Q10:A response-only report · Q11:A never create reference data · Q12:A Admin-only import · Q13:A 2,000 rows / 5 MB synchronous · Q14:A three dedicated pages · Q15:A correct the story counts
   - **Two contradictions were detected and resolved before design, not absorbed**: Q3:C vs Q4:A were mutually exclusive (Q4:A's redaction would have been unreachable code); Q2:C conflicted with approved Must requirement FR-R-07. See `supporting-platform-functional-design-clarification-questions.md`.
   - ✅ **Scope reconciliation applied**: Unit 1 incidentally completed US-ASN-04 and US-VIS-05. Story counts corrected 30→32 (Unit 1) and 13→11 (Unit 2) in `unit-of-work.md`, `aidlc-state.md` and Unit 1's `code-generation-summary.md`. US-VIS-06, US-VIS-07, US-MEM-06 need **frontend only**.
