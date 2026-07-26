@@ -147,7 +147,7 @@ which are merely regression tests. That distinction is a requirement, not docume
 | U2-NFR-R-08 | Inherits U1-NFR-R-07: unhandled errors return a generic message; internal detail never reaches the client |
 | U2-NFR-R-09 | Inherits: no retries, no circuit breakers, no queues (Resiliency extension disabled, NFR-Q-05) |
 
-**U2-NFR-R-06 is why N-Q6:C was chosen over N-Q6:A.** A test that asserts all 80 cells catches a
+**U2-NFR-R-06 is why N-Q6:C was chosen over N-Q6:A.** A test that asserts all 40 cells (80 decisions) catches a
 *changed* cell. It does **not** catch a newly added `ResourceKind` or role with no matrix entry —
 because the test enumerates what it knows about. An exhaustiveness check catches that, and the
 "add a resource kind, forget the matrix" mistake is the one most likely to happen months from now when
@@ -161,7 +161,7 @@ the matrix is no longer fresh in anyone's mind.
 |---|---|
 | U2-NFR-M-01 | Inherits: TypeScript `strict` + `noUncheckedIndexedAccess` in both workspaces |
 | U2-NFR-M-02 | The permission matrix is typed so that **omitting a role or resource kind is a type error** (`Record<UserRole, Record<ResourceKind, …>>`), giving compile-time exhaustiveness on top of U2-NFR-R-06's runtime check |
-| U2-NFR-M-03 | All 80 matrix cells asserted by a **table-driven test**, plus the exhaustiveness check (N-Q6:C) |
+| U2-NFR-M-03 | All 40 matrix cells (80 read/write decisions) asserted by a **table-driven test**, plus the exhaustiveness check (N-Q6:C) |
 | U2-NFR-M-04 | **`core-domain/authorization-standin/` is deleted**, not disabled or commented out. Verified by its absence, and by `git diff --stat` over `core-domain/` showing only `services/index.ts` changed |
 | U2-NFR-M-05 | `shared/repository/assignment-repository.ts` is the **one** legitimate exception to M-04's diff check (BR-R-12). Its existing comment justifying member-only scoping must be **rewritten**, not left contradicting the code. |
 | U2-NFR-M-06 | Import must not restate any Unit 1 business rule. Validation happens by calling Unit 1 components (BR-IM-11) |
@@ -222,7 +222,7 @@ both are named.
 | **3** | **A — under 30 s** | Comfortably inside default proxy and browser timeouts, and achievable without violating BR-IM-11. C (10 s) is the trap: at 2,000 rows it would pressure the implementation toward a bulk insert that bypasses Unit 1's components, which is precisely the duplication BR-IM-11 forbids. B (60 s) is long enough that users assume a hang. |
 | **4** | **A — per-route** | A 5 MB limit on the sign-in endpoint has no purpose. Fastify supports per-route `bodyLimit`, so the cost of doing this correctly is one option on one route. |
 | **5** | **A — log refusals at warn** | This unit *is* the enforcement point; without a signal, neither an enforcement bug nor a probing client is observable. NFR-Q-02 defers log **aggregation and monitoring infrastructure**, not the emission of a log line. Note what this logs: role, resource kind, operation, outcome — **never** the target's identity, which would leak through the log the very thing the refusal withheld. C (writes only) was tempting, but a repeated *read* refusal is the clearest signal of someone probing ids. |
-| **6** | **C — all 80 cells plus exhaustiveness** | A per-cell test catches a changed cell; only an exhaustiveness check catches a **new** `ResourceKind` or role added without a matrix entry. That is the realistic failure mode at a distance of months, and its symptom is a silent grant or denial. The cost over option A is a few lines. |
+| **6** | **C — all 40 cells (80 decisions) plus exhaustiveness** | A per-cell test catches a changed cell; only an exhaustiveness check catches a **new** `ResourceKind` or role added without a matrix entry. That is the realistic failure mode at a distance of months, and its symptom is a silent grant or denial. The cost over option A is a few lines. |
 | **7** | **A — a maintained CSV library** | Quoted fields containing commas or newlines, CRLF, and BOM are exactly where hand-rolled parsers fail, and they fail by **silently shifting columns** rather than raising an error — so a member's email lands in the org-unit field and the row either fails confusingly or, worse, validates. Real spreadsheet exports contain all of these. One narrowly-scoped dependency is the right trade. |
 | **8** | **A — no concurrency limit** | Import is Admin-only against low-tens concurrency; the UI disables the button while a request is in flight. Peak memory for one import is a few tens of MB, so even several at once is unremarkable for a Node process. **B has a failure mode that A does not**: a "one at a time" flag that is not cleared — because the process died mid-request — blocks *all* future imports until a restart. That is a worse outcome than the memory it saves. |
 

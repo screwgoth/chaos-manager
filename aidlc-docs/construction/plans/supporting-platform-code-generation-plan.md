@@ -102,34 +102,37 @@ Documentation (markdown only) at `aidlc-docs/construction/supporting-platform/co
       `eb.lit(false)` sites are the fail-closed empty-scope predicate (BR-R-17) — the most
       security-critical expression in the codebase — so their safety was worth establishing explicitly.
 
-- [ ] **Step 2 — C-09 AuthorizationComponent.** `backend/src/supporting-platform/authorization/`:
-      the 80-cell permission matrix as a typed constant (BR-R-14), `resolveScope` with the two-level
+- [x] **Step 2 — C-09 AuthorizationComponent.** `backend/src/supporting-platform/authorization/`:
+      the 40-cell / 80-decision permission matrix as a typed constant (BR-R-14), `resolveScope` with the two-level
       subtree and the fail-closed NULL cases (BR-R-08/09/10/11), `toScopeFilter`, `canRead`/`canWrite`,
       `assertCanRead`/`assertCanWrite`. Against the **unchanged** interface.
       *Stories: US-ACC-05, US-ENB-01*
 
-- [ ] **Step 3 — C-09 unit tests.** All 80 matrix cells table-driven, **plus** the exhaustiveness check
+- [x] **Step 3 — C-09 unit tests.** All 40 matrix cells (80 read/write decisions) table-driven, **plus** the exhaustiveness check
       that fails when a `ResourceKind` or role has no entry (N-Q6:C). Scope resolution for every role,
       including: NULL `home_org_unit_id` → empty scope not `'ALL'` (BR-R-11); rooted vs child-unit
       Resource Manager (BR-R-09); unlinked `TEAM_MEMBER` refused (BR-R-18).
 
-- [ ] **Step 4 — X-1 SWITCHOVER.** Repoint `core-domain/services/index.ts` (**one line**), then
+- [x] **Step 4 — X-1 SWITCHOVER.** Repoint `core-domain/services/index.ts` (**one line**), then
       **DELETE `backend/src/core-domain/authorization-standin/` entirely**, including its tests and the
       `STAND_IN_ENFORCEMENT_GAPS` export. Then run `git diff --stat` over `core-domain/` and confirm
       **only `services/index.ts`** changed. Any other change is a Unit 1 design defect — record it.
 
-- [ ] **Step 5 — BR-R-12 scope predicate.** Widen `shared/repository/assignment-repository.ts`
+- [x] **Step 5 — BR-R-12 scope predicate.** Widen `shared/repository/assignment-repository.ts`
       `scopePredicates` from member-org-only to **member OR project owning org** — an `OR` inside the
       existing `AND` chain. **Rewrite the existing comment**, which currently justifies member-only
       scoping and would otherwise contradict the code beneath it (U2-NFR-M-05).
 
-- [ ] **Step 6 — Enforcement integration tests.** Cover the 22 enforcement points from
+- [x] **Step 6 — Enforcement integration tests.** Cover the 22 enforcement points from
       `business-logic-model.md` §3. **Each test that proves the X-1 fix must be confirmed to FAIL if
       Step 4 is reverted** — the method Unit 1 adopted after its BR-A-24 false positive. Tests that pass
       against the stand-in are regression tests and must be labelled as such, not counted as proof.
       Includes the **BR-R-13 assertion**: an in-scope member's total is their **full** total (130%),
       including out-of-scope projects, and this test must fail if the sum is taken after the scope filter.
       *Stories: US-ACC-05, US-ENB-01*
+
+**Steps 2–6 verified 2026-07-26.** Backend suite: **451 passed / 18 suites**, 0 failures, against
+PostgreSQL 16. Details of each step's outcome are in `code/authorization-summary.md`.
 
 ### Backend — Account linkage
 

@@ -140,10 +140,10 @@ D) Other (please describe after [Answer]: tag below)
 
 [Answer]: A   *(AI recommendation, user instruction 2026-07-26)*
 ## Question 6
-How exhaustively should the 80-cell permission matrix (5 roles × 8 resource kinds × read/write) be
+How exhaustively should the 40-cell / 80-decision permission matrix (5 roles × 8 resource kinds × read/write) be
 tested?
 
-A) **All 80 cells asserted in a table-driven test** — the matrix is data, so the test is one loop over
+A) **All 40 cells asserted in a table-driven test** — the matrix is data, so the test is one loop over
 expected values. Catches any cell edited by accident, which is the realistic failure mode for a table
 this size.
 
