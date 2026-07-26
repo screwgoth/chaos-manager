@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` **Code Generation COMPLETE (21/21 steps, 590 tests). Awaiting approval, then Build and Test — the final stage.** Infrastructure Design APPROVED 2026-07-26T15:50:00Z. Functional Design APPROVED 2026-07-26T14:40:00Z (4 artifacts; R2 obligations 4 and 5 discharged). Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
+- **Current Stage**: CONSTRUCTION - **Build and Test COMPLETE (590 tests passing, build verified from a clean install). Awaiting approval, then the OPERATIONS phase placeholder. Both units complete; 43 of 43 stories.** Infrastructure Design APPROVED 2026-07-26T15:50:00Z. Functional Design APPROVED 2026-07-26T14:40:00Z (4 artifacts; R2 obligations 4 and 5 discharged). Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
 
 ## Workspace State
 - **Existing Code**: No at detection; a complete application now exists under `backend/`, `frontend/` and `docker/`
@@ -116,7 +116,15 @@ requirements independent of the disabled security extension.
   - Centre of gravity is Steps 2–6: import is more code but lower risk (failures surface in a report); authorization is less code and higher risk (a mistake is invisible until someone sees data they should not).
 
 ### 🟢 CONSTRUCTION PHASE — after all units
-- [ ] Build and Test — EXECUTE (ALWAYS)
+- [ ] Build and Test — **COMPLETE 2026-07-26, AWAITING APPROVAL.** 6 instruction files at `aidlc-docs/construction/build-and-test/`.
+  - **Build ✅ from a CLEAN install** (`rm -rf node_modules` then `npm ci` in both workspaces, so a missing declaration would have failed). backend build 5.5 s · frontend build 10.3 s (308 kB JS / **90 kB gzipped**) · `docker build` succeeds · no test files in `dist` · image runs as uid 1000 · stand-in absent from the image.
+  - **Tests ✅ 590 passed, 0 failures, deterministic over 3 runs each**: backend **501 / 21 suites** with PostgreSQL 16 (37 s); backend **343 passed / 158 skipped** without a database (suites SKIP, they do not silently pass); frontend **89 / 8 suites**.
+  - **Performance MEASURED**: 2,000-row import **6.8 s** (target 30 s) · 200-row **0.62 s** · scoped member list **12.1 ms** (target 500 ms) · `resolveScope` **0.18 µs** · BR-R-12 `EXPLAIN` **2.1 ms** over 1,500 rows → **no index needed, no migration**.
+  - ⚠️ **SECURITY ACTION TAKEN**: `@fastify/static@8.3.0` carried 4 advisories, **3 of them authorization/route-guard bypass**. **This was MISSED at code generation Step 1** — only `kysely` was examined, because `npm audit` output was read from the tail. Upgraded to **10.1.2** (semver major); verified `tsc` clean, 501/501 pass, and the SPA still serves correctly **from a running container** (the suite never sets `STATIC_DIR`, so it does not cover that path). Traversal probes leak no content. Production advisories **2 → 1**.
+  - **Accepted with reachability verified**: `kysely@0.27.5`'s 3 high advisories are unreachable (no `Kysely<any>`/`@ts-ignore`/`as any`, no `JSONPathBuilder` calls, `sql.lit` advisory is MySQL-specific and all 4 `eb.lit()` sites pass booleans). Breaking upgrade **carried to Operations** as its own deliberate change.
+  - **Contract tests N/A with a reason** (one deployable; `tsc` already gates the inter-unit contract). **E2E only partial** — ⚠️ **no browser has rendered any screen; the largest open risk in the project.**
+  - **New finding, low severity**: a malformed path returns 500 rather than 404. Body is the generic envelope — **no leak** (verified by reading it) — but it is the same class Unit 1 fixed for UUIDs and lets a prober generate error-level log noise.
+  - **10 items carried into Operations**, ranked, in `build-and-test-summary.md`.
 
 ### 🟡 OPERATIONS PHASE
 - [ ] Operations — PLACEHOLDER

@@ -851,3 +851,31 @@ Consequence: Unit 1's stated story count of 30 is understated by two, and Unit 2
 **Story coverage: 43 of 43 across both units.** US-ENB-03 and US-ENB-04 upheld and verified, not owned.
 
 ---
+## Build and Test Stage
+**Timestamp**: 2026-07-26T21:10:00Z
+**User Input**: "Continue to Next Stage"
+**AI Response**: "Recorded approval of Unit 2 Code Generation. Executed the Build and Test stage: performed a genuine clean-install build and full test run across both units, measured everything, and generated 6 instruction files."
+**Build Status**: SUCCESS — verified from a CLEAN install (`rm -rf node_modules` then `npm ci` in both workspaces, chosen over `npm install` because `ci` FAILS on a lockfile mismatch, which is how a missing dependency declaration gets caught; Unit 1 shipped exactly that defect once).
+**Test Status**: PASS — 590 tests, 0 failures, verified deterministic across three consecutive runs of each configuration.
+**Files Generated**:
+- build-instructions.md
+- unit-test-instructions.md
+- integration-test-instructions.md
+- performance-test-instructions.md
+- security-test-instructions.md
+- build-and-test-summary.md
+**Context**: CONSTRUCTION phase complete for both units. Awaiting approval before the OPERATIONS phase, which is a placeholder in this workflow.
+
+**MEASURED RESULTS (all produced by running the command)**: backend `npm ci` 11.0 s, frontend `npm ci` 8.1 s, backend build 5.5 s, frontend build 10.3 s (308.82 kB JS / 90.33 kB gzipped, 18.52 kB CSS), `docker build` succeeds. Backend tests WITH PostgreSQL 16: 501 passed / 21 suites / 0 failures in 37.0 s. Backend tests WITHOUT a database: 343 passed, 158 skipped, 0 failures in 8.8 s — database-dependent suites SKIP rather than silently passing. Frontend: 89 passed / 8 suites in 6.1 s. Performance: 2,000-row import 6.8 s against a 30 s target; 200-row 0.62 s; member list 15.8 ms admin / 12.1 ms scoped against a 500 ms target; resolveScope + toScopeFilter 0.18 microseconds; BR-R-12 EXPLAIN 2.1 ms over 1,500 assignments with the member side on member_org_status_idx.
+
+**SECURITY ACTION TAKEN DURING THIS STAGE, and an incomplete earlier claim corrected**: `npm audit --omit=dev` revealed that `@fastify/static@8.3.0` carries FOUR advisories, THREE of which are authorization or route-guard bypass classes (GHSA-x428-ghpx-8j92 route guard bypass via encoded path separators; GHSA-8pvw-jcv7-9cmj authorization bypass via non-canonical URL paths; GHSA-83w8-p2f5-377r route guard bypass via path traversal) plus GHSA-pr96-94w5-mx2h directory-listing traversal. THIS WAS MISSED AT CODE GENERATION STEP 1: only the kysely advisories were examined there, because npm audit's output was read from the tail and @fastify/static was above the cut. The Step 1 note claiming the advisories had been reviewed was therefore incomplete, and that is recorded rather than quietly corrected. An authorization-bypass advisory in a RUNTIME dependency, inside the unit whose entire purpose is authorization enforcement, was judged not deferrable. Upgraded to @fastify/static@10.1.2 (semver major) and verified: tsc clean, 501/501 tests pass, SPA serves correctly FROM A RUNNING CONTAINER (index 200, client-side route falls back 200, asset 200, /api/nope returns a 404 JSON envelope) — verification done in a container specifically because the test suite never sets STATIC_DIR and therefore does not cover the static-serving path at all. Traversal probes with `../`, `..%2f` and `%2e%2e%2f` leak no file content; the encoded forms fall through to the SPA index. Production advisory count dropped from 2 to 1.
+
+**ACCEPTED WITH REACHABILITY VERIFIED**: kysely@0.27.5's three high advisories remain, all verified NOT reachable — no `Kysely<any>`, `@ts-ignore`, `@ts-expect-error` or `as any` anywhere in backend/src; `JSONPathBuilder.key()`/`.at()` never called and the only jsonb column is unused in Phase 1 per BR-C-09; and the `sql.lit(string)` advisory is MySQL-specific while all four `eb.lit()` call sites pass a boolean under PostgresDialect. The fix requires kysely@0.29.4, a breaking change to the layer every authorization filter is built on, so it is carried to Operations as its own deliberate change gated by the full suite rather than rushed with `audit fix --force` at the end of a stage. The ~21 remaining high advisories are dev-only (jest/babel-plugin-istanbul chain) and verified absent from the runtime image.
+
+**NEW LOW-SEVERITY FINDING**: a malformed path (`GET /../../etc/passwd`) returns 500 rather than 404. Verified by reading the response body that it is the GENERIC envelope with no stack trace, no path and no internal detail, so U1-NFR-R-07 holds and there is no leak — but it is the same class Unit 1 already fixed once for malformed UUIDs, and it lets a probing client generate error-level log noise at will. Recorded with a recommendation rather than fixed.
+
+**HONEST SCOPE STATEMENTS**: Contract tests marked N/A with a reason (one deployable, so `tsc` already gates the inter-unit contract; a contract harness protects a boundary between independently deployed services, which does not exist here). Load and stress tests deliberately NOT built, because a virtual-user ramp would characterise a load this single-instance business-hours low-tens-concurrency deployment cannot receive. Throughput and error rate NOT measured for the same reason, and stated as not measured rather than given invented figures. Coverage percentage NOT claimed, because NFR-Q-01 defers the CI gate so no mechanism exists to enforce a threshold. E2E only PARTIAL: the container serves the SPA correctly and 501 tests exercise the full Fastify pipeline, but NO BROWSER HAS RENDERED ANY SCREEN — recorded as the largest open risk in the project.
+
+**10 items carried into Operations**, ranked by severity in build-and-test-summary.md, headed by the unverified UI and including the operational surprise that this release CHANGES WHAT EXISTING USERS CAN SEE, with the pre-deployment SQL to find accounts that will fail closed.
+
+---
