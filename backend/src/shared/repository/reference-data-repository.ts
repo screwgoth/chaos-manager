@@ -96,7 +96,27 @@ export class ReferenceDataRepository {
     });
   }
 
-  /** BR-C-05: deactivate, never delete. There is no delete method on purpose. */
+  /**
+   * Hard delete. Permitted ONLY when nothing references the entry — BR-C-06 refuses
+   * removal of a referenced entry and offers deactivation instead. The caller checks
+   * references first; the foreign keys are the backstop if it does not, and a violation
+   * surfaces as a ConflictError rather than orphaning rows.
+   *
+   * BR-C-05 (deactivate rather than delete) is the normal path; this exists for the
+   * genuinely-unused entry an admin created by mistake.
+   */
+  async delete(id: ReferenceId): Promise<boolean> {
+    return withPgErrors(async () => {
+      if (!isUuid(id)) return false;
+      const result = await this.db
+        .deleteFrom('reference_data_entry')
+        .where('id', '=', id)
+        .executeTakeFirst();
+      return Number(result.numDeletedRows) > 0;
+    });
+  }
+
+  /** BR-C-05: deactivation is the normal path; see `delete` for the narrow exception. */
   async setActive(id: ReferenceId, isActive: boolean): Promise<ReferenceDataEntry | null> {
     const row = await this.db
       .updateTable('reference_data_entry')

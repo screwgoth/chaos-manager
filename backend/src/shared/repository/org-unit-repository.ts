@@ -102,6 +102,18 @@ export class OrgUnitRepository {
   }
 
   /**
+   * Hard delete. Permitted ONLY when nothing references the unit (BR-O-05); the caller
+   * checks `countReferences` first and the foreign keys are the backstop.
+   */
+  async delete(id: OrgUnitId): Promise<boolean> {
+    return withPgErrors(async () => {
+      if (!isUuid(id)) return false;
+      const result = await this.db.deleteFrom('org_unit').where('id', '=', id).executeTakeFirst();
+      return Number(result.numDeletedRows) > 0;
+    });
+  }
+
+  /**
    * BR-O-05: an org unit that is still referenced cannot be deactivated. Counting in
    * SQL rather than fetching the rows keeps this O(1) in transferred data — these counts
    * are the only thing the caller needs, and the row contents are personal data.

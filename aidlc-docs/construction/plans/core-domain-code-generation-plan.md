@@ -4,8 +4,8 @@
 **Phase**: 🟢 CONSTRUCTION · **Unit**: `core-domain` (1 of 2) · **Stage**: Code Generation (Part 1: Planning)
 **Date**: 2026-07-25
 **Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 IN PROGRESS on branch `aidlc/construction-core-domain`.
-**Steps 1-6 of 26 complete and verified.** Next: Step 7 (business logic — OrgUnit and ReferenceData components).
-**Verification**: `npx tsc --noEmit` clean; `npx jest` **68 passed / 5 suites** against PostgreSQL 16 (41 passed + 27 skipped without a database).
+**Steps 1-7 of 26 complete and verified.** Next: Step 8 (business logic — Member and Project components).
+**Verification**: `npx tsc --noEmit` clean; `npx jest` **110 passed / 7 suites** against PostgreSQL 16.
 **Branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
 
 > **This plan is the single source of truth for Code Generation.** Part 2 executes exactly these steps in
@@ -125,10 +125,32 @@ Went beyond the planned scope: Docker was available, so these are REAL integrati
 ### Step 6 — Repository Layer Summary ✅
 - [x] Write `aidlc-docs/construction/core-domain/code/repository-layer-summary.md` — includes both defects found, the run instructions for the integration suite, and what is carried forward (X-1; BR-A-24 lock present but unproven under concurrency)
 
-### Step 7 — Business Logic: OrgUnit and ReferenceData
-- [ ] `C-05 OrgUnitComponent` — two-level enforcement, reference counting, scope resolution (US-ADM-03)
-- [ ] `C-06 ReferenceDataComponent` — generic over ROLE/SKILL/PROJECT_TYPE, deactivate-not-delete (US-ADM-01, US-ADM-02)
-- [ ] Rules BR-O-01…06, BR-C-01…09
+### Step 7 — Business Logic: OrgUnit and ReferenceData ✅
+- [x] `C-05 OrgUnitComponent` — two-level enforcement (BR-O-01) with the offending parent NAMED, hierarchy built from one flat fetch, reference-blocked removal (BR-O-05), `resolveScope` that fails CLOSED (US-ADM-03)
+- [x] `C-06 ReferenceDataComponent` — generic over ROLE/SKILL/PROJECT_TYPE with no type-specific code (BR-C-01, BR-C-08), deactivate-not-delete as the normal path, three-way `validateIds` for Unit 2's import (US-ADM-01, US-ADM-02)
+- [x] Rules BR-O-01…06, BR-C-01…09 — see mapping below
+- [x] Tests: `org-unit-component.test.ts`, `reference-data-component.test.ts` (fakes, not a database — these are decisions the components make)
+
+**Rule coverage**
+
+| Rule | Where |
+|---|---|
+| BR-O-01 two levels | `validateParent` + DB trigger; test asserts the third level is refused and names the parent |
+| BR-O-02 sibling name uniqueness | DB partial unique indexes (not pre-checked — read-then-write is a race) |
+| BR-O-03 one org unit per member/project | schema FK, non-null |
+| BR-O-04 cross-org assignment permitted | no constraint added — permitted by omission, deliberately |
+| BR-O-05 referenced unit cannot be removed | `remove()` returns `blockedBy`; `userAccounts` blocks via ConflictError |
+| BR-O-06 admin-managed, no redeploy | no hardcoded unit names anywhere |
+| BR-C-01/02 admin-managed, immediately selectable | no enum, no caching |
+| BR-C-03 name unique per type | DB index |
+| BR-C-04 rename propagates | by id, no cascade — test asserts nothing is deleted/recreated |
+| BR-C-05 deactivate keeps references readable | `setActive(false)`; test asserts the count is unchanged |
+| BR-C-06 referenced entry cannot be deleted | `remove()` returns the count; unreferenced entries DO delete |
+| BR-C-07 reactivation | `reactivate()` |
+| BR-C-08 no team-type vocabulary | one generic component; "department"/"team" only |
+| BR-C-09 `attributes` unused | absent from every mapper and component |
+
+**Correction to a Step 4 claim**: the repository summary said ReferenceDataRepository has "no delete method on purpose". That was wrong — BR-C-06 refuses deletion only of a REFERENCED entry, which means unreferenced entries must be deletable. `delete()` added to both `ReferenceDataRepository` and `OrgUnitRepository`, guarded by a reference check in the component with the foreign keys as backstop.
 
 ### Step 8 — Business Logic: Member and Project
 - [ ] `C-01 MemberComponent` — CRUD, conditional off-roll contract fields, skills, deactivate with **auto-end cascade** (US-MEM-01…05, US-MEM-07)

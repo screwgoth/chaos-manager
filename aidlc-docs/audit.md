@@ -362,3 +362,30 @@ Section 3 of the plan discloses two things for the user to consider before appro
 **Next step**: Step 7 — business logic for OrgUnit (C-05) and ReferenceData (C-06) components, rules BR-O-01…06 and BR-C-01…09.
 
 ---
+
+## Code Generation Part 2 — Step 7 complete (core-domain)
+**Timestamp**: 2026-07-25T22:40:00Z
+**User Input**: "Continue"
+**AI Response**: "Generated C-05 OrgUnitComponent and C-06 ReferenceDataComponent with tests. Verified: tsc --noEmit clean; jest 110 passed / 7 suites."
+**Context**: CONSTRUCTION phase, Unit 1 `core-domain`, Step 7 of 26, branch `aidlc/construction-core-domain`.
+
+**Delivered**:
+- `backend/src/core-domain/org-unit/org-unit-component.ts` — BR-O-01…06
+- `backend/src/core-domain/reference-data/reference-data-component.ts` — BR-C-01…09
+- `backend/tests/core-domain/org-unit-component.test.ts`, `reference-data-component.test.ts`
+
+**Correction to a claim made in Step 4**: `repository-layer-summary.md` stated ReferenceDataRepository has "no delete method on purpose". That reading of BR-C-05 was wrong. BR-C-06 refuses hard deletion only of a REFERENCED entry, which necessarily means an unreferenced entry must be deletable — otherwise an admin who creates a typo could never remove it. Added `delete()` to `ReferenceDataRepository` and `OrgUnitRepository`, gated by a reference check in the component with the foreign keys as the backstop against the check-then-delete window.
+
+**Design decisions taken and recorded in code comments**:
+1. `resolveScope` FAILS CLOSED — a scoped role with no home org unit, or whose home unit no longer exists, resolves to the EMPTY list, never 'ALL'. Seeing nothing is a support ticket; seeing everything is a data breach. Tested for all three scoped roles.
+2. A department resolves to itself AND its teams via the subtree query, because a department head must be able to see their own teams' members — the common case, not an edge case.
+3. Reparenting an org unit is REFUSED rather than supported: moving a team between departments would silently change who can see its members and alter the scope under which historical allocations were computed. That is a data migration, not an edit.
+4. `listHierarchy` surfaces an orphaned unit as a root rather than dropping it — a unit missing from the picker would make its members unassignable with no visible cause.
+5. `validateIds` classifies a WRONG-TYPE id as `unknown`, not `inactive`, and the classification is total (every input id lands in exactly one bucket). Conflating the two would leave an admin unable to distinguish a typo from a retired entry.
+6. Uniqueness rules (BR-O-02, BR-C-03) are NOT pre-checked in the component — a read-then-write check is a race under concurrent creates. The database index is the guarantee and already yields a ConflictError naming the field.
+
+**Verification actually run**: `npx tsc --noEmit` → exit 0. `npx jest` with TEST_DATABASE_URL → 110 passed, 7 suites, 0 failures.
+
+**Next step**: Step 8 — Member (C-01) and Project (C-02) components.
+
+---
