@@ -72,7 +72,7 @@ requirements independent of the disabled security extension.
 - [x] Infrastructure Design — APPROVED 2026-07-25T12:35:00Z (3 docs incl. shared-infrastructure.md)
 - [ ] Code Generation — Part 1 plan APPROVED 2026-07-25T12:45:00Z; Part 2 COMPLETE, all 26 steps verified on branch `aidlc/construction-core-domain`
 
-**🟢 UNIT 1 `core-domain` COMPLETE** — 133 files, 24,220 lines, 450 tests, 50 endpoints, 30 stories.
+**🟢 UNIT 1 `core-domain` COMPLETE** — 133 files, 24,220 lines, 450 tests, 50 endpoints, **32 stories** (corrected from 30 at Unit 2 Functional Design, Q15:A — US-ASN-04 and US-VIS-05 were built here).
 
 ### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
 - [x] Functional Design — **APPROVED 2026-07-26T14:40:00Z** (+ R2 folded-in obligations 4, 5 both discharged). Branch `aidlc/construction-supporting-platform`. 34/34 plan steps ticked. 4 artifacts at `aidlc-docs/construction/supporting-platform/functional-design/`.
@@ -82,7 +82,7 @@ requirements independent of the disabled security extension.
   - ✅ **Unit 2 owns NO database entity and needs NO migration** (Q1:A + Q10:A remove both candidates). `001_initial_schema.ts` is the final Phase 1 schema.
   - ⚠️ **FR-I-01 recorded as PARTIALLY SATISFIED** — CSV yes, Excel deferred (Q7:A). Annotated in `requirements.md`. The first Must requirement in the project not fully delivered; recorded as a visible gap rather than counted as complete.
   - ⚠️ **No import audit trail** (Q10:A) — a 2,000-row bulk write leaves only log counts and failure reasons, never row contents. Accepted Phase 2 revisit.
-- [ ] NFR Requirements — EXECUTE
+- [ ] NFR Requirements — **IN PROGRESS**: plan created 2026-07-26 with 10 steps and 8 questions; awaiting user answers before artifact generation
 - [ ] NFR Design — SKIPPED (R2)
 - [ ] Infrastructure Design — EXECUTE
 - [ ] Code Generation — EXECUTE
