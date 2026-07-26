@@ -440,3 +440,121 @@ than dead ends.
 
 An earlier summary said "47 routes". That was a miscount; the figure above was produced by
 enumerating the route registrations mechanically.
+
+---
+
+# Unit 2 additions — `supporting-platform`
+
+**Added 2026-07-26.** Six new endpoints, bringing the total to **56** method+path combinations
+(counted mechanically from the route registrations).
+
+## ⚠️ The scope warning above is now OBSOLETE
+
+The note earlier in this document saying *"`in scope` currently means everywhere"* described Unit 1's
+permissive stand-in. **That stand-in is deleted.** Org-unit confinement is now enforced:
+
+| Role | Scope |
+|---|---|
+| `ADMIN`, `EXECUTIVE` | all org units |
+| `RESOURCE_MANAGER` attached to a **root** org unit | all org units |
+| `RESOURCE_MANAGER` attached to a **child** unit | that unit and its children |
+| `TEAM_LEAD` | their home unit and its children |
+| `TEAM_LEAD` / `RESOURCE_MANAGER` with **no** home unit | **nothing** — fails closed (BR-R-11) |
+| `TEAM_MEMBER` | their own linked member record only |
+
+**Assignment visibility is two-sided** (BR-R-12): an assignment is in scope when the caller's scope
+covers the **member OR the project's owning org unit**. A Team Lead therefore sees who is staffed on
+projects their unit owns, including people from other org units.
+
+**Allocation totals are never reduced by scope** (BR-R-13). A scoped caller sees a visible member's
+*full* total, including assignments to projects outside their scope, and those projects are named.
+
+## Import
+
+| Method | Path | Role | Notes |
+|---|---|---|---|
+| `POST` | `/api/imports/members` | `ADMIN` | multipart, field name `file`. 5 MB / 2,000 rows |
+| `POST` | `/api/imports/projects` | `ADMIN` | as above |
+| `GET` | `/api/imports/template/:kind` | any session | `kind` is `members` or `projects`; returns `text/csv` |
+
+**CSV only.** `.xlsx` is refused with a save-as-CSV instruction — FR-I-01 is **partially satisfied**
+(Q7:A defers Excel).
+
+### Status codes, and why a fruitless import is 200
+
+| Situation | `outcome` | HTTP |
+|---|---|---|
+| rows written | `CREATED` | 200 |
+| every row failed or conflicted | `NOTHING_CREATED` | **200** |
+| bad format, missing column, over a limit | `FILE_REFUSED` | 400 |
+| non-admin | — | 403 |
+
+A processed-but-fruitless import is **200, not 4xx**: the request was well-formed and the answer is a
+report. A 4xx would make clients treat a legitimate result as a protocol failure and discard the
+report the admin needs.
+
+### Response body
+
+```json
+{
+  "kind": "MEMBER",
+  "outcome": "CREATED",
+  "totalRows": 12,
+  "created": 9,
+  "failed":    [ { "lineNumber": 4, "reasons": ["email is required.", "role \"Wizard\" is not an existing ROLE."] } ],
+  "conflicts": [ { "lineNumber": 7, "naturalKey": "ada@example.com",
+                   "existingRecord": { "id": "…", "label": "Ada Lovelace" }, "existingLineNumber": null } ],
+  "ignoredColumns": ["day_rate"],
+  "refusalReason": null
+}
+```
+
+`failed` and `conflicts` are **separate** because they call for different corrections — fix the row
+versus delete the row. `lineNumber` is 1-based **including the header**, so it matches what a
+spreadsheet shows. A row with several problems lists **all** of them.
+
+`curl` works exactly as a browser does — the boundary is the client's to set:
+
+```bash
+curl -b cookies.txt -F file=@members.csv https://chaos.example.com/api/imports/members
+```
+
+## Account-to-member linkage
+
+| Method | Path | Role | Notes |
+|---|---|---|---|
+| `GET` | `/api/accounts` | `ADMIN` | accounts with linked member names resolved |
+| `POST` | `/api/accounts/:id/link` | `ADMIN` | body `{ "memberId": "…" }`. Idempotent for the same member |
+| `DELETE` | `/api/accounts/:id/link` | `ADMIN` | returns `accessRevoked: true` for a `TEAM_MEMBER` |
+
+Both refusals are **409** and carry a machine-readable reason alongside the message, so a client can
+branch on the code rather than matching prose:
+
+```json
+{ "error": { "code": "CONFLICT",
+             "message": "ada is already linked to Ada Lovelace. Unlink it first.",
+             "violations": [],
+             "detail": { "reason": "ACCOUNT_ALREADY_LINKED", "existingMemberId": "…" } } }
+```
+
+`reason` is `ACCOUNT_ALREADY_LINKED` or `MEMBER_ALREADY_LINKED`. The distinction matters: it tells the
+admin **which** link to remove.
+
+⚠️ `DELETE .../link` on a `TEAM_MEMBER` account **revokes all their access** — an unlinked team member
+has no own-data to be scoped to and is refused everywhere (BR-R-18).
+
+## Changed response — `/api/members/expiring-contracts`
+
+Previously returned `MemberSummary[]`, which omitted the contract end date, so the screen the endpoint
+was meant to serve could not be built on it. Now:
+
+```json
+{ "items": [ { "member": { "id": "…", "fullName": "Alan Turing", "…": "…" },
+               "contractEndDate": "2026-08-31",
+               "daysRemaining": 36 } ],
+  "withinDays": 30 }
+```
+
+`daysRemaining` is computed from the **server's** date (AS-03). A browser behind UTC computing it
+locally would render "expires in 1 day" for a contract that ended yesterday. `0` means it ends today.
+Ordered soonest-first.

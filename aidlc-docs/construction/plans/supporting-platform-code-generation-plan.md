@@ -251,17 +251,23 @@ stands and no background job is needed. **Unit 2 still requires NO migration.**
       3. **Re-run Unit 1's endpoint timings for a SCOPED role**, not Admin. The originals were measured
          against a permissive filter that added no `WHERE` clause, so they do not transfer.
 
-- [ ] **Step 20 — Documentation.** Update `api-documentation.md` with the new endpoints and the new
+- [x] **Step 20 — Documentation.** Update `api-documentation.md` with the new endpoints and the new
       total; write `authorization-summary.md` and `import-summary.md`; update `README.md` with the import
       workflow and the ordering constraint that reference data must exist first.
 
-- [ ] **Step 21 — Full verification and summary.** Run and report **actual output** for: `tsc --noEmit`
+- [x] **Step 21 — Full verification and summary.** Run and report **actual output** for: `tsc --noEmit`
       both workspaces, both test suites, both builds, `docker build`, `docker compose config`. Confirm
       the stand-in is absent from the **built image**. Confirm `shared/types/authorization.ts` is
       unmodified. Confirm US-ENB-03 and US-ENB-04 still hold. Write
       `code-generation-summary.md` with verified figures, every defect found, and every gap remaining.
 
 ---
+
+**ALL 21 STEPS COMPLETE 2026-07-26.** Verified totals: backend **501 passed / 21 suites**, frontend
+**89 passed / 8 suites**, both `tsc --noEmit` clean, both builds succeed, `docker build` succeeds, the
+stand-in is absent from the built **image**, `shared/types/authorization.ts` is unmodified, and
+`001_initial_schema.ts` is still the only migration. Full account in
+`../supporting-platform/code/code-generation-summary.md`.
 
 ## 3. Execution Rules
 

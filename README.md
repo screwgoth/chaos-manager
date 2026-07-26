@@ -213,16 +213,57 @@ Inside the backend: **route → service → component → repository**. Routes v
 business rules live in components; scope filters are applied inside SQL queries so out-of-scope
 rows are never fetched.
 
+## Loading data from a spreadsheet
+
+Admin only. **Order matters** — import matches names and never creates vocabulary, so anything it
+references must exist first:
+
+1. **Admin → Org units** — create your org structure (two levels: units and their children).
+2. **Admin → Lists** — create the roles, skills and project types your file uses.
+3. **Import** — choose People or Projects, download the template, fill it in, upload it.
+
+CSV only (see limitations). The template lists every column and which are required, and it is
+generated from the same definition the parser uses, so a downloaded template always imports.
+
+**Re-running an import is safe.** Existing records are reported as conflicts rather than duplicated,
+so if you are unsure whether a file went through, upload it again — the worst case is a report full
+of conflicts and nothing created.
+
+Two things the report tells you that are easy to miss:
+
+- **Ignored columns.** Anything not in the template is skipped and named back to you. If your export
+  had a rate or PO column, it did **not** import — there is no field for it in this phase.
+- **Nothing is saved.** The report exists only on screen. Copy anything you need before navigating
+  away.
+
+If every row fails on an org unit or role, you skipped steps 1–2.
+
 ## Known limitations in this phase
 
-- **Org-scope visibility is not enforced yet.** A Team Lead or Resource Manager currently sees
-  people and projects across *all* org units. Role-level rules (who may write, team members seeing
-  only their own data) *are* enforced. This closes when the `supporting-platform` unit lands.
-- **No CSV import yet** — also `supporting-platform`.
+- **CSV only — Excel is not supported.** Open an `.xlsx` and "Save As" a `.csv` first. This leaves
+  requirement FR-I-01 partially satisfied and is recorded as such rather than counted as delivered.
+- **An import leaves no audit trail.** Row counts and failure reasons are logged; who imported what
+  is not reconstructable afterwards.
+- **Team Leads cannot request assignment changes.** They have read access within their org unit and
+  no write path at all; the "request a change" flow is deferred.
+- **A new *root* org unit needs a restart** before a Resource Manager attached to it gets
+  organisation-wide visibility. Until then they see their own subtree — it under-grants, never
+  over-grants.
 - **Capacity is fixed at 100% per person.** Part-time and fractional capacity are not modelled.
 - **No automated CI gate.** Tests exist and pass; nothing yet stops a commit that breaks them.
 - **No screen has been visually verified.** The UI typechecks, builds, is unit-tested and is served
   correctly, but no browser has rendered it during development.
+
+### Now enforced (was a limitation in the previous phase)
+
+**Org-scope visibility.** A Team Lead and a Resource Manager attached to a child org unit see only
+their own unit and its children. An account of either role with **no** org unit assigned sees
+**nothing** — that is deliberate fail-closed behaviour, and it looks exactly like a broken account, so
+check `home_org_unit_id` before assuming a bug.
+
+One deliberate exception worth knowing: a Team Lead **can** see people from other org units when
+those people are staffed on a project their unit owns. You cannot staff a project you own without
+seeing who is on it.
 
 ## Documentation
 

@@ -819,3 +819,35 @@ Consequence: Unit 1's stated story count of 30 is understated by two, and Unit 2
 **OUTSTANDING — Steps 7-21**: account-member linkage service, routes and tests (7-8); import component, service, routes and tests (9-12); frontend import, accounts and three view pages (13-16); configuration and deployment artifacts (17-18); the three performance measurements recorded as UNVERIFIED at NFR Requirements (19); documentation and full verification including `docker build` (20-21).
 
 ---
+## Construction — Unit 2 — Code Generation Part 2 COMPLETE (21/21 steps)
+**Timestamp**: 2026-07-26T19:40:00Z
+**User Input**: "Continue from Step 7"
+**AI Response**: "Steps 7-21 complete. All 21 plan steps ticked. Verified totals produced by running the commands: backend 501 passed / 21 suites, frontend 89 passed / 8 suites, both tsc --noEmit clean, both builds succeed, docker build succeeds, stand-in absent from the built IMAGE, shared/types/authorization.ts unmodified, 001_initial_schema.ts still the only migration, only 80/443 published. 590 tests total. Wrote code-generation-summary.md, appended Unit 2 endpoints to api-documentation.md, updated README with the import workflow and revised limitations."
+**Context**: CONSTRUCTION phase, Unit 2 of 2, Code Generation complete; awaiting approval before Build and Test, which is the final stage and runs once for both units.
+
+**ALL THREE UNVERIFIED PERFORMANCE CLAIMS ARE NOW MEASURED, with real numbers**: 2,000-row import 6.8 s against a 30 s budget; 200-row import 0.62 s; BR-R-12's disjunction 2.1 ms over 1,500 assignments with the member side using Index Scan on member_org_status_idx, so N-Q2:A is discharged on evidence and NO index is warranted — Unit 2 therefore still requires no migration; scoped member list 12.1 ms against a 500 ms budget; resolveScope + toScopeFilter 0.18 microseconds per call. The import write phase came in at roughly a third of the estimated worst case, so the 2,000-row cap stands and no background job is needed.
+
+**NINE DEFECTS FOUND, EVERY ONE BY RUNNING SOMETHING**:
+1. U1-D01 — synchronous resolveScope cannot resolve a real org scope (found writing Step 2; resolved by user decision, Option B).
+2. targetInScope read restrictToMemberId, which lives on ScopeFilter not AccessScope — caught by tsc; would have silently skipped the TEAM_MEMBER branch.
+3. targetInScope returned 403 where the approved design requires 200+[] via the query filter, and 403 also contradicts BR-R-16's deliberate 404-not-403 choice — caught by Unit 1's own existing api.test.ts.
+4. The same method WRONGLY DENIED a Team Lead access to a child unit, because after U1-D01 scope ids are roots and exclude children. A pre-check that wrongly denies is worse than no pre-check.
+5. My own arithmetic error, propagated through several approved documents: "80-cell matrix" is wrong — 5 roles x 8 kinds is 40 CELLS carrying 80 read/write DECISIONS. Caught by a test asserting 80 rows and receiving 40. Corrected in code, tests and docs.
+6. The BR-IM-24 logging test patched app.log.info and captured NOTHING, because Fastify gives each request a CHILD logger — so its "no row contents" assertions were passing vacuously against an empty string. Rewritten to intercept process.stdout, and it now asserts the capture WORKS before asserting absence.
+7. The BR-IM-16 atomicity test branched on the outcome and merely warned if the database accepted the row, so it could pass without exercising rollback at all. Made unconditional.
+8. The BR-R-12 EXPLAIN ran against an EMPTY assignment table and reported "Seq Scan rows=0", which answers nothing — a scan of zero rows is free however bad the plan is. Re-run against 1,500 rows. Reporting the empty-table result as a discharged verification would have been worse than leaving the claim open.
+9. Unit 1's /api/members/expiring-contracts returned MemberSummary[], omitting contractEndDate — so US-MEM-06's screen had no date to show and no way to compute days remaining without an N+1, and the contract window was being fetched and discarded one line before the caller needed it. This CORRECTS the Unit 2 plan's own section 0 claim that US-MEM-06 needed "frontend only".
+
+**Also found**: test configs use `as AppConfig` casts which defeat the type system, so adding a required config field broke 4 suites at RUNTIME rather than at compile time; Zod validation runs BEFORE authorization so an incomplete body from an unauthorized caller yields 400 not 403 (no data leak, but it reveals the request schema — recorded rather than reordered, because a write's authorization check needs the parsed target); and Kysely 0.27.5's three high-severity advisories are all verified NOT reachable, carried to Build and Test rather than pulling a breaking upgrade mid-plan.
+
+**STEP 6'S NEUTERING REQUIREMENT WAS EXECUTED**: the component was edited back to a permissive scope and 16 of 83 supporting-platform tests turned RED, then it was restored and the suite re-run green. Role-level refusals are labelled as regression tests, not as X-1 proof, because they passed against the stand-in too.
+
+**THE HONEST VERDICT ON THE X-1 PATTERN, recorded in the summary**: only PARTIALLY successful. It achieved its primary purpose — Unit 1 built, ran and demonstrated without Unit 2 — but it did NOT validate that the interface could support the real implementation, because a permissive stand-in returns a constant and never needs the data the real component needs. It exercises an interface's SHAPE, never its REQUIREMENTS. Unit 1's own stand-in comment named the exact call the real component must make ("OrgUnitComponent.resolveScope already computes exactly that") without noticing that method is async and the interface it sat behind could not call it. A RESTRICTIVE stand-in (plan option Q6:B) would have hit this wall during Unit 1, while the interface was still cheap to change.
+
+**TWO PRE-EXISTING DEPLOYMENT DEFECTS FIXED**: unbounded container logs (Docker's default json-file driver has no size cap and no logging options were ever set, so the stack had been growing logs since Unit 1 shipped — and shared-infrastructure.md section 6 rule 5 had already ASSERTED the log was "rotated", an approved artifact stating a safety property the deployment did not have); and the missing Caddy request_body limit, now 6 MB set deliberately ABOVE the app's 5 MB so a just-over-limit upload still reaches the app and receives the message naming both limits rather than a bare 413 at exactly the boundary users hit.
+
+**Refusal logging (N-Q5:A)** records role, method and the ROUTE PATTERN — deliberately not request.url, which carries query strings that can contain member ids; the existing onResponse hook had already made that choice and logging the raw url would have quietly undone it. The target record's id is deliberately absent: logging it would leak through the log the very thing the refusal withheld, and BR-R-16 chose 404-not-403 precisely so a refusal cannot confirm a record exists.
+
+**Story coverage: 43 of 43 across both units.** US-ENB-03 and US-ENB-04 upheld and verified, not owned.
+
+---
