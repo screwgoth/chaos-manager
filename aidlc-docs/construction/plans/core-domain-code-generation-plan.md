@@ -4,9 +4,10 @@
 **Phase**: 🟢 CONSTRUCTION · **Unit**: `core-domain` (1 of 2) · **Stage**: Code Generation (Part 1: Planning)
 **Date**: 2026-07-25
 **Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 IN PROGRESS on branch `aidlc/construction-core-domain`.
-**Steps 1-17 of 26 complete and verified.** Next: Step 18 (frontend shared foundations).
+**Steps 1-20 of 26 complete and verified.** Next: Step 21 (frontend unit tests).
 **Verification**: `npx tsc --noEmit` clean; `npm test` **387 passed / 17 suites** against PostgreSQL 16 (296 passed + 91 skipped without a database); `npm run build` produces `dist/src/server.js`; server smoke-tested live (`/health` 200, unauthenticated 401, unknown endpoint JSON 404).
 **NOTE**: use `npm test`, not `npx jest` — Jest needs `--experimental-vm-modules` for @fastify/cookie's dynamic import.
+**Frontend verification**: `tsc --noEmit` clean; `vite build` → 291 kB JS / 16.7 kB CSS; `jest` 10 passed. Full stack smoke-tested: backend serving the built SPA, bootstrap admin login succeeded, `HttpOnly` cookie set, no plaintext password in the log, client route `/members` falling back to index.html while `/api/nope` still returned the JSON envelope.
 **Branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
 
 > **This plan is the single source of truth for Code Generation.** Part 2 executes exactly these steps in
@@ -275,13 +276,28 @@ Also confirmed during the audit: `SECRET_KEYS` covers all three secret-bearing v
 
 **Defect 11**: `member-service.ts` was silently never written, because a `cd` into an already-current directory failed and short-circuited the `&&` chain. Caught by listing the directory rather than trusting the tool's exit code.
 
-### Step 18 — Frontend: Shared Foundations
-- [ ] `shared/api/` — `ApiClient` parsing the `violations` envelope, routing 401 to sign-in
-- [ ] `shared/session/` — `SessionProvider`, `useSession`, `RequireRole` (**convenience only, not enforcement**)
-- [ ] `shared/components/` — the 12 shared components incl. `DateRangePicker`, `PercentageInput`, **`AllocationBar` with distinct overflow treatment** (U1-NFR-U-05), `AllocationSegmentStrip`, `EmptyState`, `ErrorState`, `FieldErrors`, `DataTable`
-- [ ] TanStack Query client with the **cache-invalidation map** from `frontend-components.md` §1
-- [ ] `App.tsx` route map with role-based redirect
-- [ ] `data-testid` convention applied throughout — entity ids, never row indices
+### Step 18 — Frontend: Shared Foundations ✅
+- [x] `shared/api/` — `ApiClient` with `credentials: 'include'`, the `violations` envelope parsed into a typed `ApiError` with `forField()`, and a 401 handler that routes to sign-in ONCE. `/api/auth/login` and `/api/auth/session` are excluded from that handler, because a 401 there is an ANSWER, not an expiry — including them would produce a redirect loop on the sign-in page.
+- [x] `shared/session/` — `SessionProvider`, `useSession`, `RequireRole`, `useCanWrite`. The file header states plainly that this is convenience, not enforcement (US-ENB-01), and points at the API test that proves the server refuses a TEAM_MEMBER on six routes.
+- [x] `shared/components/` — `AllocationBar`, `AllocationSegmentStrip`, `DataTable`, `Dialog`, `FieldErrors`/`FormErrors`, `EmptyState`/`ErrorState`/`LoadingState`, `DateRangePicker`, `PercentageInput`, `Field`/`TextInput`/`Select`/`TextArea`, `Button`
+- [x] TanStack Query client with the cache-invalidation map, keys hierarchical so `['allocations']` clears every allocation query — the wildcard from the design table made literal
+- [x] `App.tsx` route map with role-based landing: TEAM_MEMBER → own assignments, everyone else → allocation view. Not cosmetic: a Team Member's scope makes the allocation view nearly empty, so landing there would open the product on a blank screen.
+- [x] `data-testid` uses ENTITY ids (`row-{member.id}`), never row indices — an index breaks on sort, filter and insert, and worse, silently starts asserting against a different record
+
+**`AllocationBar` — the one rule, encoded three ways.** An over-allocated member must not look like a fully-booked one, so over-allocation is signalled by COLOUR (a distinct token, not a shade), SHAPE (a hatched tail that breaks out past the track, so the bar is visibly the wrong size — this survives greyscale and colour blindness, which colour alone does not), and NUMBER (`-20% left`, never clamped to zero). Ten tests pin all three, including that `bg-allocation-full` and `bg-allocation-over` cannot converge.
+
+### Step 19 — Frontend: Auth, Members, Projects ✅
+- [x] `auth/` — `SignInPage`, `SessionGuard`, `SignOutButton`. Empty fields are caught client-side with NO request sent (BR-AU-06); a rejection displays the server's single message verbatim and never elaborates (BR-AU-04); the password is cleared on failure but the username kept, since retyping a correct username is friction with no security benefit.
+- [x] `members/` — list with filter bar (draft applied on submit, not per keystroke), form, `ContractFieldset` (vendor/start/end/status and NOTHING else — BR-M-09), `SkillTagEditor` (managed list only, with "Not in the skill list — ask an admin to add it" for free text), detail page with allocation timeline, `DeactivateMemberDialog` stating the auto-end count AND that reactivating will not restore the assignments
+- [x] `projects/` — list, form, detail, `ProjectStaffingPanel` grouping rows by member with a subtotal (BR-P-11) and splitting current/past by DATE (BR-P-10), `CloseProjectDialog` listing exactly whose work would be ended
+- [x] Forms retain every entered value on rejection (US-MEM-07's criterion) — the form owns its state and never resets on error
+
+### Step 20 — Frontend: Assignments, Views, Admin ✅
+- [x] `assignments/` — `AssignmentFormPage`, `OverAllocationDialog` (BLOCKING per Q14:A, naming the member, each offending sub-period, the total, and every contributing project), `AssignmentConflictNotice` as a non-blocking inline warning, member/project locked on edit with the reason shown
+- [x] `views/` — `AllocationViewPage` with an over-capacity banner, `AvailabilitySearchPage` defaulting to NEXT month with skill as the most prominent control and both min AND max availability shown, `MyAssignmentsPage` resolving entirely through the session (no route parameter to change), `HistoricalAllocationPage` with an as-of notice explaining that figures come from history and *why* they can differ from the live view
+- [x] `admin/` — `ReferenceDataPage` (one screen for all three types), `RetireReferenceDialog` offering deactivation when a delete is refused, `OrgUnitPage` + `OrgUnitTree` rendering exactly two levels literally rather than recursing, with only departments offered as parents so BR-O-01 is visible before submit
+
+**Over-allocation flow, UI side**: submit → if `requiresOverrideConfirmation`, nothing was saved, show the blocking dialog → the user either goes back (nothing persists, BR-A-10) or confirms, which re-submits the same payload with `overrideOverAllocation: true`. Re-submitting re-runs the check inside the member lock, so what the user confirmed is what the database sees.
 
 ### Step 19 — Frontend: Auth, Members, Projects
 - [ ] `auth/` — `SignInPage`, `SessionGuard`, `SignOutButton` (US-ACC-01, 02, 03)

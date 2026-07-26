@@ -534,3 +534,33 @@ The replacement forces the interleaving explicitly: transaction A takes the lock
 **Next step**: Step 18 — frontend shared foundations.
 
 ---
+
+## Code Generation Part 2 — Steps 18-20 complete (core-domain)
+**Timestamp**: 2026-07-26T07:55:00Z
+**User Input**: "Continue with Steps 18, 19 and 20"
+**AI Response**: "Built the React SPA: shared foundations (Step 18), auth/members/projects (Step 19), assignments/views/admin (Step 20). Verified: frontend tsc --noEmit clean; vite build produces 291 kB JS; jest 10 passed; and the full stack smoke-tested with the backend serving the built SPA — bootstrap admin login succeeded, HttpOnly cookie set, no plaintext password in the log, /members fell back to index.html while /api/nope still returned the JSON envelope."
+**Context**: CONSTRUCTION phase, Unit 1 `core-domain`, Steps 18-20 of 26, branch `aidlc/construction-core-domain`.
+
+**Approach note**: the `frontend-design` skill was loaded before building. Its guidance is aimed at open design briefs; this had an APPROVED design artifact (`frontend-components.md`) and a fixed allocation palette already in `tailwind.config.js`, and the skill itself states the brief's own words always win. So the specified design was followed rather than a new visual identity invented. Design attention went where the spec says it matters: `AllocationBar`, which the design calls "the most-seen component in the product" with speed of comprehension as its success criterion.
+
+**Delivered**: `shared/api/` (client, query keys + invalidation map, wire types), `shared/session/`, `shared/components/` (11 components), `shared/hooks/lookups.ts`, `App.tsx`, `main.tsx`, and six feature folders — `auth/`, `members/`, `projects/`, `assignments/`, `views/`, `admin/` — plus `AllocationBar.test.tsx` (10 tests).
+
+**Design decisions recorded in code**:
+1. `AllocationBar` encodes over-allocation THREE ways — colour (a distinct token, not a shade), shape (a hatched tail breaking out past the track, which survives greyscale and colour blindness), and number (`-20% left`, never clamped). Any one cue can fail a given reader. Tests assert `bg-allocation-full` and `bg-allocation-over` cannot converge.
+2. The 401 handler EXCLUDES `/api/auth/login` and `/api/auth/session`: a 401 there is an answer, not an expiry, and including them would cause a redirect loop on the sign-in page.
+3. `queryClient.clear()` on sign-out and sign-in, not merely invalidate — leaving the previous user's member list in memory would let it flash on screen before the refetch lands.
+4. Filter drafts are applied on SUBMIT, not per keystroke: a request per character against a scoped joined query, and the user's intent is not knowable mid-word.
+5. Lookups fetch with `includeInactive=true` while PICKERS filter to active. A deactivated role must still RESOLVE for a member who holds it (BR-C-05) but must not be offered for new selections.
+6. `MyAssignmentsPage` has no route parameter — resolving through the session makes it structurally impossible to use that screen to view someone else, on top of the server's refusal.
+7. `HistoricalAllocationPage` states on screen that figures come from assignment history and that they can differ from the live view, because a user comparing the two screens must be able to tell why.
+8. `data-testid` uses entity ids, never row indices.
+
+**Verification actually run**: frontend `npx tsc --noEmit` → exit 0. `npm run build` → `dist/assets/index-*.js` 291.14 kB, CSS 16.75 kB. `npx jest` → 10 passed. Full stack on port 4011 against a fresh `chaos_smoke` database: bootstrap admin created (warning logged, telling the operator to change the password); `POST /api/auth/login` returned the user and scope with an `HttpOnly` cookie; `GET /api/auth/session` returned authenticated with an expiry; `GET /` and `GET /members` both 200 (SPA fallback); `GET /api/nope` returned the JSON 404 envelope; the plaintext bootstrap password appeared **zero** times in the log.
+
+**NOT verified — stated plainly**: no visual/browser check was possible. Playwright has no Chromium installed in this environment (`Chromium distribution 'chrome' is not found`). So the SPA is verified to typecheck, build, mount under jsdom, and be served correctly, but **no screen has been looked at**. Layout, spacing and colour rendering are unverified; the `AllocationBar` overflow treatment is asserted by class and by accessible text, not by appearance.
+
+**Incidental finding, not a defect**: an earlier smoke attempt against the shared `chaos_test` database failed to log in with any password, because the last integration suite to run seeds a user with a deliberately FAKE argon2 hash. Verification correctly failed closed on the malformed hash rather than authenticating — the behaviour `identity-component.test.ts` asserts. Smoke testing moved to a dedicated `chaos_smoke` database.
+
+**Next step**: Step 21 — frontend unit tests.
+
+---
