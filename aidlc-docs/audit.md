@@ -744,3 +744,26 @@ Consequence: Unit 1's stated story count of 30 is understated by two, and Unit 2
 **I-Q2:A rationale**: no container memory limits added. Choosing a ceiling without measurement is the same speculation declined for the index in N-Q2:A, and it has a worse failure mode — a limit set too low converts a SUCCESSFUL import into an OOM kill that presents as a crash. Expected footprint documented instead.
 
 ---
+## Construction — Unit 2 `supporting-platform` — Infrastructure Design APPROVED; Code Generation Part 1 (Planning)
+**Timestamp**: 2026-07-26T15:50:00Z
+**User Input**: "Approve infrastructure design and proceed to Code Generation"
+**AI Response**: "Recorded explicit approval of Unit 2 Infrastructure Design (2 artifacts + the prediction audit in shared-infrastructure.md §8; 10/10 plan steps). Proceeded to Code Generation Part 1 and created `aidlc-docs/construction/plans/supporting-platform-code-generation-plan.md` — 21 numbered steps with full story traceability, unit context, cross-unit dependency status, exact file paths, 8 execution rules and a stated centre of gravity. Awaiting explicit approval of the plan before Part 2 generation."
+**Context**: CONSTRUCTION phase, Unit 2 of 2, Code Generation Part 1 complete. This is the final stage of the per-unit loop; Build and Test runs once after it.
+
+**APPROVAL PROMPT LOGGED BEFORE ASKING** (per code-generation.md Part 1 Step 6): the user will be asked to approve the complete 21-step plan and generation sequence at `aidlc-docs/construction/plans/supporting-platform-code-generation-plan.md`. No code will be generated until that approval is explicit.
+
+**Plan structure**: Steps 1-6 authorization (the X-1 resolution) · 7-8 account linkage · 9-12 import · 13-16 frontend · 17-18 configuration and deployment · 19 performance measurement · 20-21 documentation and full verification.
+
+**Story traceability**: 11 outstanding stories mapped to specific steps. US-ASN-04 and US-VIS-05 explicitly marked as ALREADY COMPLETE with no work in this unit (Q15:A). US-ENB-03 and US-ENB-04 recorded as "upheld, not owned" — Unit 1 properties that Unit 2 must not break, verified at Step 21.
+
+**Step 4 is the X-1 switchover and is specified as a hard sequence**: repoint the composition root (ONE line), DELETE the entire authorization-standin directory including its tests and the STAND_IN_ENFORCEMENT_GAPS export, then run `git diff --stat` over core-domain/ and confirm ONLY services/index.ts changed. Any other change is to be recorded as a Unit 1 design defect rather than absorbed. Step 5's assignment-repository.ts change is the one pre-authorised exception, and its existing comment justifying member-only scoping must be REWRITTEN rather than left contradicting the code.
+
+**Step 6 carries the unit's most important verification requirement**: every test that purports to prove the X-1 fix must be CONFIRMED TO FAIL if Step 4 is reverted. Tests that pass against the permissive stand-in are regression tests and must be labelled as such, not counted as proof of the fix. This applies the method Unit 1 adopted after discovering its first BR-A-24 concurrency test was a false positive that passed with the lock neutered. Step 6 also carries the BR-R-13 assertion — a scoped user must see an in-scope member's FULL 130% total including out-of-scope projects, and that test must fail if the sum is taken after the scope filter.
+
+**Step 19 exists specifically to discharge the three claims recorded as UNVERIFIED at NFR Requirements**, with actual numbers required: time a real 2,000-row import against the 30 s budget; EXPLAIN the BR-R-12 disjunction and add an index only if the plan justifies it; and RE-RUN Unit 1's endpoint timings for a SCOPED role because the originals were measured against a permissive filter that added no WHERE clause and therefore do not transfer. If the import exceeds 30 s the plan explicitly forbids bypassing Unit 1's components (BR-IM-11) and directs lowering the row cap or reporting the finding instead.
+
+**Centre of gravity recorded in the plan**: Steps 2-6. Import is more code but lower risk — new functionality whose failures surface in a report. Authorization is less code and higher risk, because a mistake is invisible until someone sees data they should not.
+
+**Execution rule 5 restated in the plan**: `shared/types/authorization.ts` must never be widened. If any step appears to need it, stop and record a Unit 1 design defect.
+
+---
