@@ -88,9 +88,19 @@ Documentation (markdown only) at `aidlc-docs/construction/supporting-platform/co
 
 ### Backend — Authorization (the X-1 resolution)
 
-- [ ] **Step 1 — Dependencies.** Add `@fastify/multipart` and `csv-parse` to `backend/package.json`
-      **dependencies** (not devDependencies). Install. Verify both appear in the manifest, not only in
-      `node_modules` — Unit 1 shipped a defect of exactly that kind.
+- [x] **Step 1 — Dependencies.** ✅ `@fastify/multipart@^10.1.0` and `csv-parse@^7.0.1` added to
+      **dependencies** (verified: neither appears in devDependencies).
+      **Finding — 3 high-severity Kysely advisories (0.27.5), NONE reachable in this codebase.**
+      Verified rather than dismissed: (a) the `Kysely<any>` / silenced-compile-error JSON-path injection —
+      no `Kysely<any>`, no `@ts-ignore`, no `@ts-expect-error`, no `as any` anywhere in `backend/src`;
+      (b) the `JSONPathBuilder.key()`/`.at()` traversal injection — those APIs are not called at all, and
+      the only jsonb column (`attributes`) is unused in Phase 1 per BR-C-09; (c) the `sql.lit(string)`
+      backslash-escaping injection is **MySQL-specific**, while this deployment uses `PostgresDialect`,
+      and the four `eb.lit(...)` call sites all pass a **boolean**, not a string. Fixing requires
+      kysely@0.29.4, a breaking change; pulling that into the middle of this plan would be scope creep
+      against a non-reachable advisory. **Recorded for Build and Test.** Noted because the four
+      `eb.lit(false)` sites are the fail-closed empty-scope predicate (BR-R-17) — the most
+      security-critical expression in the codebase — so their safety was worth establishing explicitly.
 
 - [ ] **Step 2 — C-09 AuthorizationComponent.** `backend/src/supporting-platform/authorization/`:
       the 80-cell permission matrix as a typed constant (BR-R-14), `resolveScope` with the two-level

@@ -774,3 +774,20 @@ Consequence: Unit 1's stated story count of 30 is understated by two, and Unit 2
 **Context**: CONSTRUCTION phase, Unit 2 of 2, Code Generation Part 1 approval gate passed. Part 2 in progress.
 
 ---
+## Construction — Unit 2 — Code Generation Part 2, Step 2 BLOCKED: Unit 1 design defect U1-D01
+**Timestamp**: 2026-07-26T16:15:00Z
+**User Input**: (none — finding raised during execution of the approved plan)
+**AI Response**: "Step 2 blocked. Recorded `aidlc-docs/construction/supporting-platform/code/DEFECT-U1-D01-authorization-interface.md` and paused for a decision, per execution rule 5 of the approved plan ('Never widen shared/types/authorization.ts. If a step appears to need it, stop and record it as a Unit 1 design defect')."
+**Context**: CONSTRUCTION phase, Unit 2, Code Generation Part 2. Step 1 complete; Step 2 cannot proceed without a decision.
+
+**THE DEFECT**: `IAuthorizationComponent.resolveScope(identity: VerifiedIdentity): AccessScope` is SYNCHRONOUS. `VerifiedIdentity` carries a single `homeOrgUnitId`, but `AccessScope.orgUnitIds` is consumed by repositories as an EXPANDED list (`member.org_unit_id IN (...)`). BR-R-08 needs the home unit's children and BR-R-09 needs to know whether the home unit is a root — both require a database read. A synchronous function cannot perform either. The interface was shaped around what a PERMISSIVE stand-in needed (no I/O, because it returned 'ALL') rather than around what the real component needs.
+
+**WHY THE X-1 PATTERN DID NOT CATCH IT**: a permissive stand-in exercises an interface's SHAPE without exercising its REQUIREMENTS. Unit 1's stand-in comment (authorization-standin.ts:65-69) even names the exact call the real component must make — "OrgUnitComponent.resolveScope already computes exactly that" — without noticing that `OrgUnitComponent.resolveScope` is ASYNC and the interface it sits behind cannot call it.
+
+**BLAST RADIUS, MEASURED (not estimated)**: 90 call sites of scopeFor/filterFor/filterForIdentity/resolveScope across 7 service files (member-service 21, reference-data-service 16, project-service 16, assignment-service 15, allocation-query-service 13, access-control-service 3, auth-service 2). 7 repository sites consume the expanded org id list. The approved plan's Step 4 verification — "git diff --stat over core-domain/ shows only services/index.ts" — is UNACHIEVABLE if the interface goes async.
+
+**THREE OPTIONS RECORDED**: (A) make the interface async — most honest, violates the FINAL constraint, ~90 call sites change, Step 4 verification fails; (B) RECOMMENDED — carry scope ROOTS in orgUnitIds and expand the subtree inside SQL via a subquery, so the interface is unchanged, zero Unit 1 service call sites change, zero extra queries per request, only 3 shared/ repositories change (which unit-of-work.md explicitly assigns to Unit 2 as "C-11 extensions — scope-filter application inside queries"), and enforcement moves FURTHER inside SQL as FR-R-08 and R2-1 rule 1 already direct — its one real cost being a semantic reinterpretation of a shared type from "permitted units" to "scope roots" without a type change, which degrades safely given the two-level org constraint but must be documented emphatically; (C) in-memory org-tree snapshot — rejected on the same grounds N-Q1:A rejected caching, since a missed invalidation is a silent authorization error.
+
+**TO BE RECORDED REGARDLESS OF THE CHOICE**: Unit 1's artifacts report the X-1 stand-in pattern as a success. It was PARTIALLY successful — it kept Unit 1 building and demonstrable without Unit 2, its primary purpose — but it did NOT validate that the interface could support the real implementation. The transferable lesson: a deliberately trivial stand-in cannot validate an interface. A RESTRICTIVE stand-in (plan option Q6:B) would have had to compute a real scope and would have hit this wall during Unit 1, while the interface was still cheap to change.
+
+---
