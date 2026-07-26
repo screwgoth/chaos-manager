@@ -4,10 +4,10 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Code Generation (Part 1 plan complete, awaiting approval)
+- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Code Generation Part 2 in progress (Steps 1-6 of 26 complete)
 
 ## Workspace State
-- **Existing Code**: No
+- **Existing Code**: No at detection; application code now exists under `backend/` (Steps 1-6)
 - **Programming Languages**: None found at detection; target stack Node.js/TypeScript + React
 - **Build System**: None found
 - **Project Structure**: Empty (documentation only at detection time)
@@ -70,7 +70,7 @@ requirements independent of the disabled security extension.
 - [x] NFR Requirements — APPROVED 2026-07-25T12:12:00Z (2 docs; OD-01 and OD-03 CLOSED)
 - [ ] NFR Design — SKIPPED (R2)
 - [x] Infrastructure Design — APPROVED 2026-07-25T12:35:00Z (3 docs incl. shared-infrastructure.md)
-- [ ] Code Generation — Part 1 plan complete (26 steps), AWAITING PLAN APPROVAL before any code is written
+- [ ] Code Generation — Part 1 plan APPROVED 2026-07-25T12:45:00Z; Part 2 IN PROGRESS, Steps 1-6 of 26 complete and verified on branch `aidlc/construction-core-domain`
 
 ### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
 - [ ] Functional Design — EXECUTE (+ R2 folded-in obligations 4, 5)
@@ -104,14 +104,15 @@ Jest · Node 22 LTS + npm · TypeScript `strict` + `noUncheckedIndexedAccess` ·
 ## Current Status
 - **Lifecycle Phase**: 🟢 CONSTRUCTION
 - **Current Unit**: Unit 1 of 2 — `core-domain`
-- **Current Stage**: Code Generation Part 2 (generation) — **PAUSED at user request 2026-07-25T21:34:00Z**
+- **Current Stage**: Code Generation Part 2 (generation) — IN PROGRESS
 - **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅ · Infrastructure Design ✅ · Code Generation Part 1 (plan approved) ✅
 - **Working branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
-- **Code progress**: Steps 1-3 of 26 complete and verified · Step 4 PARTIAL (7 of 8 repositories)
-- **Resume at**: `SessionRepository` (`backend/src/shared/repository/session-repository.ts`), then the `repository/index.ts` barrel, then Step 5 (repository unit tests). See `aidlc-docs/construction/plans/core-domain-code-generation-plan.md`.
-- **Verification at pause**: `npx tsc --noEmit` clean · `npx jest` 27/27 passing (2 suites). Nothing claimed complete that was not run.
+- **Code progress**: **Steps 1-6 of 26 complete and verified.** Shared foundations, schema + migration, full repository layer, repository tests, repository summary.
+- **Next step**: Step 7 — business logic for OrgUnit (C-05) and ReferenceData (C-06) components.
+- **Verification**: `npx tsc --noEmit` clean · `npx jest` **68 passed / 5 suites** against PostgreSQL 16 · **41 passed + 27 skipped** without a database (skipped is reported as skipped, never as passing)
+- **Test database**: throwaway container on port 55432; run instructions in `aidlc-docs/construction/core-domain/code/repository-layer-summary.md` §6
 - **Next Stage**: finish Code Generation for `core-domain`, then the full Construction loop for `supporting-platform`, then Build and Test (once, after all units)
-- **Outstanding risk carried forward**: X-1 — while `core-domain` is the only completed unit, org-scope visibility is NOT enforced (permissive authorization stand-in). Acceptable only under the single-track, no-external-users assumption; revisit when Unit 2 lands.
+- **Outstanding risk carried forward**: X-1 — the scope-enforcement MECHANISM is built and tested, but the permissive stand-in means org-scope policy is not yet applied; a Team Lead / Resource Manager still sees all org units. Acceptable only under the single-track, no-external-users assumption; the tests to prove enforcement already exist for when Unit 2 lands. Also: the BR-A-24 member lock exists but is **unproven under concurrency** until a service composes it (Step 11+).
 
 ## Artifact Index
 | Artifact | Path |

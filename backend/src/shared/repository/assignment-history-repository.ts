@@ -23,6 +23,7 @@ import type {
   MemberId,
   UserAccountId,
 } from '../types/domain';
+import { isUuid, keepUuids } from '../util/ids';
 import { toAssignmentRevision } from './mappers';
 import { withPgErrors } from './pg-errors';
 
@@ -101,6 +102,7 @@ export class AssignmentHistoryRepository {
 
   /** Full revision trail for one assignment, oldest first (US-AUD-01). */
   async findByAssignment(assignmentId: AssignmentId): Promise<AssignmentRevision[]> {
+    if (!isUuid(assignmentId)) return [];
     const rows = await this.db
       .selectFrom('assignment_history')
       .selectAll()
@@ -124,12 +126,13 @@ export class AssignmentHistoryRepository {
     range: DateRange,
     asOf: Date,
   ): Promise<AssignmentRevision[]> {
-    if (memberIds.length === 0) return [];
+    const valid = keepUuids(memberIds);
+    if (valid.length === 0) return [];
 
     const rows = await this.db
       .selectFrom('assignment_history')
       .selectAll()
-      .where('member_id', 'in', [...memberIds])
+      .where('member_id', 'in', valid)
       .where('recorded_at', '<=', asOf)
       .where((eb) =>
         eb.or([eb('superseded_at', 'is', null), eb('superseded_at', '>', asOf)]),
@@ -146,6 +149,7 @@ export class AssignmentHistoryRepository {
 
   /** The current revision, for asserting the append chain is intact. */
   async findCurrent(assignmentId: AssignmentId): Promise<AssignmentRevision | null> {
+    if (!isUuid(assignmentId)) return null;
     const row = await this.db
       .selectFrom('assignment_history')
       .selectAll()

@@ -18,6 +18,7 @@ import type {
   ProjectSummary,
   ReferenceId,
 } from '../types/domain';
+import { isUuid, keepUuids } from '../util/ids';
 import { toProject, toProjectSummary } from './mappers';
 import { withPgErrors } from './pg-errors';
 
@@ -101,6 +102,7 @@ export class ProjectRepository {
   constructor(private readonly db: DbOrTx) {}
 
   async findById(id: ProjectId, scope: ScopeFilter): Promise<Project | null> {
+    if (!isUuid(id)) return null;
     const row = await this.db
       .selectFrom('project')
       .selectAll()
@@ -121,6 +123,7 @@ export class ProjectRepository {
     plannedEndDate: IsoDate;
     closedOn: IsoDate | null;
   } | null> {
+    if (!isUuid(id)) return null;
     const row = await this.db
       .selectFrom('project')
       .select([
@@ -170,12 +173,13 @@ export class ProjectRepository {
   /** Batched: resolve many project names/codes for an assignment list in one query. */
   async findByIds(ids: readonly ProjectId[]): Promise<Map<ProjectId, ProjectSummary>> {
     const result = new Map<ProjectId, ProjectSummary>();
-    if (ids.length === 0) return result;
+    const valid = keepUuids(ids);
+    if (valid.length === 0) return result;
 
     const rows = await this.db
       .selectFrom('project')
       .selectAll()
-      .where('id', 'in', [...ids])
+      .where('id', 'in', valid)
       .execute();
 
     for (const row of rows) result.set(row.id, toProjectSummary(row));
@@ -187,6 +191,7 @@ export class ProjectRepository {
    * This is the own-data path referenced in `scopePredicates` above.
    */
   async findForMember(memberId: string): Promise<ProjectSummary[]> {
+    if (!isUuid(memberId)) return [];
     const rows = await this.db
       .selectFrom('project')
       .selectAll('project')

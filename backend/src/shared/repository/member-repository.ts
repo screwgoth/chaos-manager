@@ -27,6 +27,7 @@ import type {
   Page,
   ReferenceId,
 } from '../types/domain';
+import { isUuid, keepUuids } from '../util/ids';
 import { toMember, toMemberSummary } from './mappers';
 import { withPgErrors } from './pg-errors';
 
@@ -146,6 +147,7 @@ export class MemberRepository {
   constructor(private readonly db: DbOrTx) {}
 
   async findById(id: MemberId, scope: ScopeFilter): Promise<Member | null> {
+    if (!isUuid(id)) return null;
     const row = await this.db
       .selectFrom('member')
       .selectAll()
@@ -165,6 +167,7 @@ export class MemberRepository {
   async findLocation(
     id: MemberId,
   ): Promise<{ id: MemberId; orgUnitId: OrgUnitId; status: MemberStatus } | null> {
+    if (!isUuid(id)) return null;
     const row = await this.db
       .selectFrom('member')
       .select(['id', 'org_unit_id', 'status'])
@@ -207,12 +210,13 @@ export class MemberRepository {
    */
   async findSkillIds(memberIds: readonly MemberId[]): Promise<Map<MemberId, ReferenceId[]>> {
     const result = new Map<MemberId, ReferenceId[]>();
-    if (memberIds.length === 0) return result;
+    const valid = keepUuids(memberIds);
+    if (valid.length === 0) return result;
 
     const rows = await this.db
       .selectFrom('member_skill')
       .select(['member_id', 'skill_id'])
-      .where('member_id', 'in', [...memberIds])
+      .where('member_id', 'in', valid)
       .execute();
 
     for (const row of rows) {
@@ -319,12 +323,13 @@ export class MemberRepository {
     memberIds: readonly MemberId[],
   ): Promise<Map<MemberId, { startDate: IsoDate; endDate: IsoDate } | null>> {
     const result = new Map<MemberId, { startDate: IsoDate; endDate: IsoDate } | null>();
-    if (memberIds.length === 0) return result;
+    const valid = keepUuids(memberIds);
+    if (valid.length === 0) return result;
 
     const rows = await this.db
       .selectFrom('member')
       .select(['id', 'contract_start_date', 'contract_end_date'])
-      .where('id', 'in', [...memberIds])
+      .where('id', 'in', valid)
       .execute();
 
     for (const row of rows) {

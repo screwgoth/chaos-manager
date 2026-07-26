@@ -5,6 +5,7 @@
 
 import type { DbOrTx } from './db';
 import type { OrgUnit, OrgUnitId } from '../types/domain';
+import { isUuid, keepUuids } from '../util/ids';
 import { toOrgUnit } from './mappers';
 import { withPgErrors } from './pg-errors';
 
@@ -24,6 +25,7 @@ export class OrgUnitRepository {
   constructor(private readonly db: DbOrTx) {}
 
   async findById(id: OrgUnitId): Promise<OrgUnit | null> {
+    if (!isUuid(id)) return null;
     const row = await this.db
       .selectFrom('org_unit')
       .selectAll()
@@ -40,11 +42,12 @@ export class OrgUnitRepository {
   }
 
   async findByIds(ids: readonly OrgUnitId[]): Promise<OrgUnit[]> {
-    if (ids.length === 0) return [];
+    const valid = keepUuids(ids);
+    if (valid.length === 0) return [];
     const rows = await this.db
       .selectFrom('org_unit')
       .selectAll()
-      .where('id', 'in', [...ids])
+      .where('id', 'in', valid)
       .execute();
     return rows.map(toOrgUnit);
   }
@@ -55,8 +58,8 @@ export class OrgUnitRepository {
    * (scope resolution, US-ADM-03). Exactly two levels means one self-join suffices.
    */
   async findSubtreeIds(rootIds: readonly OrgUnitId[]): Promise<OrgUnitId[]> {
-    if (rootIds.length === 0) return [];
-    const ids = [...rootIds];
+    const ids = keepUuids(rootIds);
+    if (ids.length === 0) return [];
     const rows = await this.db
       .selectFrom('org_unit')
       .select('id')

@@ -30,6 +30,7 @@ import type {
   Tenths,
   UserAccountId,
 } from '../types/domain';
+import { isUuid, keepUuids } from '../util/ids';
 import { toAssignment } from './mappers';
 import { withPgErrors } from './pg-errors';
 
@@ -109,6 +110,7 @@ export class AssignmentRepository {
   constructor(private readonly db: DbOrTx) {}
 
   async findById(id: AssignmentId, scope: ScopeFilter): Promise<Assignment | null> {
+    if (!isUuid(id)) return null;
     const row = await this.db
       .selectFrom('assignment')
       .selectAll('assignment')
@@ -122,6 +124,7 @@ export class AssignmentRepository {
   async findTarget(
     id: AssignmentId,
   ): Promise<{ id: AssignmentId; memberId: MemberId; projectId: ProjectId } | null> {
+    if (!isUuid(id)) return null;
     const row = await this.db
       .selectFrom('assignment')
       .select(['id', 'member_id', 'project_id'])
@@ -147,7 +150,8 @@ export class AssignmentRepository {
     range: DateRange,
     options: { excludeAssignmentId?: AssignmentId; includeEnded?: boolean } = {},
   ): Promise<AssignmentWithProject[]> {
-    if (memberIds.length === 0) return [];
+    const validMemberIds = keepUuids(memberIds);
+    if (validMemberIds.length === 0) return [];
 
     let query = this.db
       .selectFrom('assignment')
@@ -170,7 +174,7 @@ export class AssignmentRepository {
         'project.name as project_name',
         'project.code as project_code',
       ])
-      .where('assignment.member_id', 'in', [...memberIds])
+      .where('assignment.member_id', 'in', validMemberIds)
       .where(overlaps(range));
 
     // ENDED assignments no longer consume capacity (BR-A-21), so they are excluded from

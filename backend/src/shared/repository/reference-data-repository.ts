@@ -9,6 +9,7 @@
 
 import type { DbOrTx } from './db';
 import type { ReferenceDataEntry, ReferenceId, ReferenceType } from '../types/domain';
+import { isUuid, keepUuids } from '../util/ids';
 import { toReferenceDataEntry } from './mappers';
 import { withPgErrors } from './pg-errors';
 
@@ -16,6 +17,7 @@ export class ReferenceDataRepository {
   constructor(private readonly db: DbOrTx) {}
 
   async findById(id: ReferenceId): Promise<ReferenceDataEntry | null> {
+    if (!isUuid(id)) return null;
     const row = await this.db
       .selectFrom('reference_data_entry')
       .selectAll()
@@ -39,11 +41,12 @@ export class ReferenceDataRepository {
 
   /** Batched by design: forms need ROLE, SKILL and PROJECT_TYPE at once (the N+1 rule). */
   async findByIds(ids: readonly ReferenceId[]): Promise<ReferenceDataEntry[]> {
-    if (ids.length === 0) return [];
+    const valid = keepUuids(ids);
+    if (valid.length === 0) return [];
     const rows = await this.db
       .selectFrom('reference_data_entry')
       .selectAll()
-      .where('id', 'in', [...ids])
+      .where('id', 'in', valid)
       .execute();
     return rows.map(toReferenceDataEntry);
   }
@@ -58,11 +61,12 @@ export class ReferenceDataRepository {
     ids: readonly ReferenceId[],
     referenceType: ReferenceType,
   ): Promise<Set<ReferenceId>> {
-    if (ids.length === 0) return new Set();
+    const valid = keepUuids(ids);
+    if (valid.length === 0) return new Set();
     const rows = await this.db
       .selectFrom('reference_data_entry')
       .select('id')
-      .where('id', 'in', [...ids])
+      .where('id', 'in', valid)
       .where('reference_type', '=', referenceType)
       .where('is_active', '=', true)
       .execute();

@@ -3,10 +3,9 @@
 **Project**: C.H.A.O.S (chaos-manager)
 **Phase**: 🟢 CONSTRUCTION · **Unit**: `core-domain` (1 of 2) · **Stage**: Code Generation (Part 1: Planning)
 **Date**: 2026-07-25
-**Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 PAUSED at user request 2026-07-25T21:34:00Z.
-Branch `aidlc/construction-core-domain`. Steps 1-3 complete and verified. Step 4 PARTIAL (7 of 8 repositories).
-**Resume at**: `SessionRepository` in `backend/src/shared/repository/session-repository.ts`, then `repository/index.ts` barrel, then Step 5 (repository unit tests).
-**Verification at pause**: `npx tsc --noEmit` clean; `npx jest` 27/27 passing, 2 suites. No unverified claims outstanding.
+**Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 IN PROGRESS on branch `aidlc/construction-core-domain`.
+**Steps 1-6 of 26 complete and verified.** Next: Step 7 (business logic — OrgUnit and ReferenceData components).
+**Verification**: `npx tsc --noEmit` clean; `npx jest` **68 passed / 5 suites** against PostgreSQL 16 (41 passed + 27 skipped without a database).
 **Branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
 
 > **This plan is the single source of truth for Code Generation.** Part 2 executes exactly these steps in
@@ -97,9 +96,8 @@ chaos-manager/                        <- workspace root, application code here
 - [x] `attributes jsonb` on `member` and `project` — **reserved, unused in Phase 1** (BR-C-09)
 - [x] `assignment_history` with `recorded_at`, `superseded_at`, snapshot columns (Q1:B)
 
-### Step 4 — Repository Layer Generation
-**PARTIAL — paused at user request 2026-07-25T21:34:00Z. 7 of 8 repositories done; `SessionRepository` NOT started.**
-- [ ] `MemberRepository`, `ProjectRepository`, `AssignmentRepository`, `OrgUnitRepository`, `ReferenceDataRepository`, `UserAccountRepository`, `SessionRepository`, `AssignmentHistoryRepository`
+### Step 4 — Repository Layer Generation ✅
+- [x] `MemberRepository`, `ProjectRepository`, `AssignmentRepository`, `OrgUnitRepository`, `ReferenceDataRepository`, `UserAccountRepository`, `SessionRepository`, `AssignmentHistoryRepository`
   - [x] `OrgUnitRepository` — subtree resolution in one self-join, reference counting (BR-O-05)
   - [x] `ReferenceDataRepository` — generic over ROLE/SKILL/PROJECT_TYPE, no delete method (BR-C-05)
   - [x] `MemberRepository` — scope + filters as typed predicate factories, batched skill fetch
@@ -107,20 +105,25 @@ chaos-manager/                        <- workspace root, application code here
   - [x] `AssignmentRepository`
   - [x] `AssignmentHistoryRepository` — append-with-supersede (BR-A-17), `findAsOf` (BR-A-22 Path B)
   - [x] `UserAccountRepository` — password hash confined to one method
-  - [ ] `SessionRepository` — **NEXT STEP ON RESUME**
+  - [x] `SessionRepository` — hash-only storage, live-session predicate in-query (BR-AU-09)
 - [x] **`findOverlapping(memberIds[], range)` — one batched query for all members** (R2-1 rule 2; the N+1 prohibition) — `assignment-repository.ts`, with `excludeAssignmentId` for the edit case (BR-A-09)
 - [x] Scope filters applied **inside** queries, never post-fetch (FR-R-08) — `scopePredicates()` in each repository; empty permitted-org list yields `eb.lit(false)`, never an absent filter
 - [x] `SELECT … FOR UPDATE` member lock helper (BR-A-24) — pre-existing in `db.ts` (Step 3)
 - [x] All parameters bound — no string-concatenated SQL (U1-NFR-SE-06) — `ilike` patterns wrapped in the bound value, not in SQL text
-- [x] Supporting files not in the original plan text: `pg-errors.ts` (constraint → `ConflictError`), `mappers.ts` (row → domain, hash/token omitted)
+- [x] Supporting files not in the original plan text: `pg-errors.ts` (constraint → `ConflictError`), `mappers.ts` (row → domain, hash/token omitted), `index.ts` (public surface + `createRepositories` bundle), `util/ids.ts` (uuid guards — see Step 5 findings)
 
-### Step 5 — Repository Layer Unit Tests
-- [ ] Overlap query boundary cases: adjacent vs overlapping-by-one-day ranges
-- [ ] Scope filter applied in-query
-- [ ] Natural-key uniqueness violations surface as `ConflictError`
+### Step 5 — Repository Layer Unit Tests ✅
+Went beyond the planned scope: Docker was available, so these are REAL integration tests against PostgreSQL 16 rather than mocks. A mock cannot distinguish "filtered in SQL" from "fetched and trimmed", which is the rule that most needed proving.
+- [x] Overlap query boundary cases: adjacent vs overlapping-by-one-day ranges — `repository-integration.test.ts`
+- [x] Scope filter applied in-query — asserted twice: compiled SQL shape (`repository-sql.test.ts`) AND behavioural exclusion incl. the scoped `total`
+- [x] Natural-key uniqueness violations surface as `ConflictError` — duplicate email and project code, both case-insensitive
+- [x] Beyond plan: migration applies; `date` round-trips as a string (the OID 1082 override); bi-temporal `findAsOf` returns the historical value (100) not the current one (900); session lifecycle incl. expiry and termination; `ids.test.ts` uuid guards
+- [x] Integration suite SKIPS (reported as skipped, never as passing) when `TEST_DATABASE_URL` is unset
 
-### Step 6 — Repository Layer Summary
-- [ ] Write `aidlc-docs/construction/core-domain/code/repository-layer-summary.md`
+**Defect found by Step 5, fixed in Step 4 code**: a malformed id from client input raised `invalid input syntax for type uuid` — an unhandled 500 on any request carrying a bad path parameter or skill id. Guarded with `isUuid`/`keepUuids` across every id-accepting read.
+
+### Step 6 — Repository Layer Summary ✅
+- [x] Write `aidlc-docs/construction/core-domain/code/repository-layer-summary.md` — includes both defects found, the run instructions for the integration suite, and what is carried forward (X-1; BR-A-24 lock present but unproven under concurrency)
 
 ### Step 7 — Business Logic: OrgUnit and ReferenceData
 - [ ] `C-05 OrgUnitComponent` — two-level enforcement, reference counting, scope resolution (US-ADM-03)

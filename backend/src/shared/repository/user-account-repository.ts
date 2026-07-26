@@ -22,6 +22,7 @@ import type {
   UserRole,
   VerifiedIdentity,
 } from '../types/domain';
+import { isUuid } from '../util/ids';
 import { toUserAccount, toVerifiedIdentity } from './mappers';
 import { withPgErrors } from './pg-errors';
 
@@ -82,6 +83,7 @@ export class UserAccountRepository {
 
   /** Identity for an established session. No hash (see the file header). */
   async findIdentityById(id: UserAccountId): Promise<VerifiedIdentity | null> {
+    if (!isUuid(id)) return null;
     const row = await this.db
       .selectFrom('user_account')
       .selectAll()
@@ -91,6 +93,7 @@ export class UserAccountRepository {
   }
 
   async findById(id: UserAccountId): Promise<UserAccount | null> {
+    if (!isUuid(id)) return null;
     const row = await this.db
       .selectFrom('user_account')
       .selectAll()
