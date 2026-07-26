@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Code Generation Part 2 in progress (Steps 1-7 of 26 complete)
+- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Code Generation Part 2 in progress (Steps 1-9 complete, Step 10 partial)
 
 ## Workspace State
 - **Existing Code**: No at detection; application code now exists under `backend/` (Steps 1-6)
@@ -70,7 +70,7 @@ requirements independent of the disabled security extension.
 - [x] NFR Requirements — APPROVED 2026-07-25T12:12:00Z (2 docs; OD-01 and OD-03 CLOSED)
 - [ ] NFR Design — SKIPPED (R2)
 - [x] Infrastructure Design — APPROVED 2026-07-25T12:35:00Z (3 docs incl. shared-infrastructure.md)
-- [ ] Code Generation — Part 1 plan APPROVED 2026-07-25T12:45:00Z; Part 2 IN PROGRESS, Steps 1-7 of 26 complete and verified on branch `aidlc/construction-core-domain`
+- [ ] Code Generation — Part 1 plan APPROVED 2026-07-25T12:45:00Z; Part 2 IN PROGRESS, Steps 1-9 complete and Step 10 partial on branch `aidlc/construction-core-domain`
 
 ### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
 - [ ] Functional Design — EXECUTE (+ R2 folded-in obligations 4, 5)
@@ -107,12 +107,12 @@ Jest · Node 22 LTS + npm · TypeScript `strict` + `noUncheckedIndexedAccess` ·
 - **Current Stage**: Code Generation Part 2 (generation) — IN PROGRESS
 - **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅ · Infrastructure Design ✅ · Code Generation Part 1 (plan approved) ✅
 - **Working branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
-- **Code progress**: **Steps 1-7 of 26 complete and verified.** Shared foundations, schema + migration, full repository layer + tests + summary, OrgUnit (C-05) and ReferenceData (C-06) components + tests.
-- **Next step**: Step 8 — business logic for Member (C-01) and Project (C-02) components.
-- **Verification**: `npx tsc --noEmit` clean · `npx jest` **110 passed / 7 suites** against PostgreSQL 16 (the DB-backed suite is skipped, and reported as skipped, without `TEST_DATABASE_URL`)
+- **Code progress**: **Steps 1-9 of 26 complete and verified; Step 10 PARTIAL.** Shared foundations, schema + migration, repository layer, and components C-01 Member, C-02 Project, C-03 Assignment, C-05 OrgUnit, C-06 ReferenceData, plus the C-04 Allocation segmentation core.
+- **Next step**: finish Step 10 — the remaining allocation view functions (`currentAllocationView`, `unallocatedMembers`, `overAllocatedMembers`, `memberTimeline`), then Step 11 (identity, session, authorization stand-in).
+- **Verification**: `npx tsc --noEmit` clean · `npx jest` **215 passed / 11 suites** against PostgreSQL 16 · **161 passed + 54 skipped** without a database
 - **Test database**: throwaway container on port 55432; run instructions in `aidlc-docs/construction/core-domain/code/repository-layer-summary.md` §6
 - **Next Stage**: finish Code Generation for `core-domain`, then the full Construction loop for `supporting-platform`, then Build and Test (once, after all units)
-- **Outstanding risk carried forward**: X-1 — the scope-enforcement MECHANISM is built and tested, but the permissive stand-in means org-scope policy is not yet applied; a Team Lead / Resource Manager still sees all org units. Acceptable only under the single-track, no-external-users assumption; the tests to prove enforcement already exist for when Unit 2 lands. Also: the BR-A-24 member lock exists but is **unproven under concurrency** until a service composes it (Step 11+).
+- **Outstanding risk carried forward**: X-1 — the scope-enforcement MECHANISM is built and tested, but the permissive stand-in means org-scope policy is not yet applied; a Team Lead / Resource Manager still sees all org units. Acceptable only under the single-track, no-external-users assumption; the tests to prove enforcement already exist for when Unit 2 lands. Also: the BR-A-24 member lock is now composed inside the assignment create/update transactions, but remains **unproven under true concurrency** — no test yet drives two simultaneous writers.
 
 ## Artifact Index
 | Artifact | Path |

@@ -148,7 +148,7 @@ export class AssignmentRepository {
   async findOverlapping(
     memberIds: readonly MemberId[],
     range: DateRange,
-    options: { excludeAssignmentId?: AssignmentId; includeEnded?: boolean } = {},
+    options: { excludeAssignmentId?: AssignmentId } = {},
   ): Promise<AssignmentWithProject[]> {
     const validMemberIds = keepUuids(memberIds);
     if (validMemberIds.length === 0) return [];
@@ -177,12 +177,16 @@ export class AssignmentRepository {
       .where('assignment.member_id', 'in', validMemberIds)
       .where(overlaps(range));
 
-    // ENDED assignments no longer consume capacity (BR-A-21), so they are excluded from
-    // capacity maths by default. History views pass includeEnded to see them.
-    if (options.includeEnded !== true) {
-      query = query.where('assignment.status', '=', 'ACTIVE');
-    }
-
+    // NO status filter, deliberately.
+    //
+    // BR-A-07 defines total allocation as the sum of ALL assignments whose inclusive
+    // range contains the date, and BR-A-20 states that currency is derived from dates,
+    // NEVER from status. Ending an assignment early moves `end_date` to the effective
+    // date (BR-A-19), so the date predicate alone already releases the capacity.
+    //
+    // Adding `status = 'ACTIVE'` here would be worse than redundant: an ENDED row whose
+    // end_date still covers the elapsed portion would be dropped from historical
+    // capacity totals, understating what was allocated at the time.
     const excludeId = options.excludeAssignmentId;
     if (excludeId !== undefined) {
       query = query.where('assignment.id', '!=', excludeId);
@@ -204,7 +208,7 @@ export class AssignmentRepository {
   async findByMember(
     memberId: MemberId,
     scope: ScopeFilter,
-    options: { includeEnded?: boolean } = {},
+    options: { activeOnly?: boolean } = {},
   ): Promise<AssignmentWithProject[]> {
     let query = this.db
       .selectFrom('assignment')
@@ -214,7 +218,9 @@ export class AssignmentRepository {
       .where('assignment.member_id', '=', memberId)
       .where(combine(scopePredicates(scope)));
 
-    if (options.includeEnded !== true) {
+    // Status filtering is opt-IN here (not opt-out as before): a member's assignment
+    // list is a historical view, and BR-A-20 forbids deriving currency from status.
+    if (options.activeOnly === true) {
       query = query.where('assignment.status', '=', 'ACTIVE');
     }
 
@@ -236,7 +242,9 @@ export class AssignmentRepository {
       .selectFrom('assignment')
       .selectAll('assignment')
       .where('assignment.project_id', '=', projectId)
-      .where('assignment.status', '=', 'ACTIVE')
+      // No status filter: BR-P-10 requires staffing to distinguish CURRENT from PAST by
+      // date, not by status. Filtering on status here would hide the elapsed portion of
+      // an assignment that was ended early, making past staffing look thinner than it was.
       .where(combine(scopePredicates(scope)));
 
     if (range !== null) query = query.where(overlaps(range));
@@ -267,7 +275,8 @@ export class AssignmentRepository {
               .selectFrom('assignment')
               .select('assignment.id')
               .whereRef('assignment.member_id', '=', 'member.id')
-              .where('assignment.status', '=', 'ACTIVE')
+              // Dates only (BR-A-07/BR-A-20). An ended assignment has already had its
+              // end_date moved, so the date predicate alone decides occupancy.
               .where('assignment.start_date', '<=', range.end)
               .where('assignment.end_date', '>=', range.start),
           ),
@@ -377,12 +386,19 @@ export class AssignmentRepository {
       .select('member_id')
       .distinct()
       .where('project_id', '=', projectId)
-      .where('status', '=', 'ACTIVE')
       .execute();
     return rows.map((r) => r.member_id);
   }
 
-  /** Active assignments extending beyond a date — used when deactivating a member. */
+  /**
+   * Assignments extending beyond a date that have NOT been administratively terminated —
+   * the auto-end cascade set for member deactivation (BR-M-13) and project closure
+   * (BR-P-07).
+   *
+   * This is the ONE place `status` is a legitimate predicate: the question is not "is
+   * this current?" (BR-A-20 forbids answering that from status) but "does this still need
+   * ending?", and an already-ENDED row does not.
+   */
   async findActiveExtendingBeyond(
     memberId: MemberId,
     date: IsoDate,

@@ -326,7 +326,7 @@ describeDb('repository layer against real PostgreSQL', () => {
       expect(found.map((a) => a.id)).not.toContain(janToMar);
     });
 
-    it('ENDED assignments are excluded from capacity by default (BR-A-21)', async () => {
+    it('capacity follows DATES, not status (BR-A-07, BR-A-19, BR-A-20)', async () => {
       const assignments = new AssignmentRepository(db);
       const ended = await assignments.create({
         memberId: memberInA,
@@ -338,16 +338,25 @@ describeDb('repository layer against real PostgreSQL', () => {
         savedAsOverride: false,
         actorUserId: null,
       });
+
+      // Ending early moves end_date to the effective date (BR-A-19).
       await assignments.endEarly(ended.id, '2026-07-15', null);
 
-      const range = { start: '2026-07-01', end: '2026-08-31' };
-      const active = await assignments.findOverlapping([memberInA], range);
-      expect(active.map((a) => a.id)).not.toContain(ended.id);
-
-      const withEnded = await assignments.findOverlapping([memberInA], range, {
-        includeEnded: true,
+      // The ELAPSED portion still consumed capacity and must still be counted — BR-A-07
+      // sums every assignment whose range contains the date, with no status condition.
+      const elapsed = await assignments.findOverlapping([memberInA], {
+        start: '2026-07-01',
+        end: '2026-07-10',
       });
-      expect(withEnded.map((a) => a.id)).toContain(ended.id);
+      expect(elapsed.map((a) => a.id)).toContain(ended.id);
+
+      // The RELEASED portion is gone, because end_date no longer reaches it. This is the
+      // date predicate doing the work, not a status filter.
+      const released = await assignments.findOverlapping([memberInA], {
+        start: '2026-08-01',
+        end: '2026-08-31',
+      });
+      expect(released.map((a) => a.id)).not.toContain(ended.id);
     });
   });
 

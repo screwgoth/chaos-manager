@@ -6,4 +6,21 @@ module.exports = {
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
   clearMocks: true,
+
+  /**
+   * Serialise when a test database is configured.
+   *
+   * The integration suites share ONE database and each drops and recreates the `public`
+   * schema in beforeAll, so running them in parallel makes them delete each other's
+   * tables mid-run — which surfaced as 27 confusing failures with foreign-key and
+   * missing-relation errors that had nothing to do with the code under test.
+   *
+   * The alternative (a schema or database per suite) buys parallelism these suites do not
+   * need: they complete in a few seconds. Correctness first; revisit if the DB suite
+   * grows slow enough to matter.
+   *
+   * Pure unit suites still run in parallel, because this only applies when
+   * TEST_DATABASE_URL is set.
+   */
+  maxWorkers: process.env.TEST_DATABASE_URL ? 1 : '50%',
 };

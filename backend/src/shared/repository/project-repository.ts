@@ -170,6 +170,28 @@ export class ProjectRepository {
     };
   }
 
+  /**
+   * Projects that are ACTIVE and whose planned window contains `onDate` — the assignment
+   * target list (BR-P-08).
+   *
+   * ONE query, with the date predicates in SQL. The obvious alternative — list active
+   * projects, then fetch each one's window to filter in application code — is an N+1 and
+   * was the first implementation of this; it is exactly the pattern R2-1 rule 2 forbids.
+   */
+  async findOpenOn(onDate: IsoDate, scope: ScopeFilter): Promise<ProjectSummary[]> {
+    const rows = await this.db
+      .selectFrom('project')
+      .selectAll('project')
+      .where('project.status', '=', 'ACTIVE')
+      // Inclusive on both bounds (AS-03).
+      .where('project.start_date', '<=', onDate)
+      .where('project.planned_end_date', '>=', onDate)
+      .where(combine(scopePredicates(scope)))
+      .orderBy('project.name', 'asc')
+      .execute();
+    return rows.map(toProjectSummary);
+  }
+
   /** Batched: resolve many project names/codes for an assignment list in one query. */
   async findByIds(ids: readonly ProjectId[]): Promise<Map<ProjectId, ProjectSummary>> {
     const result = new Map<ProjectId, ProjectSummary>();

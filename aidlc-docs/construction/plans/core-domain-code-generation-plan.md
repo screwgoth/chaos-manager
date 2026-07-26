@@ -4,8 +4,8 @@
 **Phase**: 🟢 CONSTRUCTION · **Unit**: `core-domain` (1 of 2) · **Stage**: Code Generation (Part 1: Planning)
 **Date**: 2026-07-25
 **Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 IN PROGRESS on branch `aidlc/construction-core-domain`.
-**Steps 1-7 of 26 complete and verified.** Next: Step 8 (business logic — Member and Project components).
-**Verification**: `npx tsc --noEmit` clean; `npx jest` **110 passed / 7 suites** against PostgreSQL 16.
+**Steps 1-9 complete and verified; Step 10 PARTIAL.** Next: finish Step 10 (allocation view functions), then Step 11.
+**Verification**: `npx tsc --noEmit` clean; `npx jest` **215 passed / 11 suites** against PostgreSQL 16 (161 passed + 54 skipped without a database).
 **Branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
 
 > **This plan is the single source of truth for Code Generation.** Part 2 executes exactly these steps in
@@ -152,11 +152,35 @@ Went beyond the planned scope: Docker was available, so these are REAL integrati
 
 **Correction to a Step 4 claim**: the repository summary said ReferenceDataRepository has "no delete method on purpose". That was wrong — BR-C-06 refuses deletion only of a REFERENCED entry, which means unreferenced entries must be deletable. `delete()` added to both `ReferenceDataRepository` and `OrgUnitRepository`, guarded by a reference check in the component with the foreign keys as backstop.
 
-### Step 8 — Business Logic: Member and Project
-- [ ] `C-01 MemberComponent` — CRUD, conditional off-roll contract fields, skills, deactivate with **auto-end cascade** (US-MEM-01…05, US-MEM-07)
-- [ ] `C-02 ProjectComponent` — CRUD, close with confirmation and cascade, staffing view (US-PRJ-01…05)
-- [ ] **No rate, contract value, or PO field** (BR-M-09)
-- [ ] Rules BR-M-01…18, BR-P-01…11
+### Step 8 — Business Logic: Member and Project ✅
+- [x] `C-01 MemberComponent` — CRUD, conditional off-roll contract fields, skills, deactivate with auto-end cascade reporting the count (US-MEM-01…05, US-MEM-07)
+- [x] `C-02 ProjectComponent` — CRUD, two-phase close (preview then confirm), staffing view grouped by member with exact subtotals (US-PRJ-01…05)
+- [x] **No rate, contract value, or PO field** (BR-M-09) — enforced by ABSENCE, with a test asserting no such key appears in the serialised member
+- [x] Rules BR-M-01…18, BR-P-01…11
+- [x] Tests: `member-component.test.ts` (28), `project-component.test.ts` (24)
+
+Notable decisions: BR-M-10 retains contract data on OFF_ROLL→ON_ROLL conversion and does NOT re-validate it on unrelated edits (an old contract must not block a name change); the deactivation cascade runs BEFORE the status change so a cascade failure leaves the member ACTIVE and retryable (tested); an UNCHANGED reference is not re-checked for active status, so deactivating a role does not make every member holding it un-editable.
+
+### Step 9 — Business Logic: Assignment ✅
+- [x] `C-03 AssignmentComponent` — create, update, end early, auto-end; **history revision written in the same transaction** (BR-A-16, BR-A-17)
+- [x] Multiple concurrent assignments per member-project permitted (BR-A-06, Q4:B)
+- [x] Date and contract-window conflict detection as WARNINGS that do not block (BR-A-13, BR-A-14)
+- [x] **As-of reconstruction from `AssignmentHistory`** — Path B, not current rows (BR-A-22)
+- [x] Stories US-ASN-01, 02, 03, 06, 07
+- [x] `lockMemberForUpdate` now actually composed inside the create/update transactions (BR-A-24)
+- [x] Tests: `assignment-component.test.ts` (27, real PostgreSQL — the invariant is transactional and a fake would let a broken implementation pass)
+
+Notable: `savedAsOverride` is derived from the DETECTION result, never from the caller's flag — a test asserts that passing `override: true` on a non-over-allocated assignment does NOT set the flag, because BR-A-12 keeps it visible forever. Member and project are immutable on an assignment (moving one would rewrite two members' capacity history in a single step with no record).
+
+### Step 10 — Business Logic: Allocation ⚠️ PARTIAL
+Step 9 could not be written without over-allocation detection, so the segmentation core landed here rather than being stubbed — stubbing the riskiest algorithm to satisfy a step boundary would have been worse.
+- [x] `C-04 AllocationComponent` — **pure function, no I/O, no state** (U1-NFR-M-03), with purity and determinism asserted by test
+- [x] `segmentAllocation` — boundary collection at `end + 1 day`, segment build, exact integer-tenths summation, merge of equivalent adjacent segments
+- [x] `detectOverAllocation` — returns **each offending sub-period**, excludes own row when editing (BR-A-08, BR-A-15)
+- [x] `availability`, `minimumAvailableTenths` (minimum, not average — a member free in January has no spare February capacity)
+- [ ] `currentAllocationView`, `unallocatedMembers`, `overAllocatedMembers`, `memberTimeline` — **REMAINING**
+- [x] `CAPACITY_TENTHS = 1000` expressed **once** (AS-01)
+- [x] Tests: `allocation-component.test.ts` (29) — inclusive boundary, adjacent vs one-day overlap, the exact 100.0% threshold, per-sub-period identification
 
 ### Step 9 — Business Logic: Assignment
 - [ ] `C-03 AssignmentComponent` — create, update, end early, auto-end; **history revision written in the same transaction** (BR-A-16, BR-A-17)

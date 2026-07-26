@@ -389,3 +389,36 @@ Section 3 of the plan discloses two things for the user to consider before appro
 **Next step**: Step 8 — Member (C-01) and Project (C-02) components.
 
 ---
+
+## Code Generation Part 2 — Steps 8 and 9 complete, Step 10 partial (core-domain)
+**Timestamp**: 2026-07-25T23:55:00Z
+**User Input**: "Continue with Step 8 & 9"
+**AI Response**: "Generated C-01 MemberComponent, C-02 ProjectComponent, C-03 AssignmentComponent, and the C-04 Allocation segmentation core, with tests. Verified: tsc --noEmit clean; jest 215 passed / 11 suites against PostgreSQL 16; 161 passed + 54 skipped without a database."
+**Context**: CONSTRUCTION phase, Unit 1 `core-domain`, Steps 8-9 of 26 (plus part of Step 10), branch `aidlc/construction-core-domain`.
+
+**Delivered**: `member-component.ts`, `project-component.ts`, `assignment-component.ts`, `allocation-component.ts` and four test files (108 new tests).
+
+**Scope deviation — Step 10 started early and is PARTIAL.** Step 9 (assignment) cannot detect over-allocation without the segmentation algorithm, which is Step 10's core. Stubbing it to respect the step boundary would have meant shipping a fake for the riskiest logic in the unit, so `segmentAllocation` and `detectOverAllocation` were implemented properly here with 29 tests. The remaining Step 10 items (`currentAllocationView`, `unallocatedMembers`, `overAllocatedMembers`, `memberTimeline`) are still open and marked as such in the plan.
+
+**CORRECTION to Step 4 repository code — a rule violation, not a style issue.** `findOverlapping` filtered on `status = 'ACTIVE'` by default, and `findByProject` / the bench anti-join / `findMemberIdsByProject` did the same. BR-A-07 defines total allocation as the sum of ALL assignments whose inclusive range contains the date, with no status condition, and BR-A-20 states explicitly that currency is derived from dates, NEVER from status. Because ending early already moves `end_date` (BR-A-19), the status filter was both redundant and wrong: it dropped the ELAPSED portion of an ended assignment from historical capacity totals, understating what had been allocated at the time. Status filtering is now removed from all capacity and staffing queries; the one legitimate use remains in `findActiveExtendingBeyond`, where the question is "does this still need ending?" rather than "is this current?". The integration test that asserted the old behaviour was rewritten to assert the correct behaviour (elapsed portion counted, released portion not).
+
+**Also corrected**: `ProjectComponent.listOpen` was first written as an N+1 (one `findLocation` per project) — the exact pattern R2-1 rule 2 forbids and which I have been enforcing elsewhere. Replaced with `ProjectRepository.findOpenOn`, a single query with the date predicates in SQL.
+
+**Test infrastructure fix**: two integration suites each drop and recreate the `public` schema in `beforeAll`, and Jest runs suites in parallel, so they deleted each other's tables mid-run — 27 failures with foreign-key and missing-relation errors unrelated to the code under test. `jest.config.js` now sets `maxWorkers: 1` when `TEST_DATABASE_URL` is set. Unit suites still run in parallel.
+
+**Design decisions recorded in code comments**:
+1. `savedAsOverride` is derived from DETECTION, never from the caller's flag (BR-A-11), with a test asserting that `override: true` on a non-over-allocated assignment does NOT set it — BR-A-12 would keep a false flag visible forever.
+2. A blocked create returns from inside the transaction without writing, so it commits empty (BR-A-10).
+3. Member and project are IMMUTABLE on an assignment; moving one would rewrite two members' capacity history in a single step with no record that it happened.
+4. Member deactivation ends assignments BEFORE setting the status, so a cascade failure leaves the member ACTIVE and retryable. Tested both ways.
+5. BR-M-10 retains contract data on OFF_ROLL→ON_ROLL and does not re-validate it on unrelated edits.
+6. Auto-ending a not-yet-started assignment clamps to its own start date, so `end >= start` and the check constraint holds.
+7. Project close is a two-phase preview/confirm; a project with nothing extending past the date closes immediately, because demanding confirmation for a no-op trains users to click through dialogues.
+8. Staffing places a FUTURE assignment in neither `current` nor `past`; filing it under past would misreport the plan.
+9. `minimumAvailableTenths` uses the minimum, not an average — a member free in January has no spare February capacity.
+
+**Verification actually run**: `npx tsc --noEmit` → exit 0. `npx jest` with TEST_DATABASE_URL → 215 passed, 11 suites, 0 failures. Without it → 161 passed, 54 skipped, 2 suites skipped.
+
+**Known gap carried forward**: the BR-A-24 member lock is now composed inside the assignment transactions but remains unproven under true concurrency — no test drives two simultaneous writers.
+
+---
