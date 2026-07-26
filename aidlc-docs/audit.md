@@ -791,3 +791,31 @@ Consequence: Unit 1's stated story count of 30 is understated by two, and Unit 2
 **TO BE RECORDED REGARDLESS OF THE CHOICE**: Unit 1's artifacts report the X-1 stand-in pattern as a success. It was PARTIALLY successful — it kept Unit 1 building and demonstrable without Unit 2, its primary purpose — but it did NOT validate that the interface could support the real implementation. The transferable lesson: a deliberately trivial stand-in cannot validate an interface. A RESTRICTIVE stand-in (plan option Q6:B) would have had to compute a real scope and would have hit this wall during Unit 1, while the interface was still cheap to change.
 
 ---
+## Construction — Unit 2 — Code Generation Part 2 CHECKPOINT: Steps 1-6 of 21 complete
+**Timestamp**: 2026-07-26T17:30:00Z
+**User Input**: (none — milestone checkpoint during approved plan execution)
+**AI Response**: "Steps 1-6 complete and verified. Backend suite 451 passed / 18 suites, 0 failures, against PostgreSQL 16; tsc --noEmit clean both before and after. Committed at each milestone (7b70a2d, 8d42047, be263b6, 027a622). Checkpointing at the boundary between authorization and import rather than starting a large new workstream."
+**Context**: CONSTRUCTION phase, Unit 2, Code Generation Part 2. RESUME AT STEP 7 (account-member linkage).
+
+**VERIFIED NUMBERS (produced by running the commands, not estimated)**: backend `npm test` = 451 passed / 18 suites / 0 failed, with TEST_DATABASE_URL pointed at a disposable PostgreSQL 16 container on port 55432 (the deployment's own db container deliberately publishes no port, so a throwaway container was used rather than exposing the real one). `npx tsc --noEmit` = 0 lines of output. 83 of the 451 tests are new in Unit 2.
+
+**THE X-1 GAP IS CLOSED.** BR-R-05 and BR-R-07 move from "NOT enforced in Unit 1" to enforced. Step 4's verification passed: `git diff --stat` over `core-domain/` shows only `services/index.ts`.
+
+**STEP 6'S NEUTERING REQUIREMENT WAS ACTUALLY EXECUTED, NOT ASSERTED.** The authorization component was edited to return `orgUnitIds: 'ALL'` for TEAM_LEAD and RESOURCE_MANAGER — reproducing the deleted stand-in — and the suite re-run: **16 of 83 supporting-platform tests turned RED**. The component was then restored from backup and the full suite re-run green. This is the method Unit 1 adopted after its BR-A-24 false positive, and it was applied here rather than merely cited.
+
+**DEFECT U1-D01 (Unit 1 design defect, found at Step 2, resolved by user decision)**: `IAuthorizationComponent.resolveScope` is synchronous but BR-R-08 needs the home org unit's children and BR-R-09 needs to know whether it is a root — both database reads. Execution rule 5 of the approved plan required stopping rather than widening a FINAL interface, so work paused and the defect was recorded with three options and a measured blast radius (90 call sites across 7 service files for the async option). User chose Option B: `AccessScope.orgUnitIds` carries scope ROOTS and the subtree expansion happens inside SQL via a new parameterized `orgScopeMatches` helper (`sql.ref` for the identifier, `sql.val` for the bound array — no concatenation, U1-NFR-SE-06). Interface untouched, zero Unit 1 service call sites changed, zero extra queries per request. The transferable lesson recorded: a deliberately trivial stand-in cannot validate an interface, because it returns a constant and never needs the data the real implementation needs.
+
+**THREE DEFECTS IN MY OWN UNIT 2 CODE, ALL CAUGHT BY TOOLING RATHER THAN REVIEW**:
+1. `tsc` caught `targetInScope` referencing `restrictToMemberId`, which belongs to `ScopeFilter` not `AccessScope`. Would have silently skipped the TEAM_MEMBER branch.
+2. Unit 1's existing api.test.ts caught `targetInScope` returning 403 on `/api/assignments?memberId=<other>` and on another member's timeline, where the approved design requires 200 + [] via the query filter — and where 403 also contradicts BR-R-16's 404-not-403 choice, since a 403 can confirm a record exists.
+3. The same method compared `target.orgUnitId` against `scope.orgUnitIds`, which after U1-D01 holds ROOTS and excludes children — so it wrongly DENIED a Team Lead reading a member in a child unit. A pre-check that wrongly denies is worse than no pre-check. `targetInScope` was reduced to only what is decidable without I/O.
+
+**Also found**: my own arithmetic error, propagated through several approved documents — "80-cell matrix" is wrong; 5 roles x 8 resource kinds is 40 CELLS carrying 80 read/write DECISIONS. Caught by a test asserting 80 rows and receiving 40. Corrected in code, tests and all affected docs.
+
+**Also found**: Zod schema validation runs BEFORE the authorization check, so an incomplete request body from an unauthorized caller yields 400 rather than 403. Not a data leak — no record is read and no scope revealed — but an unauthorized caller can learn the request schema. Recorded in the test rather than reordered, because a write's authorization check needs the parsed target.
+
+**Accepted gap recorded in code**: nothing automatically refreshes the root-org-unit set used for BR-R-09. It is loaded once by `server.ts` after migrations. Creating a NEW ROOT org unit at runtime means a Resource Manager attached to it sees their subtree rather than the whole organisation until restart. The direction is deliberate — it under-grants, never over-grants — and wiring an automatic refresh would have required modifying Unit 1's org-unit service, which Step 4's diff check exists to prevent.
+
+**OUTSTANDING — Steps 7-21**: account-member linkage service, routes and tests (7-8); import component, service, routes and tests (9-12); frontend import, accounts and three view pages (13-16); configuration and deployment artifacts (17-18); the three performance measurements recorded as UNVERIFIED at NFR Requirements (19); documentation and full verification including `docker build` (20-21).
+
+---
