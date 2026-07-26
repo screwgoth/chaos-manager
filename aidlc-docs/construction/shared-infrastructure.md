@@ -131,3 +131,46 @@ log gets counts and reasons only.
 | Stand-in deletion is an explicit, recorded obligation | **Pass** — §4 |
 | Resource limits remain adequate | **Pass** — §5 |
 | No cloud managed service in either unit (NFR-T-04) | **Pass** |
+
+---
+
+## 8. Prediction Audit — Written at Unit 1, Checked at Unit 2 Infrastructure Design
+
+**Added 2026-07-26.** Sections 4 and 5 above were written *predictively* during Unit 1, before Unit 2 was
+designed. Now that Unit 2's design is complete, those predictions can be checked rather than left to be
+quietly contradicted. Most held. **Three did not.**
+
+| Prediction (§4/§5) | Actual | Verdict |
+|---|---|---|
+| Container count: none | three containers | ✅ held |
+| Published ports: none | 80 and 443 only | ✅ held |
+| New infrastructure: none — no broker, worker or cache | none. N-Q1:A explicitly declined a cache; Q13:A declined a job runner | ✅ held |
+| Compose file: no structural change | two additive changes (log options, two env vars) | ✅ held |
+| New environment variables: possibly a small number | **two** — `IMPORT_MAX_ROWS`, `IMPORT_MAX_BYTES` | ✅ held |
+| Deployment procedure unchanged | unchanged in shape, but Unit 2 needs a **pre-deployment check** for accounts that will lose all access (deployment-architecture.md §3.2) | ⚠️ **incomplete** |
+| Behavioural change visible to users | yes — and enumerated per role | ✅ held |
+| **"Migrations: one or more appended files"** | **ZERO migrations.** Q1:A made the permission matrix a code constant and Q10:A declined a persisted import record, removing both entity candidates | ❌ **wrong** |
+| **"Disk: `RolePermission` is configuration-sized"** | **There is no `RolePermission` table.** Unit 2 owns no database entity at all | ❌ **wrong** |
+| **"Memory: at ~200 rows this is kilobytes. No increase needed."** | Q13:A set the cap at **2,000** rows, not 200. Peak app memory rises **+40–60 MB** during an import | ❌ **wrong in magnitude** |
+| Verdict: 1 vCPU / 1 GB app remains adequate | still adequate — 60 MB of a 1 GB allowance | ✅ held, for a different reason than stated |
+
+### The one that matters most
+
+§6 rule 5 states that the Docker log is *"rotated but not access-controlled"*. **It was not rotated.**
+Docker's default `json-file` driver applies no size cap, and no `logging:` options were ever configured —
+so the deployment has been accumulating logs without bound since Unit 1 shipped.
+
+An approved artifact asserted a safety property the deployment did not have. I-Q3:A now makes the
+statement true by adding `max-size: 10m` / `max-file: 3` to all three services. The claim and the reality
+now agree, which they did not before.
+
+This is worth recording as a pattern rather than a one-off: **a predictive statement in an approved
+document is an assumption, and it stays an assumption until something checks it.** Two of the three wrong
+predictions above were harmless (a migration that turned out to be unnecessary, a table that was designed
+away). The third was a security-relevant property assumed into existence.
+
+### Corrections applied above
+
+§4's "Migrations: one or more appended files" and §5's `RolePermission` disk row are **superseded by this
+section**. They are left in place rather than edited, so the record shows what was predicted and what
+actually happened.

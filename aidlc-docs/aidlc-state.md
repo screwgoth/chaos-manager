@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` **NFR Requirements COMPLETE, awaiting approval** (2 artifacts; all 8 answers by AI recommendation at user instruction). Functional Design APPROVED 2026-07-26T14:40:00Z (4 artifacts; R2 obligations 4 and 5 discharged). Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
+- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` **Infrastructure Design COMPLETE, awaiting approval**. NFR Requirements APPROVED 2026-07-26T15:20:00Z. Functional Design APPROVED 2026-07-26T14:40:00Z (4 artifacts; R2 obligations 4 and 5 discharged). Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
 
 ## Workspace State
 - **Existing Code**: No at detection; a complete application now exists under `backend/`, `frontend/` and `docker/`
@@ -82,12 +82,19 @@ requirements independent of the disabled security extension.
   - ✅ **Unit 2 owns NO database entity and needs NO migration** (Q1:A + Q10:A remove both candidates). `001_initial_schema.ts` is the final Phase 1 schema.
   - ⚠️ **FR-I-01 recorded as PARTIALLY SATISFIED** — CSV yes, Excel deferred (Q7:A). Annotated in `requirements.md`. The first Must requirement in the project not fully delivered; recorded as a visible gap rather than counted as complete.
   - ⚠️ **No import audit trail** (Q10:A) — a 2,000-row bulk write leaves only log counts and failure reasons, never row contents. Accepted Phase 2 revisit.
-- [ ] NFR Requirements — **ARTIFACTS COMPLETE 2026-07-26, AWAITING APPROVAL**. 10/10 plan steps. 2 artifacts at `aidlc-docs/construction/supporting-platform/nfr-requirements/`.
+- [x] NFR Requirements — **APPROVED 2026-07-26T15:20:00Z**. 10/10 plan steps. 2 artifacts at `aidlc-docs/construction/supporting-platform/nfr-requirements/`.
   - All 8 answers chosen by **AI recommendation at the user's instruction** and marked as such: N-Q1:A per-request scope query (no caching — a scope cached at sign-in would let a moved user keep old visibility until sign-out) · N-Q2:A measure before indexing · N-Q3:A 30 s for 2,000 rows · N-Q4:A per-route body limit · N-Q5:A log refusals at warn, never the target's identity · N-Q6:C all 80 matrix cells **plus** an exhaustiveness check · N-Q7:A maintained CSV library · N-Q8:A no import concurrency limit
   - **Stack**: 2 new backend dependencies (`@fastify/multipart`, `csv-parse`), **0** frontend, **0** migrations, **0** inherited choices revisited. Seven dependencies declined against recorded decisions, including any authorization policy engine.
   - ⚠️ **Three performance claims recorded as UNVERIFIED** pending Code Generation: the 2,000-row import 30 s budget (its whole cost is the write phase); whether BR-R-12's added `OR` needs an index (`EXPLAIN` decides); and **Unit 1's endpoint timings do not transfer** — they were measured against a permissive filter that added no WHERE clause, so they must be re-run for a scoped role.
 - [ ] NFR Design — SKIPPED (R2)
-- [ ] Infrastructure Design — EXECUTE
+- [ ] Infrastructure Design — **ARTIFACTS COMPLETE 2026-07-26, AWAITING APPROVAL**. 10/10 plan steps. 2 artifacts + a prediction audit in `shared-infrastructure.md` §8.
+  - Answers I-Q1:A, I-Q2:A, I-Q3:A — **all by AI recommendation**, continuing under the user's instruction. All three are configuration choices, not structural.
+  - **Delta is genuinely small**: no new container, service, volume, port, network or migration. Six configuration changes total; Unit 2's components are code inside the existing `app` container.
+  - ✅ **Two PRE-EXISTING deployment defects found and fixed**: (1) Docker's default `json-file` driver has no size cap and no `logging:` options were ever set, so the deployment has been growing container logs WITHOUT BOUND since Unit 1 shipped — now rotated at 10m x 3 on all three services; (2) the Caddyfile had no `request_body` limit, so an arbitrarily large POST would stream into Node before refusal — now capped at 6 MB, deliberately ABOVE the app's 5 MB so the app's actionable error is what users see at the boundary.
+  - ⚠️ **`shared-infrastructure.md` §6 rule 5 asserted the Docker log was "rotated"** — it was not. An approved artifact stated a safety property the deployment did not have. Now true.
+  - ⚠️ **Unit 2's deployment CHANGES WHAT EXISTING USERS CAN SEE.** A `TEAM_LEAD` or child-unit `RESOURCE_MANAGER` loses visibility they currently have (intended), and an account with a NULL `home_org_unit_id` will see NOTHING (correct fail-closed behaviour that will look like a broken account). `deployment-architecture.md` §3.2 supplies the pre-deployment SQL to find those accounts BEFORE deploying.
+  - ⚠️ Enforcement must be smoke-tested with a **scoped** account. Signing in as Admin proves nothing — Admin was unrestricted before and after.
+  - **Prediction audit**: of Unit 1's 11 predictions about Unit 2, 8 held and **3 were wrong** — Unit 2 needs ZERO migrations (predicted "one or more"), there is no `RolePermission` table at all, and import peak memory is +40–60 MB not "kilobytes" (Unit 1 assumed 200 rows; Q13:A capped at 2,000).
 - [ ] Code Generation — EXECUTE
 
 ### 🟢 CONSTRUCTION PHASE — after all units
