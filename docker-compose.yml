@@ -27,6 +27,18 @@ services:
       start_period: 10s
     # No `ports:` — deliberately. The database is not reachable from the host.
     networks: [chaos]
+    logging:
+      # Docker's default json-file driver applies NO size cap, so container logs grew without
+      # bound. Added at Unit 2 as a FIX to a pre-existing defect, not a new feature: the stack has
+      # been accumulating logs since Unit 1 shipped. ~30 MB per service, ~90 MB total.
+      #
+      # This does NOT contradict NFR-Q-02, which defers log AGGREGATION infrastructure — a
+      # collector, a dashboard, alerting. Rotation is three lines and introduces nothing.
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
 
   app:
     build:
@@ -57,6 +69,10 @@ services:
       INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME:-}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-}
       STATIC_DIR: /app/public
+      # Unit 2 import ceilings (BR-IM-02). Non-secret, safe defaults, validated as POSITIVE at
+      # startup — a row cap of 0 would refuse every file and read as a broken feature.
+      IMPORT_MAX_ROWS: ${IMPORT_MAX_ROWS:-2000}
+      IMPORT_MAX_BYTES: ${IMPORT_MAX_BYTES:-5242880}
     healthcheck:
       # Hits the app's own /health, which reports database connectivity — so an app that is
       # listening but cannot reach the database is reported unhealthy rather than ready.
@@ -73,6 +89,18 @@ services:
       start_period: 30s
     # No `ports:` — reached only through the proxy.
     networks: [chaos]
+    logging:
+      # Docker's default json-file driver applies NO size cap, so container logs grew without
+      # bound. Added at Unit 2 as a FIX to a pre-existing defect, not a new feature: the stack has
+      # been accumulating logs since Unit 1 shipped. ~30 MB per service, ~90 MB total.
+      #
+      # This does NOT contradict NFR-Q-02, which defers log AGGREGATION infrastructure — a
+      # collector, a dashboard, alerting. Rotation is three lines and introduces nothing.
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
 
   proxy:
     image: caddy:2-alpine
@@ -93,6 +121,18 @@ services:
       - chaos_caddy_data:/data
       - chaos_caddy_config:/config
     networks: [chaos]
+    logging:
+      # Docker's default json-file driver applies NO size cap, so container logs grew without
+      # bound. Added at Unit 2 as a FIX to a pre-existing defect, not a new feature: the stack has
+      # been accumulating logs since Unit 1 shipped. ~30 MB per service, ~90 MB total.
+      #
+      # This does NOT contradict NFR-Q-02, which defers log AGGREGATION infrastructure — a
+      # collector, a dashboard, alerting. Rotation is three lines and introduces nothing.
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
 
 volumes:
   chaos_db_data:

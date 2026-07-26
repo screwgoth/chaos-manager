@@ -164,4 +164,23 @@ export const LOG_REDACT_PATHS = [
   'tokenHash',
   '*.password',
   '*.passwordHash',
+  /**
+   * Unit 2 additions (BR-IM-24). Import rows are personal data and the container log is rotated
+   * but not access-controlled, so a stray future log of a parsed row is redacted STRUCTURALLY
+   * rather than relying on every call site remembering. The import route logs only counts today;
+   * these paths exist so that stays true after the next change.
+   */
+  'row',
+  'rows',
+  '*.row',
+  'values',
+  '*.values',
+  'email',
+  '*.email',
+  'fullName',
+  '*.fullName',
+  'externalRef',
+  '*.externalRef',
+  'vendorName',
+  '*.vendorName',
 ];

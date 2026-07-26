@@ -135,6 +135,31 @@ export function buildApp({ db, config, services: provided }: BuildAppOptions): B
       request.log.error({ err: mapped.logCause }, 'unhandled error');
     } else if (mapped.status >= 500) {
       request.log.error({ err: error }, 'server error');
+    } else if (mapped.status === 403) {
+      /**
+       * U2-NFR-SE-07 / N-Q5:A — authorization refusals are logged at warn.
+       *
+       * WHY AT ALL, given NFR-Q-02 defers observability: this unit IS the FR-R-08 enforcement
+       * point, and without a signal neither an enforcement bug nor a client probing ids is
+       * visible. NFR-Q-02 defers log AGGREGATION infrastructure, not the emission of a line.
+       *
+       * ⚠️ WHAT IS DELIBERATELY ABSENT: the target record's id. Logging it would leak through the
+       * log the very thing the refusal withheld from the response — and BR-R-16 chose 404-not-403
+       * precisely so a refusal cannot confirm a record exists. Role, method and path are enough to
+       * spot both a misconfigured account and a probing client.
+       */
+      request.log.warn(
+        {
+          role: request.session?.identity.role ?? null,
+          method: request.method,
+          // The ROUTE PATTERN, not `request.url` — the raw url carries the query string, which can
+          // contain member ids. The onResponse hook above already made this choice deliberately;
+          // logging the raw url here would have quietly undone it.
+          path: request.routeOptions?.url ?? request.url.split('?')[0],
+          outcome: 'REFUSED',
+        },
+        'authorization refused',
+      );
     }
 
     return reply.code(mapped.status).send(mapped.body);

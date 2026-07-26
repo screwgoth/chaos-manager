@@ -217,18 +217,33 @@ the shape change and was updated. This corrects the Unit 2 plan's §0 claim that
 
 ### Configuration and deployment
 
-- [ ] **Step 17 — Configuration.** `IMPORT_MAX_ROWS` and `IMPORT_MAX_BYTES` with fail-fast validation on
+- [x] **Step 17 — Configuration.** `IMPORT_MAX_ROWS` and `IMPORT_MAX_BYTES` with fail-fast validation on
       malformed values; extend `LOG_REDACT_PATHS` for import payload paths; refusal logging at warn with
       role, resource kind, operation and outcome — **never the target's identity** (U2-NFR-SE-07);
       update `.env.example`.
 
-- [ ] **Step 18 — Deployment artifacts.** `docker-compose.yml`: `logging` rotation on **all three**
+- [x] **Step 18 — Deployment artifacts.** `docker-compose.yml`: `logging` rotation on **all three**
       services (fixes the pre-existing unbounded-log defect) and the two new env passthroughs.
       `docker/Caddyfile`: `request_body max_size 6MB`, deliberately **above** the app's 5 MB.
 
+**Steps 17–19 verified 2026-07-26.** Backend **501 passed / 21 suites**, 0 failures.
+
+**Step 19 — the three UNVERIFIED claims are now MEASURED:**
+
+| Claim | Budget | Measured |
+|---|---|---|
+| 2,000-row import (U2-NFR-P-03) | < 30 s | **6.8 s** |
+| 200-row import (U2-NFR-P-04) | < 5 s | **0.62 s** |
+| BR-R-12 disjunction (N-Q2:A) | — | **2.1 ms** over 1,500 assignments; member side uses `Index Scan using member_org_status_idx`. **No index warranted.** |
+| Member list, SCOPED role (U2-NFR-P-02) | < 500 ms | **12.1 ms** (admin 15.8 ms — scoped overhead is within noise) |
+| `resolveScope` + `toScopeFilter` (U2-NFR-P-01) | < 10 ms | **0.18 µs** |
+
+The import write phase came in at roughly a third of the estimated worst case, so the row cap
+stands and no background job is needed. **Unit 2 still requires NO migration.**
+
 ### Verification and documentation
 
-- [ ] **Step 19 — Discharge the three UNVERIFIED performance claims.** These are recorded as unverified
+- [x] **Step 19 — Discharge the three UNVERIFIED performance claims.** These are recorded as unverified
       in `nfr-requirements.md` §10 and must be **measured**, with actual numbers reported:
       1. Time a real 2,000-row import against the 30 s budget (U2-NFR-P-03). If it exceeds, **do not**
          bypass Unit 1's components — lower the row cap or report the finding.
