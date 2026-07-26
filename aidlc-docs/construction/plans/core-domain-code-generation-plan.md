@@ -4,10 +4,10 @@
 **Phase**: 🟢 CONSTRUCTION · **Unit**: `core-domain` (1 of 2) · **Stage**: Code Generation (Part 1: Planning)
 **Date**: 2026-07-25
 **Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 IN PROGRESS on branch `aidlc/construction-core-domain`.
-**Steps 1-20 of 26 complete and verified.** Next: Step 21 (frontend unit tests).
+**Steps 1-21 of 26 complete and verified.** Next: Step 22 (frontend summary).
 **Verification**: `npx tsc --noEmit` clean; `npm test` **387 passed / 17 suites** against PostgreSQL 16 (296 passed + 91 skipped without a database); `npm run build` produces `dist/src/server.js`; server smoke-tested live (`/health` 200, unauthenticated 401, unknown endpoint JSON 404).
 **NOTE**: use `npm test`, not `npx jest` — Jest needs `--experimental-vm-modules` for @fastify/cookie's dynamic import.
-**Frontend verification**: `tsc --noEmit` clean; `vite build` → 291 kB JS / 16.7 kB CSS; `jest` 10 passed. Full stack smoke-tested: backend serving the built SPA, bootstrap admin login succeeded, `HttpOnly` cookie set, no plaintext password in the log, client route `/members` falling back to index.html while `/api/nope` still returned the JSON envelope.
+**Frontend verification**: `tsc --noEmit` clean; `vite build` → 291 kB JS / 16.8 kB CSS; `jest` **63 passed / 5 suites**. Full stack smoke-tested: backend serving the built SPA, bootstrap admin login succeeded, `HttpOnly` cookie set, no plaintext password in the log, client route `/members` falling back to index.html while `/api/nope` still returned the JSON envelope.
 **Branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
 
 > **This plan is the single source of truth for Code Generation.** Part 2 executes exactly these steps in
@@ -309,12 +309,18 @@ Also confirmed during the audit: `SECRET_KEYS` covers all three secret-bearing v
 - [ ] `views/` — `AllocationViewPage`, **`AvailabilitySearchPage` with "next month" preset and prominent skill filter** (US-VIS-02, 03), `MyAssignmentsPage`, `HistoricalAllocationPage` **with its as-of notice** (US-ASN-07)
 - [ ] `admin/` — `ReferenceDataPage`, `RetireReferenceDialog` **offering deactivate when delete is refused**, `OrgUnitPage`, `OrgUnitTree` (US-ADM-01, 02, 03)
 
-### Step 21 — Frontend Unit Tests
-- [ ] `AllocationBar` renders over-allocation distinctly from fully-allocated
-- [ ] `OverAllocationDialog` shows the sub-period and requires explicit confirmation
-- [ ] `PercentageInput` rejects 0, negatives, and >100
-- [ ] `FieldErrors` places each violation against its field
-- [ ] Sign-in failure shows one generic message
+### Step 21 — Frontend Unit Tests ✅
+63 tests across 5 suites.
+- [x] `AllocationBar` renders over-allocation distinctly from fully-allocated — asserts all THREE cues (a distinct colour token that cannot converge with `full`, the overflow tail present only when over, and a never-clamped negative remainder), plus the accessible text for readers who see neither colour nor shape
+- [x] `OverAllocationDialog` shows the sub-period and requires explicit confirmation — names the member, the specific sub-period, the total and every contributing project; asserts `aria-modal` (it BLOCKS, per Q14:A), that opening it saves nothing, and that Escape closes WITHOUT confirming
+- [x] `PercentageInput` rejects 0, negatives, and >100 — **as declared constraints, not as swallowed values.** The test asserts that a pasted 150 is passed UPWARD rather than clamped: clamping would hide the user's mistake and deny the server the chance to name the field (Q4:A makes client validation convenience only)
+- [x] `FieldErrors` places each violation against its field — including TWO violations on one field, nested paths (`contract.endDate`), and that `FormErrors` does not repeat field-level messages at the top
+- [x] Sign-in failure shows one generic message — drives BOTH failure modes through the real component and asserts the rendered text is IDENTICAL, plus that no wording resembling "no such user" appears anywhere
+- [x] Beyond plan: `presetRange` month-length and leap-year arithmetic, `DateRangePicker`'s "to (included)" label, `AssignmentConflictNotice` proven NON-blocking (no dialog, no buttons)
+
+**Test-harness defect found, and it produced a FALSE result.** The sign-in test's response stub used `new Response(...)`, but **jsdom provides no `Response` global**. The constructor threw a `ReferenceError`, which the component caught and reported as its generic fallback message — so the test initially "proved" the component ignored the server's message when the real cause was the test's own helper. Replaced with a minimal `{ok, status, text()}` object, which is all `ApiClient` reads. A test that fails for the wrong reason is worse than one that fails for the right one, because the fix goes into the wrong file.
+
+**KNOWN, UNRESOLVED — act warnings.** The suite prints React "update was not wrapped in act" warnings, one per keystroke (~200 lines). Four fixes were attempted: act-wrapping the clicks, act-wrapping the render so the provider's mount-time session probe settles inside it, flushing macrotasks inside act, and moving from user-event's legacy API to `setup()`. None silenced them. The tests are correct and deterministic — every one passes repeatedly — but the output is noisy, and noisy output trains people to stop reading it. Left rather than suppressing `console.error`, which would also hide genuine failures. Worth revisiting; not worth more time now.
 
 ### Step 22 — Frontend Summary
 - [ ] Write `aidlc-docs/construction/core-domain/code/frontend-summary.md`
