@@ -502,3 +502,35 @@ The replacement forces the interleaving explicitly: transaction A takes the lock
 **Next step**: Step 13 — business logic summary document.
 
 ---
+
+## Code Generation Part 2 — Steps 13-17 complete (core-domain)
+**Timestamp**: 2026-07-26T04:10:00Z
+**User Input**: "Continue with Step 13 and also proceed to Steps 14 - 17"
+**AI Response**: "Wrote the business logic summary (Step 13), the service layer with its composition root (Step 14), the Fastify API layer (Step 15), 35 API tests (Step 16), and the API layer summary (Step 17). Verified: tsc --noEmit clean; npm test 387 passed / 17 suites against PostgreSQL 16; npm run build produces dist/src/server.js; server smoke-tested live with /health 200, unauthenticated 401 and a JSON 404 envelope. The backend is now complete end to end."
+**Context**: CONSTRUCTION phase, Unit 1 `core-domain`, Steps 13-17 of 26, branch `aidlc/construction-core-domain`.
+
+**Delivered**: `business-logic-summary.md`, `api-layer-summary.md`, eight service files including the composition root, six route modules, `src/app.ts`, `src/server.ts`, `routes/schemas.ts`, `routes/error-mapper.ts`, `routes/session-middleware.ts`, and `tests/core-domain/api.test.ts` (35 tests).
+
+**Design decisions recorded in code**:
+1. The eight-step assignment flow stays in C-03, NOT in the service. The lock and transaction must span the capacity check AND the write (BR-A-24), so it belongs where the transaction boundary is; duplicating it in the service would create a second place for the invariant to drift.
+2. Over-allocation returns HTTP 200, not 409. BR-A-09 makes it a warning permitting override, and the warning IS the successful outcome of step one. A 4xx would push a normal flow into client error handling.
+3. Blocked removals (BR-C-06, BR-O-05) return 200 with `removed: false` and the blocking count, plus `alternative: 'DEACTIVATE'`. The caller asked whether the record could go; "no, and here is why" is a successful answer.
+4. An out-of-scope record returns 404, NOT 403 — "forbidden" would confirm the record exists, leaking exactly what the scope filter hides. This is the route a TEAM_MEMBER would use to probe for colleagues.
+5. Two-step override implemented as RE-SUBMIT rather than a confirmation token: a token needs server-side storage with its own expiry, and a stale token could authorise a save against capacity that has since changed. Re-submitting re-runs the check inside the member lock.
+6. BR-R-06 is enforced STRUCTURALLY: no code path reads a role, org unit, member id or scope from a header, query parameter or body, and no service method accepts a ScopeFilter. A client can only present a token.
+7. Query strings are deliberately NOT logged — they can carry member ids, which are personal data.
+8. 47 routes rather than the designed 37: reactivate/reopen counterparts and reference-count endpoints were needed to make the refusal rules actionable.
+
+**DEFECT 10 — a PRODUCTION-ONLY failure, found by self-review.** `setNotFoundHandler` was registered twice, once unconditionally and once inside the static-assets branch. Fastify throws on the second registration. Development runs without built frontend assets, so `STATIC_DIR` is absent and the second handler never registers — meaning the server would have started cleanly in development and REFUSED TO START in production, which is the only environment where STATIC_DIR points at a real directory. Now exactly one handler, which serves the JSON envelope for /api/ paths and index.html otherwise.
+
+**DEFECT 11 — a file was silently never written.** A `cd backend` into an already-current directory failed, short-circuiting the `&&` chain, so `member-service.ts` was never created while the following commands ran and typechecked. Caught by listing the directory rather than trusting the exit code. Verifying that a file exists is not the same as verifying a command succeeded.
+
+**Defects 12-14** (all found by tsc or by running tests): Fastify's overload resolution picked the HTTP/2 instance type and broke every route registration, fixed with an explicit `FastifyInstance` annotation; `@fastify/cookie`'s type augmentation requires importing the module, not just its types; and `@fastify/cookie` loads its parser with a dynamic `import()` that Jest's CommonJS VM refuses, which failed all 35 API tests until `npm test` was changed to run Jest through `node --experimental-vm-modules`. **`npx jest` directly now fails on the API suite** — recorded in `jest.config.js` and the state file.
+
+**The API test worth reviewing** is the TEAM_MEMBER isolation block: six routes probed directly with a valid TEAM_MEMBER session (member detail, member list, assignments by member id, current allocations, another member's timeline, availability), each asserted to leak nothing, PLUS a control asserting the ADMIN does see both members — without that control the refusals would pass even if the API returned nothing to anybody.
+
+**Verification actually run**: `npx tsc --noEmit` → exit 0. `npm test` with TEST_DATABASE_URL → 387 passed, 17 suites, 0 failures. Without it → 296 passed, 91 skipped. `npm run build` → `dist/src/server.js`, `dist/src/app.js`, `dist/migrations/001_initial_schema.js` all present. Live server on port 3999 against the test database: `/health` → `{"status":"ok","database":true}` 200; `GET /api/members` without a cookie → 401 with the standard envelope; `GET /api/nope` → 404 with the standard envelope.
+
+**Next step**: Step 18 — frontend shared foundations.
+
+---

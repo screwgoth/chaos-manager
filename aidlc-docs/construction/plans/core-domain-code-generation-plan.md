@@ -4,8 +4,9 @@
 **Phase**: 🟢 CONSTRUCTION · **Unit**: `core-domain` (1 of 2) · **Stage**: Code Generation (Part 1: Planning)
 **Date**: 2026-07-25
 **Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 IN PROGRESS on branch `aidlc/construction-core-domain`.
-**Steps 1-12 of 26 complete and verified.** Next: Step 13 (business logic summary document).
-**Verification**: `npx tsc --noEmit` clean; `npx jest` **352 passed / 16 suites** against PostgreSQL 16 (296 passed + 56 skipped without a database).
+**Steps 1-17 of 26 complete and verified.** Next: Step 18 (frontend shared foundations).
+**Verification**: `npx tsc --noEmit` clean; `npm test` **387 passed / 17 suites** against PostgreSQL 16 (296 passed + 91 skipped without a database); `npm run build` produces `dist/src/server.js`; server smoke-tested live (`/health` 200, unauthenticated 401, unknown endpoint JSON 404).
+**NOTE**: use `npm test`, not `npx jest` — Jest needs `--experimental-vm-modules` for @fastify/cookie's dynamic import.
 **Branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
 
 > **This plan is the single source of truth for Code Generation.** Part 2 executes exactly these steps in
@@ -239,33 +240,40 @@ Executed as an AUDIT plus the genuinely-missing cases, rather than by writing ne
 
 Also confirmed during the audit: `SECRET_KEYS` covers all three secret-bearing variables in the config contract (`DATABASE_URL`, `POSTGRES_PASSWORD`, `INITIAL_ADMIN_PASSWORD`). A test now pins that set so a fourth secret variable cannot be added without extending it.
 
-### Step 13 — Business Logic Summary
-- [ ] Write `aidlc-docs/construction/core-domain/code/business-logic-summary.md`
+### Step 13 — Business Logic Summary ✅
+- [x] Write `aidlc-docs/construction/core-domain/code/business-logic-summary.md` — includes the nine components, the segmentation algorithm, the bi-temporal design, a decision table with the reason each alternative fails, and all nine defects found in Steps 7-13
 
-### Step 14 — Service Layer
-- [ ] `S-01 AuthService`, `S-03 MemberService`, `S-04 ProjectService`, `S-05 AssignmentService`, `S-06 AllocationQueryService`, `S-07 ReferenceDataService`, `S-08 OrgUnitService`
-- [ ] Minimal `AccessControlService` wrapper over the stand-in (S-02 fully implemented in Unit 2)
-- [ ] **`AssignmentService.create` — the eight-step flow** from `business-logic-model.md` §4.1, with the member lock and transaction spanning check-and-write (BR-A-24)
-- [ ] Every method derives `AccessScope` from the session first; **no client-supplied role, scope, or id trusted**
+### Step 14 — Service Layer ✅
+- [x] `S-01 AuthService`, `S-03 MemberService`, `S-04 ProjectService`, `S-05 AssignmentService`, `S-06 AllocationQueryService`, `S-07 ReferenceDataService`, `S-08 OrgUnitService`
+- [x] Minimal `AccessControlService` wrapper over the stand-in (S-02 fully implemented in Unit 2)
+- [x] **The eight-step flow** stays in C-03, NOT the service — the lock and transaction must span the capacity check AND the write (BR-A-24), so it belongs where the transaction boundary is. `AssignmentService` orchestrates and authorizes; duplicating any of the flow here would create a second place for the invariant to drift.
+- [x] Every method derives `AccessScope` from the session first — enforced by SHAPE: no service method accepts a role, an org-unit list, or a `ScopeFilter` from a caller
+- [x] `services/index.ts` is the composition root, with the X-1 replacement isolated to ONE line
 
-### Step 15 — API Layer Generation
-- [ ] Fastify server, `backend/src/server.ts`; static asset serving for `frontend/dist`
-- [ ] All 37 routes from `component-methods.md` §C-12
-- [ ] Zod schemas per route — **shape validation only, no business rules** (Q4:A)
-- [ ] Session middleware: cookie → `tokenHash` → resolve → attach scope
-- [ ] Error mapper producing the `violations` envelope (Q12:A)
-- [ ] Request logging (method, path, status, duration) with **secret redaction at the logger** (U1-NFR-O-01, O-04)
-- [ ] `GET /health` — status + database connectivity, unauthenticated
-- [ ] **Two-step override protocol** for `POST /api/assignments` (US-ASN-05)
+### Step 15 — API Layer Generation ✅
+- [x] Fastify server: `src/app.ts` (assembly, testable without a port) + `src/server.ts` (bootstrap: config → connect → migrate → seed admin → listen → SIGTERM/SIGINT handlers); static SPA serving with an API-aware fallback
+- [x] **47 routes** across six route modules — more than the designed 37, because reactivate/reopen counterparts and reference-count endpoints were needed to make the refusal rules actionable
+- [x] Zod schemas per route — shape validation only (Q4:A). Cross-field date ordering is included because it needs nothing but the payload; it is duplicated in the domain because the domain must not trust that a route ran.
+- [x] Session middleware: cookie → token hash → resolve → attach scope
+- [x] Error mapper producing the `violations` envelope (Q12:A), identical for 400/401/403/404/409/500
+- [x] ONE request log line (method, path, status, duration) with redaction at the logger; query strings deliberately NOT logged, since they can carry member ids
+- [x] `GET /health` — unauthenticated by design, reports database connectivity only, 503 when unreachable
+- [x] **Two-step override protocol** implemented as RE-SUBMIT rather than a confirmation token: a token needs its own storage and expiry, and a stale one could authorise a save against capacity that has since changed. Re-submitting re-runs the check inside the member lock.
 
-### Step 16 — API Layer Unit Tests
-- [ ] Route shape validation rejects malformed payloads before any service call
-- [ ] Error mapper produces field-level violations, **all reasons not just the first**
-- [ ] Session middleware rejects expired and unknown sessions
-- [ ] **Direct API call as a TEAM_MEMBER for another member's data is refused** (US-VIS-04, US-ENB-01)
+### Step 16 — API Layer Unit Tests ✅
+35 tests via Fastify `inject`, so the full pipeline runs (hooks, session resolution, schema parsing, error mapping) against real PostgreSQL without binding a port.
+- [x] Route shape validation rejects malformed payloads before any service call — including a malformed uuid path parameter as 400 (not 500), an impossible date (`2026-02-30`), and a two-decimal allocation
+- [x] Error mapper produces field-level violations, all reasons not just the first; envelope shape asserted IDENTICAL across 401/403/404/400; no stack trace or SQL reaches the client
+- [x] Session middleware rejects unknown AND terminated sessions; the token never appears in a response body; `HttpOnly` asserted
+- [x] **Direct API call as a TEAM_MEMBER for another member's data is refused** — six routes probed (`/members/:id` → 404 not 403, `/members` list, `/assignments?memberId=`, `/allocations/current`, `/allocations/members/:id/timeline`, `/allocations/availability`), PLUS a control asserting the ADMIN *does* see both members, so the refusals cannot pass vacuously
+- [x] Beyond plan: the two-step override protocol over HTTP (including BR-A-11's flag-from-detection), BR-P-06's two-phase close, BR-C-06's blocked delete, BR-O-01's third-level refusal, and percentages round-tripping as decimals
 
-### Step 17 — API Layer Summary
-- [ ] Write `aidlc-docs/construction/core-domain/code/api-layer-summary.md`
+### Step 17 — API Layer Summary ✅
+- [x] Write `aidlc-docs/construction/core-domain/code/api-layer-summary.md` — layer contract, the two status-code decisions, the re-submit rationale, the security table, and defects 10-14
+
+**Defect 10 was a PRODUCTION-ONLY failure.** `setNotFoundHandler` was registered twice — once unconditionally and once inside the static-assets branch — and Fastify throws on the second registration. Development runs without built assets, so `STATIC_DIR` is absent and the second handler never registers; the server would have started fine locally and refused to start in production. Found by self-review while wiring static serving, not by a test.
+
+**Defect 11**: `member-service.ts` was silently never written, because a `cd` into an already-current directory failed and short-circuited the `&&` chain. Caught by listing the directory rather than trusting the tool's exit code.
 
 ### Step 18 — Frontend: Shared Foundations
 - [ ] `shared/api/` — `ApiClient` parsing the `violations` envelope, routing 401 to sign-in

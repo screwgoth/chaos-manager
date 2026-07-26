@@ -24,3 +24,14 @@ module.exports = {
    */
   maxWorkers: process.env.TEST_DATABASE_URL ? 1 : '50%',
 };
+
+/**
+ * NOTE on `--experimental-vm-modules`.
+ *
+ * `npm test` runs jest through `node --experimental-vm-modules` (see package.json). It is
+ * required because @fastify/cookie loads its cookie parser with a dynamic `import()`, which
+ * Jest's CommonJS VM refuses without that flag — the API suite fails with "A dynamic import
+ * callback was invoked without --experimental-vm-modules" otherwise.
+ *
+ * Running `npx jest` directly will therefore fail on the API suite. Use `npm test`.
+ */
