@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified); next is Unit 2 `supporting-platform` Functional Design
+- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` Functional Design **Part 1 (Planning) — awaiting answers to 15 questions** in `aidlc-docs/construction/plans/supporting-platform-functional-design-plan.md`. Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
 
 ## Workspace State
 - **Existing Code**: No at detection; a complete application now exists under `backend/`, `frontend/` and `docker/`
@@ -75,7 +75,8 @@ requirements independent of the disabled security extension.
 **🟢 UNIT 1 `core-domain` COMPLETE** — 133 files, 24,220 lines, 450 tests, 50 endpoints, 30 stories.
 
 ### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
-- [ ] Functional Design — EXECUTE (+ R2 folded-in obligations 4, 5)
+- [ ] Functional Design — **IN PROGRESS** (+ R2 folded-in obligations 4, 5). Branch `aidlc/construction-supporting-platform`. Part 1 plan created 2026-07-26 with 15 questions; awaiting user answers before Part 2 artifact generation.
+  - ⚠️ **Scope reconciliation finding**: verification against Unit 1's shipped code (not its stated scope) shows Unit 1 incidentally **completed** US-ASN-04 and US-VIS-05, and shipped backend-only for US-VIS-06, US-VIS-07 and US-MEM-06. Unit 2's real burden is authorization + import. Question 15 asks how to record this; Unit 1's story count of 30 is understated by two pending that answer.
 - [ ] NFR Requirements — EXECUTE
 - [ ] NFR Design — SKIPPED (R2)
 - [ ] Infrastructure Design — EXECUTE

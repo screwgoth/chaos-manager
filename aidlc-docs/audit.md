@@ -626,3 +626,16 @@ The replacement forces the interleaving explicitly: transaction A takes the lock
 **Next stage**: Unit 2 `supporting-platform` — Functional Design → NFR Requirements → Infrastructure Design → Code Generation. Then Build and Test, once, after both units.
 
 ---
+## Construction — Unit 2 `supporting-platform` — Functional Design (Part 1: Planning)
+**Timestamp**: 2026-07-26T13:05:00Z
+**User Input**: "Continue with Unit 2"
+**AI Response**: "Committed the two outstanding Unit 1 files (4b17b95: .env.example CHAOS_HOSTNAME fix, docker-compose.no-tls.yml). Created branch `aidlc/construction-supporting-platform`. Entered the per-unit loop for Unit 2 at Functional Design. Read unit-of-work.md, unit-of-work-story-map.md, unit-of-work-dependency.md (X-1), requirements FR-R-01..08 and FR-I-01..05, stories US-ACC-04/05, US-ENB-01, US-IMP-01..05, the FINAL IAuthorizationComponent contract and the Unit 1 stand-in. Created `aidlc-docs/construction/plans/supporting-platform-functional-design-plan.md` with 6 plan parts (A-F, 30 steps) and 15 embedded questions. Awaiting answers."
+**Context**: CONSTRUCTION phase, Unit 2 of 2, Functional Design Part 1. Extensions Security Baseline / Resiliency Baseline / Property-Based Testing all remain DISABLED per aidlc-state.md Extension Configuration; FR-AU-02 and FR-R-08 retained as mandatory functional requirements per NFR-SE-02.
+
+**Scope reconciliation finding (recorded because it changes Unit 2's scope)**: verifying each of Unit 2's 13 stories against what Unit 1 actually shipped — not what it was scoped to ship — found that Unit 1 incidentally completed two Unit 2 stories and half-completed three more:
+- US-ASN-04 (project role on assignment): COMPLETE in Unit 1 — schema column, service, and the form field at AssignmentFormPage.tsx:209.
+- US-VIS-05 (member timeline): COMPLETE in Unit 1 — endpoint plus the segment strip at MemberDetailPage.tsx:47.
+- US-VIS-06, US-VIS-07, US-MEM-06: backend endpoints exist and are tested; no screen consumes them. Frontend-only work remains.
+Consequence: Unit 1's stated story count of 30 is understated by two, and Unit 2's genuine design burden is concentrated in authorization and import. Question 15 asks the user how to record this rather than correcting the counts unilaterally.
+
+---
