@@ -4,8 +4,8 @@
 **Phase**: 🟢 CONSTRUCTION · **Unit**: `core-domain` (1 of 2) · **Stage**: Code Generation (Part 1: Planning)
 **Date**: 2026-07-25
 **Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 IN PROGRESS on branch `aidlc/construction-core-domain`.
-**Steps 1-10 of 26 complete and verified.** Next: Step 11 (identity, session, authorization stand-in).
-**Verification**: `npx tsc --noEmit` clean; `npx jest` **241 passed / 11 suites** against PostgreSQL 16 (186 passed + 55 skipped without a database).
+**Steps 1-11 of 26 complete and verified.** Next: Step 12 (business logic unit tests — the worked example and remaining named cases).
+**Verification**: `npx tsc --noEmit` clean; `npx jest` **313 passed / 14 suites** against PostgreSQL 16 (258 passed + 55 skipped without a database).
 **Branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
 
 > **This plan is the single source of truth for Code Generation.** Part 2 executes exactly these steps in
@@ -205,11 +205,21 @@ Step 9 could not be written without over-allocation detection, so the segmentati
 - [ ] `CAPACITY_TENTHS = 1000` expressed **once** (AS-01)
 - [ ] Stories US-ASN-05, US-VIS-01, 02, 03
 
-### Step 11 — Business Logic: Identity, Session, Authorization Stand-In
-- [ ] `C-07 IdentityComponent` — Argon2id hashing, credential verification with **dummy comparison on unknown username**, member linking (US-ENB-02, BR-AU-01…07)
-- [ ] `C-08 SessionComponent` — establish, resolve, sliding 30-min expiry, terminate; **token hash stored, never the token** (BR-AU-09…12)
-- [ ] `authorization-standin/` — **its own named directory**, permissive per `business-logic-model.md` §11: role resolved, `orgUnitIds: 'ALL'`, but `restrictToMemberId` **enforced** for TEAM_MEMBER
-- [ ] Stories US-ACC-01, 02, 03, US-ENB-02, US-ENB-03
+### Step 11 — Business Logic: Identity, Session, Authorization Stand-In ✅
+- [x] `C-07 IdentityComponent` — Argon2id hashing, credential verification with a **real dummy hash comparison** on unknown username, member linking (US-ENB-02, BR-AU-01…07, BR-AU-13…15)
+- [x] `C-08 SessionComponent` — establish, resolve, sliding 30-min expiry (configurable), terminate; **SHA-256 token hash stored, never the token** (BR-AU-08…12)
+- [x] `authorization-standin/` — its own named directory, permissive per `business-logic-model.md` §11, with the deletion procedure recorded in the file header
+- [x] Stories US-ACC-01, 02, 03, US-ENB-02, US-ENB-03
+- [x] Tests: `identity-component.test.ts` (27, real Argon2id), `session-component.test.ts` (33), `authorization-standin.test.ts` (12)
+
+**Two decisions beyond the specification, both closing holes it left open**
+
+1. **BR-AU-07 is checked AFTER the password**, not before. Reporting "this account is inactive" on a wrong password would confirm the username exists to anyone guessing — the exact oracle BR-AU-05's dummy comparison exists to close. Tested: a wrong password against an inactive account returns the plain rejection, not the inactive message.
+2. **`canRead` refuses an UNLINKED TEAM_MEMBER.** §11 specifies `canRead → return true`, which assumes a linked team member; with `orgUnitIds: 'ALL'` and `restrictToMemberId: null`, an unlinked one would read EVERY member. The stand-in fails closed instead. Unit 2's real component must keep refusing it.
+
+**Hash choice, recorded because it looks inconsistent at a glance**: Argon2id for passwords, SHA-256 for session tokens. A session token is 256 bits of randomness with no low-entropy guess space, so there is nothing to slow an attacker down for; per-request Argon2id would add ~40 ms of CPU to every authenticated call for no security gain. Unsalted is safe for the same reason — the rainbow-table argument that makes unsalted password hashing indefensible does not apply to a random 256-bit value.
+
+**Session resolution re-reads the identity on every request** rather than caching role in the session row, so a role change or deactivation takes effect on the next request instead of whenever the session expires — otherwise a stale ADMIN role is a privilege-escalation window up to the full idle timeout wide. Resolution also TERMINATES the session when the account is found deactivated, so it cannot simply be retried.
 
 ### Step 12 — Business Logic Unit Tests
 - [ ] **Allocation: the worked example from `business-logic-model.md` §1** as an executable test
