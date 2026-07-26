@@ -33,6 +33,7 @@ import type {
   DateRange,
   IsoDate,
   MemberId,
+  MemberSummary,
   OverAllocationFinding,
   Tenths,
 } from '../../shared/types/domain';
@@ -60,6 +61,50 @@ export interface AllocatableAssignment {
   savedAsOverride: boolean;
   projectName?: string;
   projectCode?: string;
+}
+
+/** The member's position on a single date (US-VIS-01 row detail). */
+export interface AllocationOnDate {
+  memberId: MemberId;
+  onDate: IsoDate;
+  totalTenths: Tenths;
+  /** Negative when over-allocated (BR-V-03). */
+  availableTenths: Tenths;
+  contributions: AllocationContribution[];
+}
+
+/** One row of the current-allocation view (US-VIS-01). */
+export interface MemberAllocationRow {
+  member: MemberSummary;
+  totalTenths: Tenths;
+  availableTenths: Tenths;
+  isOverAllocated: boolean;
+  contributions: AllocationContribution[];
+}
+
+/** Availability across a range, where the answer varies within it (US-VIS-02, US-VIS-03). */
+export interface AvailabilityResult {
+  member: MemberSummary;
+  range: DateRange;
+  segments: AllocationSegment[];
+  minAvailableTenths: Tenths;
+  maxAvailableTenths: Tenths;
+  isFullyAllocated: boolean;
+  isOverAllocated: boolean;
+}
+
+/**
+ * A timeline segment. `isGap` marks a stretch with NO assignments, which the UI renders
+ * differently from a partially-allocated stretch — "nothing booked" and "40% booked" are
+ * different facts and must not look the same.
+ */
+export interface TimelineSegment {
+  period: DateRange;
+  totalTenths: Tenths;
+  availableTenths: Tenths;
+  isOverAllocated: boolean;
+  isGap: boolean;
+  assignments: AllocationContribution[];
 }
 
 export class AllocationComponent {
@@ -185,7 +230,196 @@ export class AllocationComponent {
     );
   }
 
+  /**
+   * The member's total on ONE date (US-VIS-01 detail).
+   *
+   * Implemented as a single-day window through the same segmentation path rather than as a
+   * separate summation, so a date can never be answered by different arithmetic than the
+   * range it sits inside. Duplicated logic here would be a place for the two to disagree.
+   */
+  totalOnDate(
+    memberId: MemberId,
+    onDate: IsoDate,
+    assignments: readonly AllocatableAssignment[],
+  ): AllocationOnDate {
+    const segments = this.segmentAllocation(assignments, { start: onDate, end: onDate });
+    const segment = segments[0];
+
+    return {
+      memberId,
+      onDate,
+      totalTenths: segment?.totalTenths ?? 0,
+      availableTenths: segment?.availableTenths ?? CAPACITY_TENTHS,
+      contributions: segment?.contributions ?? [],
+    };
+  }
+
+  /** Named alias for the designed interface. Segmentation IS the profile. */
+  profileOverRange(
+    assignments: readonly AllocatableAssignment[],
+    range: DateRange,
+  ): AllocationSegment[] {
+    return this.segmentAllocation(assignments, range);
+  }
+
+  /**
+   * US-VIS-01: one row per member showing the position on `asOf`.
+   *
+   * Takes ALL members and ALL their assignments as already-fetched inputs, grouped here
+   * rather than queried per member — the caller performs one batched `findOverlapping`
+   * for every member id. That is what keeps this view inside its performance budget
+   * (U1-NFR-PE-02); a query per row is what breaks it.
+   *
+   * A member with NO assignments still gets a row, at 0% with full availability. Omitting
+   * them would silently turn the allocation view into a list of only busy people, hiding
+   * exactly the members a manager is looking for.
+   */
+  currentAllocationView(
+    asOf: IsoDate,
+    members: readonly MemberSummary[],
+    assignments: readonly AllocatableAssignment[],
+  ): MemberAllocationRow[] {
+    const byMember = this.groupByMember(assignments);
+
+    return members.map((member) => {
+      const onDate = this.totalOnDate(member.id, asOf, byMember.get(member.id) ?? []);
+      return {
+        member,
+        totalTenths: onDate.totalTenths,
+        availableTenths: onDate.availableTenths,
+        isOverAllocated: isOverAllocated(onDate.totalTenths),
+        contributions: onDate.contributions,
+      };
+    });
+  }
+
+  /**
+   * US-VIS-06: members with NO allocation at any point in the range.
+   *
+   * "Unallocated" means unallocated for the WHOLE range, not merely at some point in it. A
+   * member booked only in February is not on the bench for Q1 — listing them would send a
+   * manager to someone who is already busy for a third of the period.
+   *
+   * The stricter reading is available via `availability`, where a caller can look for
+   * members whose MAXIMUM availability is high.
+   */
+  unallocatedMembers(
+    range: DateRange,
+    members: readonly MemberSummary[],
+    assignments: readonly AllocatableAssignment[],
+  ): MemberSummary[] {
+    const byMember = this.groupByMember(assignments);
+
+    return members.filter((member) => {
+      const segments = this.segmentAllocation(byMember.get(member.id) ?? [], range);
+      return segments.every((segment) => segment.totalTenths === 0);
+    });
+  }
+
+  /**
+   * US-VIS-03: every over-allocated sub-period across many members.
+   *
+   * Returns one finding per offending sub-period per member, NOT one per member: a member
+   * over-allocated in two separate weeks has two distinct problems, and collapsing them
+   * would hide one of them.
+   */
+  overAllocatedMembers(
+    range: DateRange,
+    assignments: readonly AllocatableAssignment[],
+  ): OverAllocationFinding[] {
+    const byMember = this.groupByMember(assignments);
+    const findings: OverAllocationFinding[] = [];
+
+    // Sorted for a stable output order, since Map iteration order follows insertion.
+    for (const memberId of [...byMember.keys()].sort()) {
+      findings.push(
+        ...this.detectOverAllocation(memberId, byMember.get(memberId) ?? [], range),
+      );
+    }
+    return findings;
+  }
+
+  /**
+   * US-VIS-02, US-VIS-03: availability per member across a range.
+   *
+   * `min` and `max` are both reported because they answer different questions: the minimum
+   * says whether the member can take a full-range assignment, the maximum says whether
+   * there is any window worth negotiating. Reporting only an average would answer neither.
+   */
+  availabilityFor(
+    members: readonly MemberSummary[],
+    range: DateRange,
+    assignments: readonly AllocatableAssignment[],
+  ): AvailabilityResult[] {
+    const byMember = this.groupByMember(assignments);
+
+    return members.map((member) => {
+      const segments = this.segmentAllocation(byMember.get(member.id) ?? [], range);
+
+      const availabilities = segments.map((segment) => segment.availableTenths);
+      const minAvailableTenths =
+        availabilities.length > 0 ? Math.min(...availabilities) : CAPACITY_TENTHS;
+      const maxAvailableTenths =
+        availabilities.length > 0 ? Math.max(...availabilities) : CAPACITY_TENTHS;
+
+      return {
+        member,
+        range,
+        segments,
+        minAvailableTenths,
+        maxAvailableTenths,
+        // "Fully allocated" means no spare capacity ANYWHERE in the range.
+        isFullyAllocated: maxAvailableTenths <= 0,
+        isOverAllocated: segments.some((segment) => segment.isOverAllocated),
+      };
+    });
+  }
+
+  /**
+   * US-VIS-01 detail: one member's allocation over time, with gaps marked.
+   *
+   * `isGap` is the reason this is not simply `segmentAllocation`. A stretch with nothing
+   * booked and a stretch with 40% booked are different facts, and a UI that renders them
+   * identically would make an idle month look like a busy one.
+   */
+  memberTimeline(
+    memberId: MemberId,
+    range: DateRange,
+    assignments: readonly AllocatableAssignment[],
+  ): TimelineSegment[] {
+    const own = assignments.filter((assignment) => assignment.memberId === memberId);
+
+    return this.segmentAllocation(own, range).map((segment) => ({
+      period: segment.period,
+      totalTenths: segment.totalTenths,
+      availableTenths: segment.availableTenths,
+      isOverAllocated: segment.isOverAllocated,
+      isGap: segment.contributions.length === 0,
+      assignments: segment.contributions,
+    }));
+  }
+
   // --- internals ----------------------------------------------------------
+
+  /**
+   * Groups pre-fetched assignments by member id.
+   *
+   * This is why the view methods take one flat array: the caller issues ONE batched query
+   * for every member and this splits the result, instead of the caller looping members and
+   * querying each (R2-1 rule 2).
+   */
+  private groupByMember(
+    assignments: readonly AllocatableAssignment[],
+  ): Map<MemberId, AllocatableAssignment[]> {
+    const byMember = new Map<MemberId, AllocatableAssignment[]>();
+    for (const assignment of assignments) {
+      const existing = byMember.get(assignment.memberId);
+      if (existing) existing.push(assignment);
+      else byMember.set(assignment.memberId, [assignment]);
+    }
+    return byMember;
+  }
+
 
   /**
    * The window start, every assignment start inside the window, every assignment

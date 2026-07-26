@@ -389,3 +389,299 @@ describe('purity (U1-NFR-M-03)', () => {
     expect(JSON.stringify(first)).toBe(JSON.stringify(second));
   });
 });
+
+// --- Step 10 view functions -------------------------------------------------
+
+import type { MemberSummary } from '../../src/shared/types/domain';
+
+function member(id: string, fullName: string): MemberSummary {
+  return {
+    id,
+    fullName,
+    email: `${id}@example.com`,
+    orgUnitId: 'ou-1',
+    employmentType: 'ON_ROLL',
+    roleId: 'ref-role',
+    status: 'ACTIVE',
+  };
+}
+
+function forMember(
+  memberId: string,
+  startDate: string,
+  endDate: string,
+  tenths: number,
+  options: { savedAsOverride?: boolean } = {},
+): AllocatableAssignment {
+  return { ...assignment(startDate, endDate, tenths, options), memberId };
+}
+
+describe('totalOnDate', () => {
+  it('sums the assignments covering that single day', () => {
+    const result = component.totalOnDate(
+      'm-1',
+      '2026-02-15',
+      [assignment('2026-01-01', '2026-03-31', 400), assignment('2026-02-01', '2026-02-28', 300)],
+    );
+
+    expect(result.totalTenths).toBe(700);
+    expect(result.availableTenths).toBe(300);
+    expect(result.contributions).toHaveLength(2);
+    expect(result.onDate).toBe('2026-02-15');
+  });
+
+  it('reports full availability on a day with nothing booked', () => {
+    const result = component.totalOnDate('m-1', '2026-05-01', [
+      assignment('2026-01-01', '2026-03-31', 900),
+    ]);
+    expect(result.totalTenths).toBe(0);
+    expect(result.availableTenths).toBe(1000);
+  });
+
+  it('agrees with segmentAllocation for the same day (no duplicate arithmetic)', () => {
+    const rows = [assignment('2026-01-01', '2026-02-15', 600), assignment('2026-02-01', '2026-03-31', 500)];
+    const day = '2026-02-10';
+
+    const viaDate = component.totalOnDate('m-1', day, rows);
+    const viaRange = component.segmentAllocation(rows, Q1).find(
+      (s) => s.period.start <= day && s.period.end >= day,
+    );
+
+    expect(viaDate.totalTenths).toBe(viaRange?.totalTenths);
+  });
+
+  it('counts an assignment ON its end date', () => {
+    const result = component.totalOnDate('m-1', '2026-01-31', [
+      assignment('2026-01-01', '2026-01-31', 500),
+    ]);
+    expect(result.totalTenths).toBe(500);
+  });
+});
+
+describe('currentAllocationView (US-VIS-01)', () => {
+  const members = [member('m-1', 'Ada'), member('m-2', 'Grace'), member('m-3', 'Idle Person')];
+
+  it('returns one row per member, including members with NO assignments', () => {
+    // Omitting idle members would turn the allocation view into a list of only busy
+    // people — hiding exactly who a manager is looking for.
+    const rows = component.currentAllocationView('2026-02-15', members, [
+      forMember('m-1', '2026-01-01', '2026-03-31', 800),
+      forMember('m-2', '2026-01-01', '2026-03-31', 1200),
+    ]);
+
+    expect(rows).toHaveLength(3);
+    expect(rows.map((r) => r.member.id)).toEqual(['m-1', 'm-2', 'm-3']);
+
+    const idle = rows.find((r) => r.member.id === 'm-3');
+    expect(idle?.totalTenths).toBe(0);
+    expect(idle?.availableTenths).toBe(1000);
+    expect(idle?.isOverAllocated).toBe(false);
+  });
+
+  it('flags the over-allocated member and reports negative availability', () => {
+    const rows = component.currentAllocationView('2026-02-15', members, [
+      forMember('m-2', '2026-01-01', '2026-03-31', 1200),
+    ]);
+
+    const over = rows.find((r) => r.member.id === 'm-2');
+    expect(over?.isOverAllocated).toBe(true);
+    expect(over?.availableTenths).toBe(-200);
+  });
+
+  it('does not attribute one member assignments to another', () => {
+    const rows = component.currentAllocationView('2026-02-15', members, [
+      forMember('m-1', '2026-01-01', '2026-03-31', 500),
+    ]);
+
+    expect(rows.find((r) => r.member.id === 'm-1')?.totalTenths).toBe(500);
+    expect(rows.find((r) => r.member.id === 'm-2')?.totalTenths).toBe(0);
+  });
+
+  it('reflects the asOf date, not the whole range', () => {
+    const rows = component.currentAllocationView('2026-03-15', members, [
+      forMember('m-1', '2026-01-01', '2026-01-31', 900),
+    ]);
+    // The January booking does not touch 15 March.
+    expect(rows.find((r) => r.member.id === 'm-1')?.totalTenths).toBe(0);
+  });
+});
+
+describe('unallocatedMembers (US-VIS-06)', () => {
+  const members = [member('m-free', 'Free'), member('m-partial', 'Partial'), member('m-busy', 'Busy')];
+
+  it('returns only members with NO allocation anywhere in the range', () => {
+    // m-partial is booked for February only. They are NOT on the bench for Q1 — sending a
+    // manager to them would waste the manager's time.
+    const unallocated = component.unallocatedMembers(Q1, members, [
+      forMember('m-partial', '2026-02-01', '2026-02-28', 500),
+      forMember('m-busy', '2026-01-01', '2026-03-31', 1000),
+    ]);
+
+    expect(unallocated.map((m) => m.id)).toEqual(['m-free']);
+  });
+
+  it('returns everyone when there are no assignments at all', () => {
+    expect(component.unallocatedMembers(Q1, members, []).map((m) => m.id)).toEqual([
+      'm-free',
+      'm-partial',
+      'm-busy',
+    ]);
+  });
+
+  it('ignores assignments outside the range', () => {
+    const unallocated = component.unallocatedMembers(Q1, [member('m-1', 'Ada')], [
+      forMember('m-1', '2025-01-01', '2025-12-31', 1000),
+    ]);
+    expect(unallocated.map((m) => m.id)).toEqual(['m-1']);
+  });
+
+  it('excludes a member booked for even a single day', () => {
+    const unallocated = component.unallocatedMembers(Q1, [member('m-1', 'Ada')], [
+      forMember('m-1', '2026-02-15', '2026-02-15', 1),
+    ]);
+    expect(unallocated).toEqual([]);
+  });
+});
+
+describe('overAllocatedMembers (US-VIS-03)', () => {
+  it('returns one finding per offending sub-period per member, not one per member', () => {
+    // Two separate spikes are two distinct problems; collapsing them would hide one.
+    const findings = component.overAllocatedMembers(Q1, [
+      forMember('m-1', '2026-01-01', '2026-03-31', 700),
+      forMember('m-1', '2026-01-05', '2026-01-10', 500),
+      forMember('m-1', '2026-03-01', '2026-03-05', 600),
+      forMember('m-2', '2026-02-01', '2026-02-28', 1500),
+    ]);
+
+    const forM1 = findings.filter((f) => f.memberId === 'm-1');
+    expect(forM1).toHaveLength(2);
+    expect(forM1.map((f) => f.period.start)).toEqual(['2026-01-05', '2026-03-01']);
+
+    const forM2 = findings.filter((f) => f.memberId === 'm-2');
+    expect(forM2).toHaveLength(1);
+    expect(forM2[0]?.totalTenths).toBe(1500);
+  });
+
+  it('returns nothing when everyone is within capacity', () => {
+    expect(
+      component.overAllocatedMembers(Q1, [
+        forMember('m-1', '2026-01-01', '2026-03-31', 1000),
+        forMember('m-2', '2026-01-01', '2026-03-31', 500),
+      ]),
+    ).toEqual([]);
+  });
+
+  it('produces a stable member order', () => {
+    const input = [
+      forMember('m-z', '2026-01-01', '2026-03-31', 1200),
+      forMember('m-a', '2026-01-01', '2026-03-31', 1200),
+    ];
+    const first = component.overAllocatedMembers(Q1, input);
+    const second = component.overAllocatedMembers(Q1, [...input].reverse());
+
+    expect(first.map((f) => f.memberId)).toEqual(['m-a', 'm-z']);
+    expect(second.map((f) => f.memberId)).toEqual(['m-a', 'm-z']);
+  });
+});
+
+describe('availabilityFor (US-VIS-02, US-VIS-03)', () => {
+  it('reports min AND max, which answer different questions', () => {
+    // Free in January, fully booked in February. Minimum says "cannot take a full-range
+    // assignment"; maximum says "there is a January window worth negotiating".
+    const [result] = component.availabilityFor(
+      [member('m-1', 'Ada')],
+      { start: '2026-01-01', end: '2026-02-28' },
+      [forMember('m-1', '2026-02-01', '2026-02-28', 1000)],
+    );
+
+    expect(result?.minAvailableTenths).toBe(0);
+    expect(result?.maxAvailableTenths).toBe(1000);
+    expect(result?.isFullyAllocated).toBe(false); // there IS spare capacity somewhere
+    expect(result?.isOverAllocated).toBe(false);
+  });
+
+  it('marks a member fully allocated only when there is no spare capacity anywhere', () => {
+    const [result] = component.availabilityFor([member('m-1', 'Ada')], Q1, [
+      forMember('m-1', '2026-01-01', '2026-03-31', 1000),
+    ]);
+
+    expect(result?.isFullyAllocated).toBe(true);
+    expect(result?.maxAvailableTenths).toBe(0);
+  });
+
+  it('flags over-allocation anywhere in the range', () => {
+    const [result] = component.availabilityFor([member('m-1', 'Ada')], Q1, [
+      forMember('m-1', '2026-02-01', '2026-02-05', 1300),
+    ]);
+
+    expect(result?.isOverAllocated).toBe(true);
+    expect(result?.minAvailableTenths).toBe(-300);
+  });
+
+  it('gives a member with no assignments full availability', () => {
+    const [result] = component.availabilityFor([member('m-1', 'Ada')], Q1, []);
+    expect(result?.minAvailableTenths).toBe(1000);
+    expect(result?.maxAvailableTenths).toBe(1000);
+    expect(result?.isFullyAllocated).toBe(false);
+  });
+
+  it('carries the segments so a caller can show WHEN capacity exists', () => {
+    const [result] = component.availabilityFor([member('m-1', 'Ada')], Q1, [
+      forMember('m-1', '2026-02-01', '2026-02-28', 600),
+    ]);
+    expect((result?.segments.length ?? 0)).toBeGreaterThan(1);
+  });
+});
+
+describe('memberTimeline', () => {
+  it('marks stretches with nothing booked as gaps', () => {
+    // A gap and a partially-booked stretch are different facts; a UI rendering them the
+    // same way would make an idle month look busy.
+    const timeline = component.memberTimeline('m-1', Q1, [
+      forMember('m-1', '2026-02-01', '2026-02-28', 400),
+    ]);
+
+    const gaps = timeline.filter((s) => s.isGap);
+    const booked = timeline.filter((s) => !s.isGap);
+
+    expect(gaps.length).toBe(2); // January and March
+    expect(gaps.every((s) => s.totalTenths === 0)).toBe(true);
+    expect(booked).toHaveLength(1);
+    expect(booked[0]?.period).toEqual({ start: '2026-02-01', end: '2026-02-28' });
+    expect(booked[0]?.totalTenths).toBe(400);
+  });
+
+  it('does NOT mark a partially-allocated stretch as a gap', () => {
+    const timeline = component.memberTimeline('m-1', Q1, [
+      forMember('m-1', '2026-01-01', '2026-03-31', 100),
+    ]);
+    expect(timeline.every((s) => s.isGap === false)).toBe(true);
+  });
+
+  it('includes only the requested member assignments', () => {
+    const timeline = component.memberTimeline('m-1', Q1, [
+      forMember('m-1', '2026-01-01', '2026-03-31', 300),
+      forMember('m-2', '2026-01-01', '2026-03-31', 900),
+    ]);
+
+    expect(timeline).toHaveLength(1);
+    expect(timeline[0]?.totalTenths).toBe(300);
+  });
+
+  it('is one whole gap for a member with no assignments', () => {
+    const timeline = component.memberTimeline('m-1', Q1, []);
+    expect(timeline).toHaveLength(1);
+    expect(timeline[0]?.isGap).toBe(true);
+    expect(timeline[0]?.period).toEqual(Q1);
+  });
+
+  it('carries the contributing assignments for each segment', () => {
+    const timeline = component.memberTimeline('m-1', Q1, [
+      forMember('m-1', '2026-01-01', '2026-03-31', 300),
+      forMember('m-1', '2026-02-01', '2026-02-28', 200),
+    ]);
+
+    const overlap = timeline.find((s) => s.totalTenths === 500);
+    expect(overlap?.assignments).toHaveLength(2);
+  });
+});

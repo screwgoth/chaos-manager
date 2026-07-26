@@ -422,3 +422,33 @@ Section 3 of the plan discloses two things for the user to consider before appro
 **Known gap carried forward**: the BR-A-24 member lock is now composed inside the assignment transactions but remains unproven under true concurrency — no test drives two simultaneous writers.
 
 ---
+
+## Code Generation Part 2 — Step 10 complete (core-domain)
+**Timestamp**: 2026-07-26T00:40:00Z
+**User Input**: "Continue with Step 10"
+**AI Response**: "Completed the C-04 allocation view functions and closed the BR-A-24 concurrency gap. Verified: tsc --noEmit clean; jest 241 passed / 11 suites against PostgreSQL 16; 186 passed + 55 skipped without a database."
+**Context**: CONSTRUCTION phase, Unit 1 `core-domain`, Step 10 of 26, branch `aidlc/construction-core-domain`. All six business-logic components now exist.
+
+**Delivered**: `totalOnDate`, `profileOverRange`, `currentAllocationView`, `unallocatedMembers`, `overAllocatedMembers`, `availabilityFor`, `memberTimeline` — plus 25 new tests (allocation suite now 54).
+
+**Interface deviation, recorded deliberately**: `component-methods.md` gives C-04 methods a `scope: ScopeFilter` parameter and `Page<...>` return types, which would require I/O. U1-NFR-M-03 requires C-04 to be PURE. Resolved as the business-logic model specifies — repositories fetch, C-04 computes — so these methods take PRE-FETCHED members and assignments and group them in memory. Scoping and pagination belong to AllocationQueryService (Step 12). This keeps the highest-risk logic testable without a database and preserves the one-batched-query contract.
+
+**Design decisions recorded in code comments**:
+1. `totalOnDate` is a single-day window through the same segmentation path, not separate summation logic — duplicated arithmetic would be a place for the two to disagree. A test asserts they agree.
+2. `currentAllocationView` returns a row for members with NO assignments. Omitting them would silently turn the allocation view into a list of only busy people, hiding exactly the members a manager is looking for.
+3. `unallocatedMembers` means unallocated for the WHOLE range. A member booked only in February is not on the bench for Q1; listing them would waste a manager's time.
+4. `overAllocatedMembers` returns one finding per offending sub-period per member. A member over-allocated in two separate weeks has two distinct problems.
+5. `availabilityFor` reports both min and max because they answer different questions; an average would answer neither.
+6. `memberTimeline.isGap` distinguishes "nothing booked" from "partially booked" — a UI rendering them identically would make an idle month look busy.
+
+**BR-A-24 GAP CLOSED — and the first attempt was a FALSE POSITIVE, which is the more important finding.** I first wrote the obvious test: two concurrent `create` calls via `Promise.all`, asserting only one succeeds. It passed. I then verified it had teeth by neutering `lockMemberForUpdate` — **and it still passed**. The two calls never interleave at the critical point, because each performs several pre-transaction validation queries and the first transaction commits before the second opens. That test proved nothing and would have been actively harmful as false assurance, so it was deleted rather than kept.
+
+The replacement forces the interleaving explicitly: transaction A takes the lock and holds it while transaction B attempts it, then asserts B observed A's committed row. Confirmed to FAIL with the lock neutered (`Expected length: 1, Received length: 0` — B read before A committed, the exact race BR-A-24 prevents) and to PASS with the lock restored. Test duration is ~209 ms in a normal run; an earlier 12.3 s reading was `--no-cache` recompilation, not lock contention.
+
+**Method**: verification of a safety property now means neutering the protection and confirming the test fails. A passing test proves nothing about a protection unless it is known to fail without it.
+
+**Verification actually run**: `npx tsc --noEmit` → exit 0. `npx jest` with TEST_DATABASE_URL → 241 passed, 11 suites, 0 failures. Without it → 186 passed, 55 skipped.
+
+**Next step**: Step 11 — Identity (C-07), Session (C-08), Authorization stand-in (C-09).
+
+---

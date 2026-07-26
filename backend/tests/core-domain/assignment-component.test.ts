@@ -615,6 +615,79 @@ describeDb('AssignmentComponent against real PostgreSQL', () => {
     });
   });
 
+  /**
+   * BR-A-24 — the member lock.
+   *
+   * NOTE ON HOW THIS IS TESTED. The obvious test — fire two `create` calls with
+   * Promise.all and assert only one succeeds — PASSES EVEN WITH THE LOCK REMOVED, because
+   * the two calls do not happen to interleave at the critical point: each performs several
+   * pre-transaction validation queries, and the first transaction commits before the
+   * second one opens. That test proves nothing and was deleted rather than kept as false
+   * assurance.
+   *
+   * This test instead forces the interleaving explicitly: transaction A takes the lock and
+   * holds it while transaction B tries to take it. If the lock works, B blocks until A
+   * commits and therefore SEES A's row. Verified to fail when `lockMemberForUpdate` is
+   * neutered.
+   */
+  describe('the member lock actually serialises writers (BR-A-24)', () => {
+    it('makes a second transaction wait, so it sees the first transaction row', async () => {
+      const { createRepositories, lockMemberForUpdate } = await import(
+        '../../src/shared/repository'
+      );
+
+      let aHasLocked!: () => void;
+      const aLocked = new Promise<void>((resolve) => {
+        aHasLocked = resolve;
+      });
+
+      let bMayFinish!: () => void;
+      const bAllowedToFinish = new Promise<void>((resolve) => {
+        bMayFinish = resolve;
+      });
+
+      // Transaction A: lock, insert 600, hold briefly, commit.
+      const transactionA = db.transaction().execute(async (tx) => {
+        await lockMemberForUpdate(tx, memberId);
+        aHasLocked();
+
+        await createRepositories(tx).assignments.create({
+          memberId,
+          projectId,
+          allocationTenths: 600,
+          startDate: Q1.start,
+          endDate: Q1.end,
+          projectRoleId: null,
+          savedAsOverride: false,
+          actorUserId: null,
+        });
+
+        // Give B time to reach the lock and block on it.
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        bMayFinish();
+      });
+
+      // Transaction B: starts only once A holds the lock.
+      await aLocked;
+      const transactionB = (async () => {
+        return db.transaction().execute(async (tx) => {
+          // Blocks here until A commits, IF the lock is doing its job.
+          await lockMemberForUpdate(tx, memberId);
+          return createRepositories(tx).assignments.findOverlapping([memberId], Q1);
+        });
+      })();
+
+      await bAllowedToFinish;
+      await transactionA;
+      const bSaw = await transactionB;
+
+      // The proof: B observed A's committed row. Without the lock B reads before A commits
+      // and sees an empty list, so both writers would conclude there is free capacity.
+      expect(bSaw).toHaveLength(1);
+      expect(bSaw[0]?.allocationTenths).toBe(600);
+    });
+  });
+
   describe('as-of reconstruction uses history, not current rows (BR-A-22)', () => {
     it('returns the values held at that instant', async () => {
       const created = await component.create(
