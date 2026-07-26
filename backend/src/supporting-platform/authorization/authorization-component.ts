@@ -143,40 +143,41 @@ export class AuthorizationComponent implements IAuthorizationComponent {
   }
 
   /**
-   * `target === null` means a COLLECTION request. Those are protected by the ScopeFilter inside
-   * the query (BR-R-07), not here — the two mechanisms are complementary and neither
-   * substitutes for the other (business-logic-model.md §2.4).
+   * ⚠️ THIS METHOD DELIBERATELY DECIDES ALMOST NOTHING. Read this before adding to it.
+   *
+   * A synchronous component cannot decide whether a specific record is in scope (defect
+   * U1-D01): it would need the org-unit subtree, which requires a query. Every per-record
+   * decision is therefore made by the SCOPE-FILTERED QUERY (BR-R-07) — the design's
+   * `business-logic-model.md` §2.4 says exactly this, and calls the repository "the last line,
+   * and it holds".
+   *
+   * TWO BUGS LIVED HERE AND WERE CAUGHT BY UNIT 1'S OWN TESTS. Both came from trying to decide
+   * per-record access here anyway:
+   *
+   *   1. Refusing a TEAM_MEMBER whose target was another member produced **403** on
+   *      `/api/assignments?memberId=<other>` and on another member's timeline. Those are
+   *      COLLECTION reads that the design protects with `restrictToMemberId` inside the query,
+   *      yielding 200 + `[]`. A 403 also contradicts BR-R-16, which chose 404-not-403 precisely
+   *      so a refusal cannot confirm that a record exists.
+   *   2. Comparing `target.orgUnitId` against `scope.orgUnitIds` refused legitimate access,
+   *      because after U1-D01 those ids are scope ROOTS and do not include children. A TEAM_LEAD
+   *      reading a member in a CHILD unit would have been refused — a pre-check that wrongly
+   *      denies is worse than no pre-check, because it breaks access the SQL would have allowed.
+   *
+   * What remains is only what can be decided correctly WITHOUT I/O.
    */
   private targetInScope(scope: AccessScope, target: TargetRef | null): boolean {
     if (target === null) return true;
 
-    // BR-R-04. Note this reads `ownMemberId` from the SCOPE, not `restrictToMemberId` — that
-    // field belongs to `ScopeFilter`, which is the QUERY-side projection of a scope and is not
-    // available here. An earlier draft of this method referenced it and was caught by `tsc`;
-    // worth a comment, because the two types are similar enough to confuse and the mistake
-    // would have silently skipped this branch for a TEAM_MEMBER.
-    if (scope.role === 'TEAM_MEMBER') {
-      return (
-        scope.ownMemberId !== null &&
-        target.memberId !== null &&
-        target.memberId === scope.ownMemberId
-      );
-    }
-    if (scope.orgUnitIds === 'ALL') return true;
+    // BR-R-11 / BR-R-17: an empty root list permits NOTHING, so refusing here cannot wrongly
+    // deny anything the query would have allowed — the query returns nothing either way. This
+    // is the one org-scope decision that is safe to make synchronously, and it fails closed.
+    if (scope.orgUnitIds !== 'ALL' && scope.orgUnitIds.length === 0) return false;
 
-    // BR-R-11 / BR-R-17: an empty root list permits nothing. Must be an explicit refusal, not
-    // an absent check.
-    if (scope.orgUnitIds.length === 0) return false;
-
-    // A resource with no org unit (reference data, org units themselves) is not org-scoped.
-    if (target.orgUnitId === null) return true;
-
-    // NOTE: this is the SINGLE-TARGET check and compares against scope ROOTS only, so it does
-    // not see children. Callers reaching a specific record must ALSO go through
-    // `findById(id, filter)`, where `orgScopeMatches` expands the subtree in SQL — which is the
-    // authoritative check and returns 404 for an out-of-scope row (BR-R-16). This method is a
-    // fast pre-check, never the last line.
-    return scope.orgUnitIds.includes(target.orgUnitId);
+    // Everything else defers to the scope-filtered query. Note this reads `ownMemberId` from
+    // `AccessScope`, never `restrictToMemberId` — that field is on `ScopeFilter`, the query-side
+    // projection. An earlier draft referenced it here and `tsc` caught it.
+    return true;
   }
 
   assertCanRead(scope: AccessScope, resource: ResourceKind, target: TargetRef | null): void {
