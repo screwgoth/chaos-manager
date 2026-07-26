@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` **Infrastructure Design COMPLETE, awaiting approval**. NFR Requirements APPROVED 2026-07-26T15:20:00Z. Functional Design APPROVED 2026-07-26T14:40:00Z (4 artifacts; R2 obligations 4 and 5 discharged). Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
+- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` **Code Generation Part 1 (plan) COMPLETE, awaiting plan approval**. Infrastructure Design APPROVED 2026-07-26T15:50:00Z. Functional Design APPROVED 2026-07-26T14:40:00Z (4 artifacts; R2 obligations 4 and 5 discharged). Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
 
 ## Workspace State
 - **Existing Code**: No at detection; a complete application now exists under `backend/`, `frontend/` and `docker/`
@@ -87,7 +87,7 @@ requirements independent of the disabled security extension.
   - **Stack**: 2 new backend dependencies (`@fastify/multipart`, `csv-parse`), **0** frontend, **0** migrations, **0** inherited choices revisited. Seven dependencies declined against recorded decisions, including any authorization policy engine.
   - ⚠️ **Three performance claims recorded as UNVERIFIED** pending Code Generation: the 2,000-row import 30 s budget (its whole cost is the write phase); whether BR-R-12's added `OR` needs an index (`EXPLAIN` decides); and **Unit 1's endpoint timings do not transfer** — they were measured against a permissive filter that added no WHERE clause, so they must be re-run for a scoped role.
 - [ ] NFR Design — SKIPPED (R2)
-- [ ] Infrastructure Design — **ARTIFACTS COMPLETE 2026-07-26, AWAITING APPROVAL**. 10/10 plan steps. 2 artifacts + a prediction audit in `shared-infrastructure.md` §8.
+- [x] Infrastructure Design — **APPROVED 2026-07-26T15:50:00Z**. 10/10 plan steps. 2 artifacts + a prediction audit in `shared-infrastructure.md` §8.
   - Answers I-Q1:A, I-Q2:A, I-Q3:A — **all by AI recommendation**, continuing under the user's instruction. All three are configuration choices, not structural.
   - **Delta is genuinely small**: no new container, service, volume, port, network or migration. Six configuration changes total; Unit 2's components are code inside the existing `app` container.
   - ✅ **Two PRE-EXISTING deployment defects found and fixed**: (1) Docker's default `json-file` driver has no size cap and no `logging:` options were ever set, so the deployment has been growing container logs WITHOUT BOUND since Unit 1 shipped — now rotated at 10m x 3 on all three services; (2) the Caddyfile had no `request_body` limit, so an arbitrarily large POST would stream into Node before refusal — now capped at 6 MB, deliberately ABOVE the app's 5 MB so the app's actionable error is what users see at the boundary.
@@ -95,7 +95,11 @@ requirements independent of the disabled security extension.
   - ⚠️ **Unit 2's deployment CHANGES WHAT EXISTING USERS CAN SEE.** A `TEAM_LEAD` or child-unit `RESOURCE_MANAGER` loses visibility they currently have (intended), and an account with a NULL `home_org_unit_id` will see NOTHING (correct fail-closed behaviour that will look like a broken account). `deployment-architecture.md` §3.2 supplies the pre-deployment SQL to find those accounts BEFORE deploying.
   - ⚠️ Enforcement must be smoke-tested with a **scoped** account. Signing in as Admin proves nothing — Admin was unrestricted before and after.
   - **Prediction audit**: of Unit 1's 11 predictions about Unit 2, 8 held and **3 were wrong** — Unit 2 needs ZERO migrations (predicted "one or more"), there is no `RolePermission` table at all, and import peak memory is +40–60 MB not "kilobytes" (Unit 1 assumed 200 rows; Q13:A capped at 2,000).
-- [ ] Code Generation — EXECUTE
+- [ ] Code Generation — **Part 1 (plan) COMPLETE 2026-07-26, AWAITING PLAN APPROVAL**. 21 steps at `aidlc-docs/construction/plans/supporting-platform-code-generation-plan.md`. No code generated until the plan is approved.
+  - Sequence: 1 dependencies · **2–6 authorization, the X-1 resolution** · 7–8 account linkage · 9–12 import · 13–16 frontend · 17–18 config and deployment · **19 measure the three UNVERIFIED performance claims** · 20–21 docs and full verification.
+  - **Step 4 is the X-1 switchover**: repoint the composition root (one line), DELETE `core-domain/authorization-standin/` entirely, then `git diff --stat` over `core-domain/` must show only `services/index.ts`. Step 5's `assignment-repository.ts` change (BR-R-12) is the one pre-authorised exception.
+  - **Step 6 carries the unit's key verification rule**: every test proving the X-1 fix must be CONFIRMED TO FAIL when Step 4 is reverted. Tests that pass against the stand-in are regression tests, not proof — the method adopted after Unit 1's BR-A-24 false positive.
+  - Centre of gravity is Steps 2–6: import is more code but lower risk (failures surface in a report); authorization is less code and higher risk (a mistake is invisible until someone sees data they should not).
 
 ### 🟢 CONSTRUCTION PHASE — after all units
 - [ ] Build and Test — EXECUTE (ALWAYS)
