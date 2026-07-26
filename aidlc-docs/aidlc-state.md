@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` **NFR Requirements — awaiting answers to 8 questions** in `aidlc-docs/construction/plans/supporting-platform-nfr-requirements-plan.md`. Functional Design APPROVED 2026-07-26T14:40:00Z (4 artifacts; R2 obligations 4 and 5 discharged). Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
+- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` **NFR Requirements COMPLETE, awaiting approval** (2 artifacts; all 8 answers by AI recommendation at user instruction). Functional Design APPROVED 2026-07-26T14:40:00Z (4 artifacts; R2 obligations 4 and 5 discharged). Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
 
 ## Workspace State
 - **Existing Code**: No at detection; a complete application now exists under `backend/`, `frontend/` and `docker/`
@@ -82,7 +82,10 @@ requirements independent of the disabled security extension.
   - ✅ **Unit 2 owns NO database entity and needs NO migration** (Q1:A + Q10:A remove both candidates). `001_initial_schema.ts` is the final Phase 1 schema.
   - ⚠️ **FR-I-01 recorded as PARTIALLY SATISFIED** — CSV yes, Excel deferred (Q7:A). Annotated in `requirements.md`. The first Must requirement in the project not fully delivered; recorded as a visible gap rather than counted as complete.
   - ⚠️ **No import audit trail** (Q10:A) — a 2,000-row bulk write leaves only log counts and failure reasons, never row contents. Accepted Phase 2 revisit.
-- [ ] NFR Requirements — **IN PROGRESS**: plan created 2026-07-26 with 10 steps and 8 questions; awaiting user answers before artifact generation
+- [ ] NFR Requirements — **ARTIFACTS COMPLETE 2026-07-26, AWAITING APPROVAL**. 10/10 plan steps. 2 artifacts at `aidlc-docs/construction/supporting-platform/nfr-requirements/`.
+  - All 8 answers chosen by **AI recommendation at the user's instruction** and marked as such: N-Q1:A per-request scope query (no caching — a scope cached at sign-in would let a moved user keep old visibility until sign-out) · N-Q2:A measure before indexing · N-Q3:A 30 s for 2,000 rows · N-Q4:A per-route body limit · N-Q5:A log refusals at warn, never the target's identity · N-Q6:C all 80 matrix cells **plus** an exhaustiveness check · N-Q7:A maintained CSV library · N-Q8:A no import concurrency limit
+  - **Stack**: 2 new backend dependencies (`@fastify/multipart`, `csv-parse`), **0** frontend, **0** migrations, **0** inherited choices revisited. Seven dependencies declined against recorded decisions, including any authorization policy engine.
+  - ⚠️ **Three performance claims recorded as UNVERIFIED** pending Code Generation: the 2,000-row import 30 s budget (its whole cost is the write phase); whether BR-R-12's added `OR` needs an index (`EXPLAIN` decides); and **Unit 1's endpoint timings do not transfer** — they were measured against a permissive filter that added no WHERE clause, so they must be re-run for a scoped role.
 - [ ] NFR Design — SKIPPED (R2)
 - [ ] Infrastructure Design — EXECUTE
 - [ ] Code Generation — EXECUTE
