@@ -9,6 +9,7 @@
 import { NotFoundError } from '../../shared/errors';
 import type {
   DeactivateResult,
+  ExpiringContract,
   MemberComponent,
   MemberInput,
   MemberSearchCriteria,
@@ -69,7 +70,7 @@ export class MemberService {
   async findExpiringContracts(
     withinDays: number,
     identity: VerifiedIdentity,
-  ): Promise<MemberSummary[]> {
+  ): Promise<ExpiringContract[]> {
     const scope = this.accessControl.scopeFor(identity);
     this.accessControl.requireRead(scope, 'MEMBER');
     return this.members.findExpiringContracts(withinDays, this.accessControl.filterFor(scope));

@@ -30,13 +30,27 @@ import type {
   Page,
   ReferenceId,
 } from '../../shared/types/domain';
-import { isValidRange, isIsoDate, today } from '../../shared/util/dates';
+import { inclusiveDayCount, isValidRange, isIsoDate, today } from '../../shared/util/dates';
 
 export interface ContractInput {
   vendorName: string;
   startDate: IsoDate;
   endDate: IsoDate;
   status: string;
+}
+
+/** US-MEM-06's row: the member plus the contract facts the screen needs. */
+export interface ExpiringContract {
+  member: MemberSummary;
+  contractEndDate: IsoDate;
+  /**
+   * Computed from the SERVER's date (AS-03), never the browser's. 0 means it ends today.
+   *
+   * Vendor name is deliberately NOT included: `findContractWindows` does not select it, and
+   * widening that query would be a second Unit 1 change for a column the screen can link to
+   * instead. The member row links to their detail page, which shows the vendor.
+   */
+  daysRemaining: number;
 }
 
 export interface MemberInput {
@@ -339,10 +353,23 @@ export class MemberComponent {
    * is harder to read for no measurable gain at this scale. If the member count grows
    * past a few thousand this should move into the query.
    */
+  /**
+   * US-MEM-06.
+   *
+   * ⚠️ RETURN TYPE WIDENED AT UNIT 2. This previously returned `MemberSummary[]`, which omits
+   * `contractEndDate` — so the screen the story asks for ("see contracts expiring soon") could not
+   * be built on it: there was no date to show and no way to compute days remaining without an
+   * N+1. The contract window is already fetched below, so it was being discarded one line before
+   * the caller needed it. Recorded as a finding rather than worked around in the frontend.
+   *
+   * `daysRemaining` is computed HERE, from the server's date, not in the browser. A client in a
+   * timezone behind UTC would otherwise render "expires in 1 day" for a contract that ended
+   * yesterday (AS-03).
+   */
   async findExpiringContracts(
     withinDays: number,
     scope: ScopeFilter,
-  ): Promise<MemberSummary[]> {
+  ): Promise<ExpiringContract[]> {
     const page = await this.members.search(
       {
         search: null,
@@ -361,12 +388,22 @@ export class MemberComponent {
     const from = today();
     const to = this.addDaysIso(from, withinDays);
 
-    return page.items.filter((member) => {
+    const expiring: ExpiringContract[] = [];
+    for (const member of page.items) {
       const window = windows.get(member.id);
-      if (!window) return false;
+      if (!window) continue;
       // Inclusive on both ends, consistent with AS-03 everywhere else.
-      return window.endDate >= from && window.endDate <= to;
-    });
+      if (window.endDate < from || window.endDate > to) continue;
+      expiring.push({
+        member,
+        contractEndDate: window.endDate,
+        // Inclusive count minus today itself, so a contract ending today reads as 0 days left.
+        daysRemaining: inclusiveDayCount({ start: from, end: window.endDate }) - 1,
+      });
+    }
+    // Soonest first — the list is a queue of things to act on, so ordering IS the feature.
+    expiring.sort((a, b) => a.contractEndDate.localeCompare(b.contractEndDate));
+    return expiring;
   }
 
   // --- validation ---------------------------------------------------------

@@ -24,21 +24,41 @@ import { HistoricalAllocationPage } from './core-domain/views/HistoricalAllocati
 import { ReferenceDataPage } from './core-domain/admin/ReferenceDataPage';
 import { OrgUnitPage } from './core-domain/admin/OrgUnitPage';
 import { useSession } from './shared/session/SessionProvider';
+import { ImportPage } from './supporting-platform/import/ImportPage';
+import { AccountLinkPage } from './supporting-platform/accounts/AccountLinkPage';
+import { BenchPage } from './supporting-platform/views/BenchPage';
+import { OverAllocatedPage } from './supporting-platform/views/OverAllocatedPage';
+import { ExpiringContractsPage } from './supporting-platform/views/ExpiringContractsPage';
 
 /** Where each role starts. */
 function landingPath(role: string): string {
   return role === 'TEAM_MEMBER' ? '/my-assignments' : '/allocations';
 }
 
+/**
+ * ⚠️ `hideFor` IS A COURTESY, NOT A CONTROL (FR-R-08, U2-NFR-U-03).
+ *
+ * Every entry below is also enforced server-side. Navigating directly to a hidden route renders
+ * the page, and its API calls are refused independently — which is why `ImportPage` renders an
+ * explicit FORBIDDEN state rather than treating 403 as a bug.
+ *
+ * The three Unit 2 view pages hide from TEAM_MEMBER because each is a cross-population question,
+ * and a list of one person answers nothing.
+ */
 const NAV = [
   { to: '/allocations', label: 'Allocation', hideFor: ['TEAM_MEMBER'] },
   { to: '/availability', label: 'Availability', hideFor: ['TEAM_MEMBER'] },
+  { to: '/bench', label: 'Bench', hideFor: ['TEAM_MEMBER'] },
+  { to: '/over-allocated', label: 'Over capacity', hideFor: ['TEAM_MEMBER'] },
   { to: '/members', label: 'People', hideFor: ['TEAM_MEMBER'] },
+  { to: '/expiring-contracts', label: 'Contracts', hideFor: ['TEAM_MEMBER'] },
   { to: '/projects', label: 'Projects', hideFor: ['TEAM_MEMBER'] },
   { to: '/my-assignments', label: 'My work', hideFor: [] },
   { to: '/history', label: 'History', hideFor: ['TEAM_MEMBER'] },
   { to: '/admin/reference-data', label: 'Lists', hideFor: ['TEAM_MEMBER', 'TEAM_LEAD', 'EXECUTIVE'] },
   { to: '/admin/org-units', label: 'Org units', hideFor: ['TEAM_MEMBER', 'TEAM_LEAD', 'EXECUTIVE'] },
+  { to: '/admin/accounts', label: 'Accounts', hideFor: ['TEAM_MEMBER', 'TEAM_LEAD', 'EXECUTIVE', 'RESOURCE_MANAGER'] },
+  { to: '/import', label: 'Import', hideFor: ['TEAM_MEMBER', 'TEAM_LEAD', 'EXECUTIVE', 'RESOURCE_MANAGER'] },
 ];
 
 function Shell(): JSX.Element {
@@ -101,6 +121,13 @@ function Shell(): JSX.Element {
 
           <Route path="/admin/reference-data" element={<ReferenceDataPage />} />
           <Route path="/admin/org-units" element={<OrgUnitPage />} />
+          <Route path="/admin/accounts" element={<AccountLinkPage />} />
+
+          {/* Unit 2 */}
+          <Route path="/import" element={<ImportPage />} />
+          <Route path="/bench" element={<BenchPage />} />
+          <Route path="/over-allocated" element={<OverAllocatedPage />} />
+          <Route path="/expiring-contracts" element={<ExpiringContractsPage />} />
 
           {/* An unknown client route goes to the role's landing page rather than a dead end. */}
           <Route path="*" element={<Navigate to={landingPath(role)} replace />} />

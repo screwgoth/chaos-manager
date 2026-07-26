@@ -572,7 +572,18 @@ describe('expiring contracts (US-MEM-06)', () => {
     ]);
 
     const expiring = await harness.component.findExpiringContracts(30, ALL);
-    expect(expiring.map((m) => m.id)).toEqual(['m-soon']);
+    expect(expiring.map((row) => row.member.id)).toEqual(['m-soon']);
+
+    /**
+     * Shape widened at Unit 2. This previously returned `MemberSummary[]`, which omitted the
+     * contract end date — so US-MEM-06's screen ("see contracts expiring soon") had no date to
+     * show and no way to compute days remaining without an N+1. The window was already being
+     * fetched and then discarded.
+     */
+    expect(expiring[0]?.contractEndDate).toBe(soonIso);
+    // Computed from the SERVER's date, so a browser behind UTC cannot render a stale count.
+    expect(expiring[0]?.daysRemaining).toBeGreaterThanOrEqual(0);
+    expect(expiring[0]?.daysRemaining).toBeLessThanOrEqual(30);
   });
 
   it('excludes members with no contract', async () => {

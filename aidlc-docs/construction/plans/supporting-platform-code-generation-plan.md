@@ -184,25 +184,36 @@ of row count.
 
 ### Frontend
 
-- [ ] **Step 13 — F-07 Import screen.** `ImportPage` + `ImportResultReport`. Conflicts and errors as
+- [x] **Step 13 — F-07 Import screen.** `ImportPage` + `ImportResultReport`. Conflicts and errors as
       **separate** sections; `NOTHING_CREATED` rendered distinctly from zero-created; ignored-columns
       notice; the "this report is not saved" statement (Q10:A); client-side pre-check using the **same
       message** as the server; **no fabricated progress bar** (U2-NFR-U-04). `data-testid` throughout.
       *Stories: US-IMP-01…05*
 
-- [ ] **Step 14 — Accounts screen.** `AccountLinkPage`; unlink confirmation states that a
+- [x] **Step 14 — Accounts screen.** `AccountLinkPage`; unlink confirmation states that a
       `TEAM_MEMBER` loses all access; `MemberDetailPage` gains a read-only linked-account row.
       *Story: US-ACC-04*
 
-- [ ] **Step 15 — Three view pages + routing and nav.** `BenchPage`, `OverAllocatedPage`,
+- [x] **Step 15 — Three view pages + routing and nav.** `BenchPage`, `OverAllocatedPage`,
       `ExpiringContractsPage` — all consuming **existing** Unit 1 endpoints. Five new routes; nav
       filtered by the session's permissions; a **403 renders as a forbidden state**, not a generic error
       (U2-NFR-U-02). Positive empty states (U2-NFR-U-07).
       *Stories: US-MEM-06, US-VIS-06, US-VIS-07*
 
-- [ ] **Step 16 — Frontend tests.** Per the nine obligations in `frontend-components.md` §10, including:
+- [x] **Step 16 — Frontend tests.** Per the nine obligations in `frontend-components.md` §10, including:
       a `TEAM_LEAD` sees no Admin nav **and** `/import` shows a forbidden state; the over-allocated page
       shows a scoped user the member's **full** total (BR-R-13); empty states read as good news.
+
+**Steps 13–16 verified 2026-07-26**: frontend **89 passed / 8 suites**, `tsc --noEmit` clean,
+`npm run build` succeeds (308 kB JS / 90 kB gzipped). 5 new screens, 5 new routes, nav extended.
+
+**Finding at Step 15 — Unit 1's expiring-contracts endpoint was inadequate for the story it
+appeared to serve.** It returned `MemberSummary[]`, which omits `contractEndDate`, so US-MEM-06's
+screen had no date to show and no way to compute days remaining without an N+1 — and the contract
+window was already being fetched and then discarded one line before the caller needed it. Widened
+to `ExpiringContract[]` (member + end date + server-computed `daysRemaining`). A Unit 1 test caught
+the shape change and was updated. This corrects the Unit 2 plan's §0 claim that US-MEM-06 needed
+"frontend only".
 
 ### Configuration and deployment
 
