@@ -208,6 +208,45 @@ export class MemberRepository {
   }
 
   /**
+   * Existing natural keys for duplicate detection — BR-IM-06, in ONE query.
+   *
+   * Import must not issue a lookup per row (BR-IM-14): a 2,000-row file would become 2,000
+   * queries, slow enough in a synchronous request to look like a hang. Both keys are fetched
+   * together because BR-IM-06 uses `external_ref` when present and `email` otherwise, so a
+   * single pass needs both.
+   *
+   * Deliberately UNSCOPED: only ADMIN can import (BR-IM-22) and ADMIN is unrestricted, so a
+   * scope filter here would be dead weight — and a scoped duplicate check that missed an
+   * existing row would let import create a duplicate, which is worse than seeing one.
+   */
+  async findNaturalKeys(
+    emails: readonly string[],
+    externalRefs: readonly string[],
+  ): Promise<Array<{ id: MemberId; email: string; externalRef: string | null; fullName: string }>> {
+    const loweredEmails = emails.map((value) => value.toLowerCase()).filter((v) => v !== '');
+    const refs = externalRefs.filter((value) => value !== '');
+    if (loweredEmails.length === 0 && refs.length === 0) return [];
+
+    let query = this.db.selectFrom('member').select(['id', 'email', 'external_ref', 'full_name']);
+    query = query.where((eb) => {
+      const clauses = [];
+      if (loweredEmails.length > 0) {
+        clauses.push(eb(eb.fn('lower', ['email']), 'in', loweredEmails));
+      }
+      if (refs.length > 0) clauses.push(eb('external_ref', 'in', refs));
+      return eb.or(clauses);
+    });
+
+    const rows = await query.execute();
+    return rows.map((row) => ({
+      id: row.id,
+      email: row.email,
+      externalRef: row.external_ref,
+      fullName: row.full_name,
+    }));
+  }
+
+  /**
    * Display names for many members in ONE query — US-ACC-04's account list.
    *
    * Deliberately UNSCOPED, like `findLocation`: the only caller is the Admin-only account

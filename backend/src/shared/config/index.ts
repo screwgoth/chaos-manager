@@ -20,6 +20,11 @@ export interface AppConfig {
     idleMinutes: number;
   };
   contractExpiryWarnDays: number;
+  /** Unit 2 import ceilings (BR-IM-02). Non-secret; safe defaults. */
+  import: {
+    maxRows: number;
+    maxBytes: number;
+  };
   argon2: {
     memoryKiB: number;
     iterations: number;
@@ -51,6 +56,21 @@ function intFromEnv(name: string, fallback: number): number {
     throw new Error(`Configuration error: ${name} must be an integer, got "${raw}".`);
   }
   return parsed;
+}
+
+/**
+ * Like `intFromEnv`, but refuses zero and negatives.
+ *
+ * `intFromEnv` accepts them, which is fine for a warning-day count. For an import ceiling it is
+ * not: `IMPORT_MAX_ROWS=0` would refuse every file with "over the 0 row limit", which reads as a
+ * broken feature rather than a bad value. Failing at startup names the variable instead.
+ */
+function positiveIntFromEnv(name: string, fallback: number): number {
+  const value = intFromEnv(name, fallback);
+  if (value <= 0) {
+    throw new Error(`Configuration error: ${name} must be greater than zero, got "${value}".`);
+  }
+  return value;
 }
 
 function boolFromEnv(name: string, fallback: boolean): boolean {
@@ -89,6 +109,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       idleMinutes: intFromEnv('SESSION_IDLE_MINUTES', 30),
     },
     contractExpiryWarnDays: intFromEnv('CONTRACT_EXPIRY_WARN_DAYS', 30),
+    import: {
+      // BR-IM-02. Validated as POSITIVE, not merely integer: a row cap of 0 would silently refuse
+      // every import, and a negative byte cap would refuse every file — both look like the
+      // feature is broken rather than misconfigured.
+      maxRows: positiveIntFromEnv('IMPORT_MAX_ROWS', 2000),
+      maxBytes: positiveIntFromEnv('IMPORT_MAX_BYTES', 5 * 1024 * 1024),
+    },
     argon2: {
       memoryKiB: intFromEnv('ARGON2_MEMORY_KIB', 19456),
       iterations: intFromEnv('ARGON2_ITERATIONS', 2),

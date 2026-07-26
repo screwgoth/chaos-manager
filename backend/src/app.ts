@@ -23,7 +23,16 @@ import { registerMemberRoutes } from './core-domain/routes/member-routes';
 import { registerProjectRoutes } from './core-domain/routes/project-routes';
 import { AccountLinkService } from './supporting-platform/accounts/account-link-service';
 import { registerAccountRoutes } from './supporting-platform/routes/account-routes';
-import { MemberRepository, UserAccountRepository } from './shared/repository';
+import {
+  MemberRepository,
+  OrgUnitRepository,
+  ProjectRepository,
+  ReferenceDataRepository,
+  UserAccountRepository,
+} from './shared/repository';
+import { ImportComponent } from './supporting-platform/import/import-component';
+import { registerImportRoutes } from './supporting-platform/routes/import-routes';
+import multipart from '@fastify/multipart';
 import { createSessionResolver } from './core-domain/routes/session-middleware';
 
 export interface BuildAppOptions {
@@ -164,6 +173,35 @@ export function buildApp({ db, config, services: provided }: BuildAppOptions): B
     services.accessControl,
   );
   registerAccountRoutes(app, accountLinks);
+
+  /**
+   * Multipart, for import only.
+   *
+   * The limits are enforced HERE, at the framework boundary, so an oversized upload is rejected
+   * before the handler allocates anything (BR-IM-02). `attachFieldsToBody` is deliberately NOT
+   * used and no temp-file mode is configured — the file stays in memory (BR-IM-25), so a crash
+   * leaves nothing on disk to clean up.
+   */
+  app.register(multipart, {
+    limits: {
+      fileSize: config.import.maxBytes,
+      files: 1,
+      fields: 2,
+    },
+  });
+
+  registerImportRoutes(app, {
+    imports: new ImportComponent(
+      db,
+      new MemberRepository(db),
+      new ProjectRepository(db),
+      new OrgUnitRepository(db),
+      new ReferenceDataRepository(db),
+      { maxRows: config.import.maxRows, maxBytes: config.import.maxBytes },
+    ),
+    accessControl: services.accessControl,
+    maxBytes: config.import.maxBytes,
+  });
 
   // --- static frontend ----------------------------------------------------
 

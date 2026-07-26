@@ -151,7 +151,7 @@ route comment had claimed that before it was true.
 
 ### Backend — Import
 
-- [ ] **Step 9 — C-10 Import: column contracts, parse, validate.** The `ColumnSpec` contract driving
+- [x] **Step 9 — C-10 Import: column contracts, parse, validate.** The `ColumnSpec` contract driving
       **both** parsing and template generation (BR-IM-26); CSV parse with `relax_column_count: false`;
       file gate (format, 5 MB, 2,000 rows, header, empty-file); unknown columns ignored and named
       (BR-IM-04); per-row validation **reusing Unit 1 components** (BR-IM-11) collecting **all** reasons
@@ -159,23 +159,28 @@ route comment had claimed that before it was true.
       (BR-IM-14).
       *Stories: US-IMP-01, US-IMP-02, US-IMP-03*
 
-- [ ] **Step 10 — C-10 Import: duplicates and the write.** Natural keys (BR-IM-06/07); conflicts against
+- [x] **Step 10 — C-10 Import: duplicates and the write.** Natural keys (BR-IM-06/07); conflicts against
       existing records and against **earlier rows in the same file**, in preserved file order
       (BR-IM-08/09); **one transaction for all valid rows** via `createRepositories(tx)` (BR-IM-16); the
       three-way `ImportOutcome`.
       *Story: US-IMP-04*
 
-- [ ] **Step 11 — S-09 ImportService and routes.** Multipart upload with limits at the framework
+- [x] **Step 11 — S-09 ImportService and routes.** Multipart upload with limits at the framework
       boundary and **no temp-file mode** (BR-IM-25); per-route 5 MB `bodyLimit` and 60 s timeout;
       template download generated from the Step 9 contract; **Admin-only** (BR-IM-22).
       *Stories: US-IMP-01, US-IMP-02, US-IMP-05*
 
-- [ ] **Step 12 — Import tests.** CSV edge cases (quoted commas, embedded newlines, CRLF, BOM, wrong
+- [x] **Step 12 — Import tests.** CSV edge cases (quoted commas, embedded newlines, CRLF, BOM, wrong
       field count); idempotency — re-upload creates nothing and reports all rows as conflicts
       (BR-IM-10); in-file duplicates; all-invalid → `NOTHING_CREATED`; rollback leaves **nothing**
       created; reference values **never** created (BR-IM-13); commercial columns ignored and named
       (BR-M-09); **and an assertion that no log line contains row contents** (BR-IM-24).
       *Stories: US-IMP-01…05*
+
+**Steps 9–12 verified 2026-07-26**: 29 import tests; backend suite **496 passed / 20 suites**, 0
+failures; `tsc --noEmit` clean. Import writes through Unit 1's components inside ONE transaction via
+`createRepositories(tx)` — no Unit 1 code changed. Four batched lookup queries per file regardless
+of row count.
 
 ### Frontend
 

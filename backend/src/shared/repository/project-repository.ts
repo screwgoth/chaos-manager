@@ -193,6 +193,23 @@ export class ProjectRepository {
     return rows.map(toProjectSummary);
   }
 
+  /**
+   * Existing project codes for import duplicate detection — BR-IM-07, in ONE query.
+   * Unscoped for the same reason as `MemberRepository.findNaturalKeys` (BR-IM-22/23).
+   */
+  async findByCodes(
+    codes: readonly string[],
+  ): Promise<Array<{ id: ProjectId; code: string; name: string }>> {
+    const wanted = codes.map((value) => value.toLowerCase()).filter((value) => value !== '');
+    if (wanted.length === 0) return [];
+    const rows = await this.db
+      .selectFrom('project')
+      .select(['id', 'code', 'name'])
+      .where((eb) => eb(eb.fn('lower', ['code']), 'in', wanted))
+      .execute();
+    return rows.map((row) => ({ id: row.id, code: row.code, name: row.name }));
+  }
+
   /** Batched: resolve many project names/codes for an assignment list in one query. */
   async findByIds(ids: readonly ProjectId[]): Promise<Map<ProjectId, ProjectSummary>> {
     const result = new Map<ProjectId, ProjectSummary>();

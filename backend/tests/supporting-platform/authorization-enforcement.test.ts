@@ -47,6 +47,7 @@ function testConfig(): AppConfig {
     argon2: { memoryKiB: 8192, iterations: 1, parallelism: 1 },
     bootstrap: { adminUsername: null, adminPassword: null },
     staticDir: null,
+    import: { maxRows: 2000, maxBytes: 5 * 1024 * 1024 },
   } as AppConfig;
 }
 
