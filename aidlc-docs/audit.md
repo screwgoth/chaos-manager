@@ -639,3 +639,16 @@ The replacement forces the interleaving explicitly: transaction A takes the lock
 Consequence: Unit 1's stated story count of 30 is understated by two, and Unit 2's genuine design burden is concentrated in authorization and import. Question 15 asks the user how to record this rather than correcting the counts unilaterally.
 
 ---
+## Construction — Unit 2 `supporting-platform` — Functional Design (Part 1: Answers received, contradictions detected)
+**Timestamp**: 2026-07-26T13:30:00Z
+**User Input**: "Done"
+**AI Response**: "Read all 15 answers: Q1:A, Q2:C, Q3:C, Q4:A, Q5:A, Q6:A, Q7:A, Q8:A, Q9:A, Q10:A, Q11:A, Q12:A, Q13:A, Q14:A, Q15:A. Validated for contradictions and ambiguities per common/question-format-guide.md. Thirteen answers are mutually consistent. TWO problems detected, so created `aidlc-docs/construction/plans/supporting-platform-functional-design-clarification-questions.md` rather than proceeding on assumption. Awaiting 2 clarification answers."
+**Context**: CONSTRUCTION phase, Unit 2, Functional Design Part 1, contradiction detection step.
+
+**Contradiction 1 — Q3:C vs Q4:A, mutually exclusive.** Q4:A withholds the identity of an out-of-scope project while showing the truthful 130% total; Q3:C makes an assignment visible when the caller's scope covers the member OR the project, which reveals that same project identity because the member is in scope. Q4:A's redaction path would be unreachable. Clarification Question 1 asks which wins.
+
+**Contradiction 2 — Q2:C vs approved requirement FR-R-07.** Q2:C makes RESOURCE_MANAGER organisation-wide always. FR-R-07 (Must, approved) names only Executive and Admin as cross-unit roles, and FR-R-03 confines Resource Manager to "their permitted org scope". Q2:C is therefore a requirements amendment, not a design choice within the requirements. Clarification Question 2 offers amending FR-R-07/FR-R-03 explicitly, or reverting to Q2:B / Q2:A. Consequence surfaced to the user: under Q2:C, org-scope restriction applies to exactly ONE role (TEAM_LEAD), since Admin/Executive/Resource Manager are all unrestricted and Team Member is restricted by restrictToMemberId rather than by org unit.
+
+**Four items recorded without a question** (stated so nothing is implicit): (1) Q7:A downgrades Must requirement FR-I-01 — CSV-only will be recorded as PARTIALLY satisfied with Excel deferred, not as complete; (2) Q5:A's fail-closed NULL-home-org-unit rule is meaningful only for TEAM_LEAD under Q2:C; (3) Q1:A means RolePermission is not a database entity, so Unit 2 owns NO database entity and needs no migration — unit-of-work.md to be corrected; (4) Q10:A means a bulk import leaves no persisted audit trail, accepted as a Phase 2 revisit.
+
+---

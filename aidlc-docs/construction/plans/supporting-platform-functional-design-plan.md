@@ -120,7 +120,7 @@ everything up, so it needs its own guard rails.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 2
 FR-R-03 grants a Resource/Delivery Manager rights "within their permitted org scope", while FR-R-07
@@ -139,7 +139,7 @@ informational only for this role.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: C
 
 ## Question 3
 An assignment links a member (in one org unit) to a project (owned by possibly another). Which org
@@ -159,7 +159,7 @@ restrictive; a cross-org assignment becomes invisible to both sides.
 
 E) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: C
 
 ## Question 4
 This is the most consequential question in the unit. A Team Lead scoped to org unit "Platform" views
@@ -179,7 +179,7 @@ without labelling the remainder as a project at all.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 5
 A user account with role TEAM_LEAD or RESOURCE_MANAGER but a NULL `home_org_unit_id` is a
@@ -196,7 +196,7 @@ prevents the state existing rather than handling it.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 6
 FR-R-04 says a Team Lead may "request assignment changes", with direct modification not granted in
@@ -213,7 +213,7 @@ more work than the remaining Should stories combined, and no story or requiremen
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ---
 
@@ -235,7 +235,7 @@ upload, so the server keeps the smaller surface. Moves the dependency to the fro
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 8
 FR-I-04 requires duplicate detection on a natural key. Members have `external_ref` (optional,
@@ -252,7 +252,7 @@ where a file gives a new email to an existing employee ID.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 9
 US-IMP-03 requires valid rows to import while invalid rows do not, "in a single operation". What is
@@ -270,7 +270,7 @@ hardest of the three to explain to a user.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 10
 Should an import produce a persisted record, or only a response?
@@ -287,7 +287,7 @@ failed rows, correct them and re-upload, with no server-side storage.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 11
 US-IMP-01's acceptance criteria require unmatched skills, roles and org units to be "reported rather
@@ -304,7 +304,7 @@ alongside people because it is tedious to pre-create.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 12
 Who may run an import, and what scope applies to the rows they import? `ResourceKind` already
@@ -318,7 +318,7 @@ into their own org units only; rows naming an org unit outside their scope fail 
 
 C) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 13
 What limits should the import enforce, given the stated need to load "two hundred people"?
@@ -334,7 +334,7 @@ polling endpoints and a substantially more complex screen for a stated need of 2
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ---
 
@@ -356,7 +356,7 @@ anything needing action.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ## Question 15
 US-ASN-04 and US-VIS-05 were already implemented during Unit 1 (see §0). How should this be
@@ -372,7 +372,7 @@ C) **Both** — correct the counts *and* add the verifying tests.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ---
 
