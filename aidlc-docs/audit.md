@@ -879,3 +879,34 @@ Consequence: Unit 1's stated story count of 30 is understated by two, and Unit 2
 **10 items carried into Operations**, ranked by severity in build-and-test-summary.md, headed by the unverified UI and including the operational surprise that this release CHANGES WHAT EXISTING USERS CAN SEE, with the pre-deployment SQL to find accounts that will fail closed.
 
 ---
+## Deployment for manual testing — and a REQUIREMENTS GAP found
+**Timestamp**: 2026-07-26T21:40:00Z
+**User Input**: "Does the current running application have the updated build? If not, update the application so I can do some manual testing and give feedback"
+**AI Response**: "It did not — the running container was the pre-Unit-2 image (up 8 hours, built 10:02). Followed the runbook from deployment-architecture.md §3.2-3.3: ran the pre-deployment account check, backed up the database, rebuilt, redeployed, and verified. Then created seven test accounts spanning every role and smoke-tested enforcement with SCOPED accounts rather than admin."
+**Context**: Post-Build-and-Test deployment to the local no-TLS stack for user acceptance testing.
+
+**Pre-deployment check passed**: the only existing account was `admin` (ADMIN, no org unit). ADMIN resolves to 'ALL' regardless of home org unit per BR-R-10, so no account lost access. Backup taken to /tmp before deploying.
+
+**Post-deploy verification**: `authorization scope roots loaded` present in the startup log (the U1-D01 startup load ran); stand-in absent from the running image (0 matches); migration count still 1; /health ok.
+
+**LIVE ENFORCEMENT VERIFIED with scoped accounts, not admin** — member counts by role against the same 6-member dataset: admin 6 · lead.platform 4 (Platform Team only — correctly excludes Priya in Sales and John Snow in Processio) · lead.tech 1 (John Snow, reached through the SUBTREE from the Technology and Transformation root to its Processio child, proving BR-R-08) · lead.stranded 0 (BR-R-11 fail-closed) · rm.root 6 (rooted at Organisation so 'ALL', BR-R-09) · rm.child 4 (confined, BR-R-09) · exec 6 · member.ada 1 (own only, BR-R-04).
+
+**BR-R-13 verified live — the rule most likely to be implemented wrongly**: lead.platform sees Ada Lovelace at the FULL **130%** for 2026-08-15, itemised as PLAT-1 80% plus DATA-2 50% (override), and flagged over capacity. A scope-filtered sum would have shown 80% and reported free capacity on a person who has none.
+
+**BR-R-12 verified live**: lead.platform sees 2 assignments on DATA-2 including Priya Sharma's, even though Priya is a SALES member — visibility via the project side, because Platform Team owns DATA-2.
+
+**BR-R-16 verified live**: lead.platform GET /api/members/<Priya> returns **404**, while admin gets 200 on the same URL. A 403 would have confirmed the record exists.
+
+**Refusals verified live**, including the documented Zod-before-authorization ordering: with an EMPTY body an unauthorized caller gets 400 (validation fires first); with a VALID body both EXECUTIVE and TEAM_LEAD get 403. Import 403 for TEAM_LEAD; /api/accounts 403 for TEAM_LEAD and 200 for ADMIN. Refusal log lines carry role, method and the ROUTE PATTERN only — no target id and no query string, as designed (N-Q5:A).
+
+**⚠️ REQUIREMENTS GAP FOUND — NO WAY TO CREATE A USER ACCOUNT.** There is no account-creation endpoint, no admin screen, and no CLI. The ONLY account that can ever exist is the first-run bootstrap admin created from INITIAL_ADMIN_USERNAME/PASSWORD in server.ts. Verified by grep: `createAccount` is called from exactly one place (server.ts:134); the only account routes are GET /api/accounts and POST/DELETE /api/accounts/:id/link; and the frontend has no create-account UI.
+
+This is a **requirements gap, not an implementation gap**. FR-AU-01 through FR-AU-05 cover local authentication, password hashing, the replaceable auth boundary, session lifecycle, and LINKING an account to a member — none covers account PROVISIONING. US-ADM-01/02/03 cover reference data and org units only. No story or requirement was missed during implementation; none existed.
+
+**Consequence, stated plainly**: the five-role permission matrix, org-scope enforcement, and the account-link screen that Unit 2 exists to deliver are all UNREACHABLE in a real deployment, because a second user cannot be created. Unit 2's core capability is functionally inert without an account-provisioning path. This slipped through Inception, both units' Functional Design, both NFR stages, both Code Generation stages including my own §0 scope reconciliation, and my own 22-row enforcement enumeration — which lists USER_ACCOUNT read/write for ADMIN and thereby implies a management path that does not exist.
+
+**Recommended**: a Phase 1.1 or Operations change adding account create / deactivate / role-and-scope-change endpoints plus an admin screen. The permission matrix already grants ADMIN write on USER_ACCOUNT, and UserAccountRepository already has create, updateRoleAndScope, updatePasswordHash and setActive — so the domain layer is complete and only the route and screen are missing. Estimated as small.
+
+**For this testing session only**, seven accounts were created by invoking the application's OWN IdentityComponent inside the container (real Argon2id hashing at the configured cost, real validation) rather than by inserting rows — so nothing about them is faked. They are: lead.platform, lead.tech, lead.stranded, rm.root, rm.child, exec, member.ada (linked to Ada Lovelace).
+
+---

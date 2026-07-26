@@ -129,6 +129,27 @@ requirements independent of the disabled security extension.
 ### 🟡 OPERATIONS PHASE
 - [ ] Operations — PLACEHOLDER
 
+## ⚠️ OPEN GAP FOUND 2026-07-26 — no way to create a user account
+
+**There is no account-creation endpoint, admin screen or CLI.** The only account that can exist is the
+first-run bootstrap admin. Verified: `createAccount` is called from exactly one place (`server.ts:134`);
+the only account routes are `GET /api/accounts` and `POST`/`DELETE /api/accounts/:id/link`; the frontend
+has no create-account UI.
+
+**This is a REQUIREMENTS gap, not an implementation gap.** FR-AU-01…05 cover authentication, hashing,
+the replaceable boundary, sessions and *linking* — none covers provisioning. US-ADM-01/02/03 cover
+reference data and org units only. Nothing was missed in implementation; no requirement existed.
+
+**Consequence**: Unit 2's five-role matrix, org-scope enforcement and account-link screen are
+**unreachable in a real deployment**, because a second user cannot be created. It slipped through
+Inception, both units' design and NFR stages, both Code Generation stages, and my own 22-row
+enforcement enumeration — which lists `USER_ACCOUNT` read/write for ADMIN and so implies a management
+path that does not exist.
+
+**Fix is small**: `UserAccountRepository` already has `create`, `updateRoleAndScope`,
+`updatePasswordHash` and `setActive`, and the matrix already grants ADMIN write on `USER_ACCOUNT`. Only
+a route module and an admin screen are missing. Recommended for Phase 1.1 / Operations.
+
 ## Open Decisions Carried Forward
 | ID | Decision | Assigned To |
 |---|---|---|
