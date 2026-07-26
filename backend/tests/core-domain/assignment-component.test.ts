@@ -689,6 +689,57 @@ describeDb('AssignmentComponent against real PostgreSQL', () => {
   });
 
   describe('as-of reconstruction uses history, not current rows (BR-A-22)', () => {
+    /**
+     * The documented case from business-logic-model.md §5, end to end through the real
+     * transaction-time filtering: 1 Jan - 30 Jun at 50%, edited on 1 May to 80%. Asked
+     * about 15 March, the answer must be 50%.
+     *
+     * The arithmetic half is covered in worked-examples.test.ts; this proves the
+     * transaction-time SQL selects the right revision, which no pure test can.
+     */
+    it('the documented 50%-then-80% case answers 50% for 15 March', async () => {
+      const validPeriod = { start: '2026-01-01', end: '2026-06-30' };
+
+      const created = await component.create(
+        { memberId, projectId, allocationPercentage: 50, period: validPeriod, projectRoleId: null },
+        false,
+        ALL,
+      );
+      const id = created.assignment?.id as string;
+
+      // "As the records stood" before the 1 May edit.
+      const beforeEdit = await history.findCurrent(id);
+      const asOfMarch = new Date((beforeEdit?.recordedAt as Date).getTime() + 1);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+
+      // The 1 May edit: 50% -> 80%, same valid period.
+      await component.update(id, { allocationPercentage: 80 }, false, ALL);
+
+      const marchView = await component.findAsOf(
+        [memberId],
+        { start: '2026-03-15', end: '2026-03-15' },
+        asOfMarch,
+        ALL,
+      );
+      const march = marchView.find((r) => r.assignmentId === id);
+
+      // 500 tenths = 50.0%. Path A would have said 800 here, which is the wrong answer the
+      // whole AssignmentHistory design exists to avoid.
+      expect(march?.allocationTenths).toBe(500);
+      // The valid period is unchanged, confirming this tests transaction time not valid time.
+      expect(march?.startDate).toBe(validPeriod.start);
+      expect(march?.endDate).toBe(validPeriod.end);
+
+      // And asked about now, the same query answers 80%.
+      const nowView = await component.findAsOf(
+        [memberId],
+        { start: '2026-03-15', end: '2026-03-15' },
+        new Date(),
+        ALL,
+      );
+      expect(nowView.find((r) => r.assignmentId === id)?.allocationTenths).toBe(800);
+    });
+
     it('returns the values held at that instant', async () => {
       const created = await component.create(
         { memberId, projectId, allocationPercentage: 30, period: Q1, projectRoleId: null },

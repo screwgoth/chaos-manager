@@ -4,8 +4,8 @@
 **Phase**: 🟢 CONSTRUCTION · **Unit**: `core-domain` (1 of 2) · **Stage**: Code Generation (Part 1: Planning)
 **Date**: 2026-07-25
 **Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 IN PROGRESS on branch `aidlc/construction-core-domain`.
-**Steps 1-11 of 26 complete and verified.** Next: Step 12 (business logic unit tests — the worked example and remaining named cases).
-**Verification**: `npx tsc --noEmit` clean; `npx jest` **313 passed / 14 suites** against PostgreSQL 16 (258 passed + 55 skipped without a database).
+**Steps 1-12 of 26 complete and verified.** Next: Step 13 (business logic summary document).
+**Verification**: `npx tsc --noEmit` clean; `npx jest` **352 passed / 16 suites** against PostgreSQL 16 (296 passed + 56 skipped without a database).
 **Branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`)
 
 > **This plan is the single source of truth for Code Generation.** Part 2 executes exactly these steps in
@@ -221,14 +221,23 @@ Step 9 could not be written without over-allocation detection, so the segmentati
 
 **Session resolution re-reads the identity on every request** rather than caching role in the session row, so a role change or deactivation takes effect on the next request instead of whenever the session expires — otherwise a stale ADMIN role is a privilege-escalation window up to the full idle timeout wide. Resolution also TERMINATES the session when the account is found deactivated, so it cannot simply be retried.
 
-### Step 12 — Business Logic Unit Tests
-- [ ] **Allocation: the worked example from `business-logic-model.md` §1** as an executable test
-- [ ] Inclusive-boundary cases: 31 Mar/1 Apr (no overlap) vs 31 Mar/31 Mar (overlap)
-- [ ] Over-allocation sub-period identification; override flag from detection not user input
-- [ ] Exact tenths arithmetic: order-independent summation (float `33.4 + 33.3 + 33.3` drifts to 99.99999999999999)
-- [ ] As-of reconstruction: the 50%→80% May-edit case returning 50% for March
-- [ ] Auto-end cascade counts
-- [ ] Argon2id: same password ⇒ different hashes; no plaintext anywhere
+### Step 12 — Business Logic Unit Tests ✅
+Executed as an AUDIT plus the genuinely-missing cases, rather than by writing new tests over already-covered ground. Each item below names where it is verified.
+
+- [x] **Allocation: the worked example from `business-logic-model.md` §1** — `worked-examples.test.ts`. The document's expected-results table is transcribed verbatim (four segments: 50% / 80% / 70% / 30%) and matched on first run. Transcribed FROM the document, not derived from the implementation — a test written by reading the code proves only that the code does what it does.
+- [x] Inclusive-boundary cases: 31 Mar/1 Apr (no overlap) vs 31 Mar/31 Mar (overlap) — `dates.test.ts`, `allocation-component.test.ts`, `repository-integration.test.ts`
+- [x] Over-allocation sub-period identification; override flag from detection not user input — `allocation-component.test.ts` (per-sub-period findings), `assignment-component.test.ts` (`override: true` on a non-over-allocated assignment does NOT set the flag)
+- [x] Exact tenths arithmetic: order-independent summation — `tenths.test.ts` asserts the real hazard `33.4 + 33.3 + 33.3 === 99.99999999999999`
+- [x] As-of reconstruction: the 50%→80% May-edit case returning 50% for March — BOTH halves: `worked-examples.test.ts` for the arithmetic (and asserts Path A would answer 80%, proving the paths genuinely differ), `assignment-component.test.ts` for the transaction-time SQL against real PostgreSQL
+- [x] Auto-end cascade counts — `assignment-component.test.ts`, `member-component.test.ts`, `project-component.test.ts`
+- [x] Argon2id: same password ⇒ different hashes; no plaintext anywhere — `identity-component.test.ts`, plus `redaction.test.ts` for the "anywhere" half
+
+**Two real findings from the audit**
+
+1. **`redactSecrets` and `LOG_REDACT_PATHS` had NO tests.** Written in Step 2, never exercised. This is the worst kind of gap: redaction failure is invisible in normal operation — nothing breaks, secrets simply start appearing in logs. Now covered by `redaction.test.ts` (17 tests), including a realistic log payload carrying a password, an Argon2 hash, a session token hash, a cookie and a bearer token, asserted to emerge with none of them.
+2. **`IdentityComponent` HARDCODED the Argon2 parameters while `.env.example` and `config.argon2` exposed `ARGON2_MEMORY_KIB` / `ARGON2_ITERATIONS` / `ARGON2_PARALLELISM`.** An operator raising the memory cost in production would have seen no change whatsoever. Env vars that silently do nothing are worse than absent ones. Parameters are now injectable with `DEFAULT_ARGON2_PARAMETERS`, and tests assert the supplied values are encoded into the stored hash (`m=32768`, `t=3`) and that a component configured with a HIGHER cost still verifies an older cheaper hash — so raising the cost does not invalidate existing credentials (BR-AU-01).
+
+Also confirmed during the audit: `SECRET_KEYS` covers all three secret-bearing variables in the config contract (`DATABASE_URL`, `POSTGRES_PASSWORD`, `INITIAL_ADMIN_PASSWORD`). A test now pins that set so a fourth secret variable cannot be added without extending it.
 
 ### Step 13 — Business Logic Summary
 - [ ] Write `aidlc-docs/construction/core-domain/code/business-logic-summary.md`

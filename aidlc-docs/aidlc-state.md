@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Code Generation Part 2 in progress (Steps 1-11 of 26 complete)
+- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Code Generation Part 2 in progress (Steps 1-12 of 26 complete)
 
 ## Workspace State
 - **Existing Code**: No at detection; application code now exists under `backend/` (Steps 1-6)
@@ -70,7 +70,7 @@ requirements independent of the disabled security extension.
 - [x] NFR Requirements — APPROVED 2026-07-25T12:12:00Z (2 docs; OD-01 and OD-03 CLOSED)
 - [ ] NFR Design — SKIPPED (R2)
 - [x] Infrastructure Design — APPROVED 2026-07-25T12:35:00Z (3 docs incl. shared-infrastructure.md)
-- [ ] Code Generation — Part 1 plan APPROVED 2026-07-25T12:45:00Z; Part 2 IN PROGRESS, Steps 1-11 of 26 complete and verified on branch `aidlc/construction-core-domain`
+- [ ] Code Generation — Part 1 plan APPROVED 2026-07-25T12:45:00Z; Part 2 IN PROGRESS, Steps 1-12 of 26 complete and verified on branch `aidlc/construction-core-domain`
 
 ### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
 - [ ] Functional Design — EXECUTE (+ R2 folded-in obligations 4, 5)
@@ -107,9 +107,9 @@ Jest · Node 22 LTS + npm · TypeScript `strict` + `noUncheckedIndexedAccess` ·
 - **Current Stage**: Code Generation Part 2 (generation) — IN PROGRESS
 - **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅ · Infrastructure Design ✅ · Code Generation Part 1 (plan approved) ✅
 - **Working branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`) — **pushed to origin 2026-07-26**, tracking `origin/aidlc/construction-core-domain`. `aidlc/inception-requirements` also pushed.
-- **Code progress**: **Steps 1-11 of 26 complete and verified.** Shared foundations, schema + migration, repository layer, and all nine business-logic components: C-01 Member, C-02 Project, C-03 Assignment, C-04 Allocation, C-05 OrgUnit, C-06 ReferenceData, C-07 Identity, C-08 Session, plus the permissive C-09 authorization stand-in.
-- **Next step**: Step 12 — business logic unit tests (the worked example from `business-logic-model.md` §1 as an executable test, plus the remaining named cases).
-- **Verification**: `npx tsc --noEmit` clean · `npx jest` **313 passed / 14 suites** against PostgreSQL 16 · **258 passed + 55 skipped** without a database
+- **Code progress**: **Steps 1-12 of 26 complete and verified.** Shared foundations, schema + migration, repository layer, and all nine business-logic components: C-01 Member, C-02 Project, C-03 Assignment, C-04 Allocation, C-05 OrgUnit, C-06 ReferenceData, C-07 Identity, C-08 Session, plus the permissive C-09 authorization stand-in.
+- **Next step**: Step 13 — the business logic summary document (`aidlc-docs/construction/core-domain/code/business-logic-summary.md`).
+- **Verification**: `npx tsc --noEmit` clean · `npx jest` **352 passed / 16 suites** against PostgreSQL 16 · **296 passed + 56 skipped** without a database
 - **Test database**: throwaway container on port 55432; run instructions in `aidlc-docs/construction/core-domain/code/repository-layer-summary.md` §6
 - **Next Stage**: finish Code Generation for `core-domain`, then the full Construction loop for `supporting-platform`, then Build and Test (once, after all units)
 - **Outstanding risk carried forward**: X-1 — the scope-enforcement MECHANISM is built and tested, but the permissive stand-in means org-scope policy is not yet applied; a Team Lead / Resource Manager still sees all org units. Acceptable only under the single-track, no-external-users assumption; the tests to prove enforcement already exist for when Unit 2 lands. BR-A-24 is now genuinely proven: a deterministic lock test forces two transactions to interleave and was confirmed to FAIL when the lock is removed. (The first attempt at this test passed with the lock neutered and was discarded as a false positive.)

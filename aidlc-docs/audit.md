@@ -480,3 +480,25 @@ The replacement forces the interleaving explicitly: transaction A takes the lock
 **Next step**: Step 12 — business logic unit tests, including the worked example from `business-logic-model.md` §1 as an executable test.
 
 ---
+
+## Code Generation Part 2 — Step 12 complete (core-domain)
+**Timestamp**: 2026-07-26T02:20:00Z
+**User Input**: "Continue with Step 12"
+**AI Response**: "Executed Step 12 as an audit plus the genuinely-missing cases. Added the two worked examples from business-logic-model.md as executable tests, plus redaction tests that did not exist. Found and fixed a real defect: Argon2 parameters were hardcoded while the config contract exposed them. Verified: tsc --noEmit clean; jest 352 passed / 16 suites against PostgreSQL 16; 296 passed + 56 skipped without a database."
+**Context**: CONSTRUCTION phase, Unit 1 `core-domain`, Step 12 of 26, branch `aidlc/construction-core-domain`.
+
+**Approach**: rather than writing fresh tests over ground the existing 313 already covered, each Step 12 checklist item was audited to the file and test that verifies it (mapping recorded in the plan). Two items were genuinely missing and were written; two real defects surfaced.
+
+**New tests**: `worked-examples.test.ts` (17) — the §1 segmentation example and the §5 as-of example, transcribed verbatim from the document's tables rather than derived from the implementation. Both matched on first run. The §5 test also asserts that Path A WOULD answer 80% where Path B answers 50%, so the two paths are demonstrably different answers rather than accidentally identical ones. `redaction.test.ts` (17). Plus a DB-level as-of test using the documented 50%→80% numbers, and 4 Argon2-parameter tests.
+
+**FINDING 1 — `redactSecrets` and `LOG_REDACT_PATHS` had no tests at all.** Written in Step 2, never exercised. Redaction is a function whose failure is invisible in normal operation: nothing breaks, secrets simply begin appearing in log output, and the first person to notice is whoever reads the log file. Now covered, including an end-to-end payload carrying a plaintext password, an Argon2 hash, a session token hash, a cookie header and a bearer token — asserted to emerge with none of them while the diagnostically useful fields survive.
+
+**FINDING 2 (real defect, fixed) — Argon2 parameters were hardcoded while the config exposed them.** `.env.example` defines `ARGON2_MEMORY_KIB`, `ARGON2_ITERATIONS`, `ARGON2_PARALLELISM`, and `config.argon2` loads all three, but `IdentityComponent` used a module-level constant and ignored them. An operator raising the memory cost in production would have seen no change whatsoever — a silent no-op on a security control. Parameters are now constructor-injected with `DEFAULT_ARGON2_PARAMETERS` as the fallback, and the per-instance dummy hash (BR-AU-05) uses the same parameters so its timing still matches a genuine verification. Tests assert the supplied values are encoded into the stored hash and that a higher-cost component still verifies an older cheaper hash, so raising the cost does not invalidate existing credentials (BR-AU-01).
+
+**My own test was wrong once, and the production code was right.** A redaction test used a `SESSION_SECRET` environment variable that does not exist in this system; it failed for that reason. There is no session signing secret by design — session tokens are 256 bits of randomness, so there is nothing to sign. Corrected to `INITIAL_ADMIN_PASSWORD`, and a further test now pins the three secret-bearing variables the contract actually defines so a fourth cannot be added without extending `SECRET_KEYS`.
+
+**Verification actually run**: `npx tsc --noEmit` → exit 0. `npx jest` with TEST_DATABASE_URL → 352 passed, 16 suites, 0 failures. Without it → 296 passed, 56 skipped.
+
+**Next step**: Step 13 — business logic summary document.
+
+---

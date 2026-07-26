@@ -10,6 +10,7 @@
  */
 
 import {
+  DEFAULT_ARGON2_PARAMETERS,
   IdentityComponent,
   PASSWORD_ALGORITHM,
 } from '../../src/core-domain/identity/identity-component';
@@ -449,5 +450,70 @@ describe('account deactivation', () => {
     const harness = await withAccount();
     await harness.component.deactivateAccount('u-1');
     expect((await harness.component.reactivateAccount('u-1')).isActive).toBe(true);
+  });
+});
+
+/**
+ * The Argon2 parameters are injectable because `.env.example` exposes ARGON2_MEMORY_KIB /
+ * ARGON2_ITERATIONS / ARGON2_PARALLELISM and `config.argon2` loads them.
+ *
+ * Step 12's audit found that the first version of the component HARDCODED these and ignored
+ * the config — so an operator raising ARGON2_MEMORY_KIB in production would have seen no
+ * change at all. These tests exist so that cannot silently regress.
+ */
+describe('Argon2 parameters are honoured, not hardcoded', () => {
+  it('defaults to the OWASP minimum floor', () => {
+    expect(DEFAULT_ARGON2_PARAMETERS).toEqual({
+      memoryCost: 19_456,
+      timeCost: 2,
+      parallelism: 1,
+    });
+  });
+
+  it('encodes the SUPPLIED parameters into the stored hash', async () => {
+    // Argon2 records its parameters in the encoded hash string, so the stored value itself
+    // proves which settings were used.
+    const harness = setup();
+    const withRaisedCost = new IdentityComponent(
+      // Reach into the same fakes the harness built.
+      (harness.component as unknown as { accounts: never }).accounts,
+      (harness.component as unknown as { members: never }).members,
+      { memoryCost: 32_768, timeCost: 3, parallelism: 1 },
+    );
+
+    await withRaisedCost.createAccount(
+      { username: 'raised', role: 'ADMIN', homeOrgUnitId: null },
+      GOOD_PASSWORD,
+    );
+
+    const stored = harness.accounts[0] as Stored;
+    expect(stored.passwordHash).toContain('m=32768');
+    expect(stored.passwordHash).toContain('t=3');
+  });
+
+  it('uses the default parameters when none are supplied', async () => {
+    const harness = await withAccount();
+    expect(harness.accounts[0]?.passwordHash).toContain('m=19456');
+    expect(harness.accounts[0]?.passwordHash).toContain('t=2');
+  });
+
+  it('verifies a password hashed with DIFFERENT parameters', async () => {
+    // Raising the cost must not invalidate existing credentials: the parameters travel with
+    // each hash, so verification reads them from the stored value (BR-AU-01).
+    const harness = setup();
+    const cheap = new IdentityComponent(
+      (harness.component as unknown as { accounts: never }).accounts,
+      (harness.component as unknown as { members: never }).members,
+      { memoryCost: 19_456, timeCost: 2, parallelism: 1 },
+    );
+    await cheap.createAccount({ username: 'old', role: 'ADMIN', homeOrgUnitId: null }, GOOD_PASSWORD);
+
+    // A component configured with HIGHER cost still verifies the older, cheaper hash.
+    const expensive = new IdentityComponent(
+      (harness.component as unknown as { accounts: never }).accounts,
+      (harness.component as unknown as { members: never }).members,
+      { memoryCost: 32_768, timeCost: 3, parallelism: 1 },
+    );
+    expect(await expensive.verifyCredentials('old', GOOD_PASSWORD)).not.toBeNull();
   });
 });

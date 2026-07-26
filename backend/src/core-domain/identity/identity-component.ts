@@ -56,49 +56,62 @@ export interface LinkResult {
 export const PASSWORD_ALGORITHM = 'argon2id';
 
 /**
- * Argon2id parameters. Recorded alongside the hash (BR-AU-01) so a later parameter
- * increase can re-hash on next login without invalidating existing credentials.
+ * Argon2id parameters.
  *
- * 19 MiB / 2 iterations / 1 lane is the OWASP-recommended minimum floor. These are
- * deliberately NOT tuned down for test speed: a test that measures a weaker hash than
- * production measures the wrong thing.
+ * 19 MiB / 2 iterations / 1 lane is the OWASP-recommended minimum floor. Deliberately NOT
+ * tuned down for test speed: a test that measures a weaker hash than production measures
+ * the wrong thing.
+ *
+ * INJECTABLE, because `.env.example` exposes ARGON2_MEMORY_KIB / ARGON2_ITERATIONS /
+ * ARGON2_PARALLELISM and `config.argon2` already loads them. The first version of this file
+ * hardcoded the values and ignored the config — which would have left an operator raising
+ * ARGON2_MEMORY_KIB in production and getting no change whatsoever. Env vars that silently
+ * do nothing are worse than absent ones.
+ *
+ * The algorithm and its parameters are recorded alongside each hash (BR-AU-01) so raising
+ * them later re-hashes on next login without invalidating existing credentials.
  */
-const ARGON2_OPTIONS = {
+export interface Argon2Parameters {
+  memoryCost: number;
+  timeCost: number;
+  parallelism: number;
+}
+
+export const DEFAULT_ARGON2_PARAMETERS: Argon2Parameters = {
   memoryCost: 19_456,
   timeCost: 2,
   parallelism: 1,
-} as const;
+};
 
 const MIN_PASSWORD_LENGTH = 12;
 const MAX_PASSWORD_LENGTH = 256;
 const MAX_USERNAME_LENGTH = 100;
 
-/**
- * A precomputed Argon2id hash of a value no user can supply, used as the comparison
- * target when the username is unknown (BR-AU-05).
- *
- * It must be a REAL hash with the production parameters, because the point is to spend the
- * same CPU time as a genuine verification. Comparing against a short constant, or skipping
- * the comparison, is what leaks the username.
- */
-let dummyHashPromise: Promise<string> | null = null;
-
-async function getDummyHash(): Promise<string> {
-  dummyHashPromise ??= hash(
-    'this-value-is-never-a-real-password-and-cannot-be-submitted',
-    ARGON2_OPTIONS,
-  );
-  return dummyHashPromise;
-}
+const DUMMY_SECRET = 'this-value-is-never-a-real-password-and-cannot-be-submitted';
 
 /** The single rejection message. Identical for both failure modes (BR-AU-04). */
 const REJECTION = 'The username or password is incorrect.';
 
 export class IdentityComponent {
+  /**
+   * Computed once per instance, lazily.
+   *
+   * It must be a REAL hash with THIS instance's parameters, because the point is to spend
+   * the same CPU as a genuine verification (BR-AU-05). Comparing against a short constant,
+   * or skipping the comparison, is what turns login into a username oracle.
+   */
+  private dummyHashPromise: Promise<string> | null = null;
+
   constructor(
     private readonly accounts: UserAccountRepository,
     private readonly members: MemberRepository,
+    private readonly argon2Parameters: Argon2Parameters = DEFAULT_ARGON2_PARAMETERS,
   ) {}
+
+  private async getDummyHash(): Promise<string> {
+    this.dummyHashPromise ??= hash(DUMMY_SECRET, this.argon2Parameters);
+    return this.dummyHashPromise;
+  }
 
   /**
    * BR-AU-04/05/06/07 — the whole point of this method is that its FAILURE modes are
@@ -126,7 +139,7 @@ export class IdentityComponent {
     if (!credential) {
       // BR-AU-05: burn comparable CPU on a real hash so the timing of this path resembles
       // the found-user path. The result is discarded; it can never be true.
-      await verify(await getDummyHash(), plainPassword).catch(() => false);
+      await verify(await this.getDummyHash(), plainPassword).catch(() => false);
       return null;
     }
 
@@ -173,7 +186,7 @@ export class IdentityComponent {
 
     // Hashed here; the plaintext goes out of scope at the end of this method and is never
     // passed onward, stored, or logged (BR-AU-02).
-    const passwordHash = await hash(plainPassword, ARGON2_OPTIONS);
+    const passwordHash = await hash(plainPassword, this.argon2Parameters);
 
     // BR-AU-11's uniqueness counterpart (username) is enforced by the database index and
     // surfaces as a ConflictError naming the field.
@@ -193,7 +206,7 @@ export class IdentityComponent {
     this.validatePassword(plainPassword, violations);
     violations.throwIfAny('The password could not be set.');
 
-    const passwordHash = await hash(plainPassword, ARGON2_OPTIONS);
+    const passwordHash = await hash(plainPassword, this.argon2Parameters);
     const updated = await this.accounts.updatePasswordHash(
       id,
       passwordHash,
