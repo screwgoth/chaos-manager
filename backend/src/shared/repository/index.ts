@@ -18,6 +18,7 @@ export {
 } from './db';
 
 export { runMigrations } from './migrate';
+export { seedReferenceData, type SeedResult } from './seed';
 
 export { translatePgError, withPgErrors } from './pg-errors';
 

@@ -1,0 +1,24 @@
+# Keep the build context small and, more importantly, keep secrets and host-built artifacts out of
+# the image. A copied node_modules from the host would also break native modules built for a
+# different libc.
+**/node_modules
+**/dist
+**/coverage
+**/.git
+**/.gitignore
+
+# NEVER ship real configuration. .env.example is committed and carries no values.
+.env
+.env.*
+!.env.example
+
+**/*.log
+**/.DS_Store
+**/.vscode
+**/.idea
+
+# Documentation and AI-DLC artifacts are not needed at runtime.
+aidlc-docs
+.aidlc*
+**/*.md
+!README.md

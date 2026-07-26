@@ -16,7 +16,7 @@
 
 import { buildApp } from './app';
 import { loadConfig } from './shared/config';
-import { createDb, createPool, runMigrations } from './shared/repository';
+import { createDb, createPool, runMigrations, seedReferenceData } from './shared/repository';
 
 async function main(): Promise<void> {
   // Throws with every missing variable listed at once (U1-NFR-O-03). A loop that threw on the
@@ -36,6 +36,19 @@ async function main(): Promise<void> {
     }
     if (migration.applied.length > 0) {
       app.log.info({ applied: migration.applied }, 'migrations applied');
+    }
+
+    // Idempotent: guarded by counts, so this is a no-op on every start after the first.
+    const seed = await seedReferenceData(db);
+    if (!seed.alreadySeeded) {
+      app.log.info(
+        {
+          orgUnits: seed.orgUnitsCreated,
+          roles: seed.rolesCreated,
+          projectTypes: seed.projectTypesCreated,
+        },
+        'starter reference data created — rename these to match your organisation',
+      );
     }
 
     await seedBootstrapAdmin(services, config, app.log);

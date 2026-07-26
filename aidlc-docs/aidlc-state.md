@@ -4,10 +4,10 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` Code Generation Part 2 in progress (Steps 1-21 of 26 complete)
+- **Current Stage**: CONSTRUCTION - Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified); next is Unit 2 `supporting-platform` Functional Design
 
 ## Workspace State
-- **Existing Code**: No at detection; application code now exists under `backend/` (Steps 1-6)
+- **Existing Code**: No at detection; a complete application now exists under `backend/`, `frontend/` and `docker/`
 - **Programming Languages**: None found at detection; target stack Node.js/TypeScript + React
 - **Build System**: None found
 - **Project Structure**: Empty (documentation only at detection time)
@@ -70,7 +70,9 @@ requirements independent of the disabled security extension.
 - [x] NFR Requirements — APPROVED 2026-07-25T12:12:00Z (2 docs; OD-01 and OD-03 CLOSED)
 - [ ] NFR Design — SKIPPED (R2)
 - [x] Infrastructure Design — APPROVED 2026-07-25T12:35:00Z (3 docs incl. shared-infrastructure.md)
-- [ ] Code Generation — Part 1 plan APPROVED 2026-07-25T12:45:00Z; Part 2 IN PROGRESS, Steps 1-21 of 26 complete and verified on branch `aidlc/construction-core-domain`
+- [ ] Code Generation — Part 1 plan APPROVED 2026-07-25T12:45:00Z; Part 2 COMPLETE, all 26 steps verified on branch `aidlc/construction-core-domain`
+
+**🟢 UNIT 1 `core-domain` COMPLETE** — 133 files, 24,220 lines, 450 tests, 50 endpoints, 30 stories.
 
 ### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
 - [ ] Functional Design — EXECUTE (+ R2 folded-in obligations 4, 5)
@@ -104,12 +106,12 @@ Jest · Node 22 LTS + npm · TypeScript `strict` + `noUncheckedIndexedAccess` ·
 ## Current Status
 - **Lifecycle Phase**: 🟢 CONSTRUCTION
 - **Current Unit**: Unit 1 of 2 — `core-domain`
-- **Current Stage**: Code Generation Part 2 (generation) — IN PROGRESS
-- **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅ · Infrastructure Design ✅ · Code Generation Part 1 (plan approved) ✅
+- **Current Stage**: Code Generation — **COMPLETE**. All 26 steps executed and verified.
+- **Completed for this unit**: Functional Design ✅ · NFR Requirements ✅ · Infrastructure Design ✅ · Code Generation Part 1 (plan) ✅ · Code Generation Part 2 (all 26 steps) ✅
 - **Working branch**: `aidlc/construction-core-domain` (created from `aidlc/inception-requirements`) — **pushed to origin 2026-07-26**, tracking `origin/aidlc/construction-core-domain`. `aidlc/inception-requirements` also pushed.
-- **Code progress**: **Steps 1-21 of 26 complete and verified.** Backend complete end to end; React SPA complete (shared foundations, auth, members, projects, assignments, views, admin). Verified as a running full stack: the backend serves the built SPA, bootstrap admin login works, and client routes fall back to index.html while /api/* still returns the JSON envelope. Shared foundations, schema + migration, repository layer, and all nine business-logic components: C-01 Member, C-02 Project, C-03 Assignment, C-04 Allocation, C-05 OrgUnit, C-06 ReferenceData, C-07 Identity, C-08 Session, plus the permissive C-09 authorization stand-in.
-- **Next step**: Step 22 — frontend summary document (then Step 23 first-run bootstrap, and 24-26 Docker artifacts, documentation and final verification).
-- **Verification**: backend `npm test` **387 passed / 17 suites** against PostgreSQL 16 (296 + 91 skipped without a database) · frontend `jest` **63 passed / 5 suites**, `vite build` clean · both `tsc --noEmit` clean · `npm run build` produces `dist/src/server.js` · server smoke-tested live
+- **Code progress**: **ALL 26 STEPS COMPLETE AND VERIFIED.** Unit 1 `core-domain` Code Generation is finished: backend, React SPA, Docker artifacts, documentation and final verification. Backend complete end to end; React SPA complete (shared foundations, auth, members, projects, assignments, views, admin). Verified as a running full stack: the backend serves the built SPA, bootstrap admin login works, and client routes fall back to index.html while /api/* still returns the JSON envelope. Shared foundations, schema + migration, repository layer, and all nine business-logic components: C-01 Member, C-02 Project, C-03 Assignment, C-04 Allocation, C-05 OrgUnit, C-06 ReferenceData, C-07 Identity, C-08 Session, plus the permissive C-09 authorization stand-in.
+- **Next step**: **Unit 1 is complete.** Proceed to Unit 2 `supporting-platform`: Functional Design → NFR Requirements → Infrastructure Design → Code Generation. Then Build and Test (once, after all units).
+- **Verification (all executed, not asserted)**: both workspaces `tsc --noEmit` clean · both `npm run build` succeed · backend **387 passed / 17 suites** with PostgreSQL 16 (296 + 91 skipped without one) · frontend **63 passed / 5 suites** · **450 tests, 0 failures** · `docker build` succeeds, 310 MB image running as uid 1000 with no tsc/vite/jest present · container verified end to end (health 200, SPA served, admin login succeeded) · compose publishes only 80/443 · seed idempotent across two starts · no application code under `aidlc-docs/` · no secret committed · `npm run build` produces `dist/src/server.js` · server smoke-tested live
 - **Test command**: use `npm test`, NOT `npx jest` — Jest needs `--experimental-vm-modules` for @fastify/cookie's dynamic import
 - **Test database**: throwaway container on port 55432; run instructions in `aidlc-docs/construction/core-domain/code/repository-layer-summary.md` §6
 - **Next Stage**: finish Code Generation for `core-domain`, then the full Construction loop for `supporting-platform`, then Build and Test (once, after all units)

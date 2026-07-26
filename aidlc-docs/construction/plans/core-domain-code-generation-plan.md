@@ -4,7 +4,7 @@
 **Phase**: 🟢 CONSTRUCTION · **Unit**: `core-domain` (1 of 2) · **Stage**: Code Generation (Part 1: Planning)
 **Date**: 2026-07-25
 **Status**: APPROVED 2026-07-25T12:45:00Z. Part 2 IN PROGRESS on branch `aidlc/construction-core-domain`.
-**Steps 1-21 of 26 complete and verified.** Next: Step 22 (frontend summary).
+**ALL 26 STEPS COMPLETE AND VERIFIED.** Code Generation Part 2 finished 2026-07-26.
 **Verification**: `npx tsc --noEmit` clean; `npm test` **387 passed / 17 suites** against PostgreSQL 16 (296 passed + 91 skipped without a database); `npm run build` produces `dist/src/server.js`; server smoke-tested live (`/health` 200, unauthenticated 401, unknown endpoint JSON 404).
 **NOTE**: use `npm test`, not `npx jest` — Jest needs `--experimental-vm-modules` for @fastify/cookie's dynamic import.
 **Frontend verification**: `tsc --noEmit` clean; `vite build` → 291 kB JS / 16.8 kB CSS; `jest` **63 passed / 5 suites**. Full stack smoke-tested: backend serving the built SPA, bootstrap admin login succeeded, `HttpOnly` cookie set, no plaintext password in the log, client route `/members` falling back to index.html while `/api/nope` still returned the JSON envelope.
@@ -31,13 +31,13 @@
 ### Stories implemented by this unit
 
 ```
-US-ACC-01 [ ]  US-ACC-02 [ ]  US-ACC-03 [ ]
-US-MEM-01 [ ]  US-MEM-02 [ ]  US-MEM-03 [ ]  US-MEM-04 [ ]  US-MEM-05 [ ]  US-MEM-07 [ ]
-US-PRJ-01 [ ]  US-PRJ-02 [ ]  US-PRJ-03 [ ]  US-PRJ-04 [ ]  US-PRJ-05 [ ]
-US-ASN-01 [ ]  US-ASN-02 [ ]  US-ASN-03 [ ]  US-ASN-05 [ ]  US-ASN-06 [ ]  US-ASN-07 [ ]
-US-VIS-01 [ ]  US-VIS-02 [ ]  US-VIS-03 [ ]  US-VIS-04 [ ]
-US-ADM-01 [ ]  US-ADM-02 [ ]  US-ADM-03 [ ]
-US-ENB-02 [ ]  US-ENB-03 [ ]  US-ENB-04 [ ]
+US-ACC-01 [x]  US-ACC-02 [x]  US-ACC-03 [x]
+US-MEM-01 [x]  US-MEM-02 [x]  US-MEM-03 [x]  US-MEM-04 [x]  US-MEM-05 [x]  US-MEM-07 [x]
+US-PRJ-01 [x]  US-PRJ-02 [x]  US-PRJ-03 [x]  US-PRJ-04 [x]  US-PRJ-05 [x]
+US-ASN-01 [x]  US-ASN-02 [x]  US-ASN-03 [x]  US-ASN-05 [x]  US-ASN-06 [x]  US-ASN-07 [x]
+US-VIS-01 [x]  US-VIS-02 [x]  US-VIS-03 [x]  US-VIS-04 [x]
+US-ADM-01 [x]  US-ADM-02 [x]  US-ADM-03 [x]
+US-ENB-02 [x]  US-ENB-03 [x]  US-ENB-04 [x]
 ```
 
 Marked `[x]` in Step 12 of the rules as each story's functionality is generated.
@@ -192,21 +192,6 @@ Step 9 could not be written without over-allocation detection, so the segmentati
 
 **BR-A-24 gap CLOSED, and the first attempt was a false positive worth recording.** The obvious test — two `create` calls via `Promise.all`, assert only one succeeds — **passed even with `lockMemberForUpdate` neutered**, because the two calls never interleave at the critical point (each runs several pre-transaction validation queries, and the first transaction commits before the second opens). It was deleted rather than kept as false assurance. The replacement forces the interleaving explicitly: transaction A takes the lock and holds it while B attempts it, then asserts B saw A's committed row. Verified by neutering the lock and observing the failure (`Received length: 0`), then restoring it and observing the pass.
 
-### Step 9 — Business Logic: Assignment
-- [ ] `C-03 AssignmentComponent` — create, update, end early, auto-end; **history revision written in the same transaction** (BR-A-16, BR-A-17)
-- [ ] Multiple concurrent assignments per member-project permitted (BR-A-06, Q4:B)
-- [ ] Date and contract-window conflict detection (BR-A-13, BR-A-14)
-- [ ] **As-of reconstruction from `AssignmentHistory`** — Path B, not current rows (BR-A-22)
-- [ ] Stories US-ASN-01, 02, 03, 06, 07
-
-### Step 10 — Business Logic: Allocation ⚠️ highest-risk step
-- [ ] `C-04 AllocationComponent` — **pure function, no I/O, no state** (U1-NFR-M-03)
-- [ ] `segmentAllocation` — boundary collection, segment build, exact integer-tenths summation, merge equivalent adjacent segments
-- [ ] `detectOverAllocation` — returns **each offending sub-period**, excludes own row when editing (BR-A-08, BR-A-15)
-- [ ] `availability`, `currentAllocationView`, `unallocatedMembers`, `overAllocatedMembers`, `memberTimeline`
-- [ ] `CAPACITY_TENTHS = 1000` expressed **once** (AS-01)
-- [ ] Stories US-ASN-05, US-VIS-01, 02, 03
-
 ### Step 11 — Business Logic: Identity, Session, Authorization Stand-In ✅
 - [x] `C-07 IdentityComponent` — Argon2id hashing, credential verification with a **real dummy hash comparison** on unknown username, member linking (US-ENB-02, BR-AU-01…07, BR-AU-13…15)
 - [x] `C-08 SessionComponent` — establish, resolve, sliding 30-min expiry (configurable), terminate; **SHA-256 token hash stored, never the token** (BR-AU-08…12)
@@ -299,16 +284,6 @@ Also confirmed during the audit: `SECRET_KEYS` covers all three secret-bearing v
 
 **Over-allocation flow, UI side**: submit → if `requiresOverrideConfirmation`, nothing was saved, show the blocking dialog → the user either goes back (nothing persists, BR-A-10) or confirms, which re-submits the same payload with `overrideOverAllocation: true`. Re-submitting re-runs the check inside the member lock, so what the user confirmed is what the database sees.
 
-### Step 19 — Frontend: Auth, Members, Projects
-- [ ] `auth/` — `SignInPage`, `SessionGuard`, `SignOutButton` (US-ACC-01, 02, 03)
-- [ ] `members/` — list, filter bar, form, `ContractFieldset`, `SkillTagEditor`, detail, `DeactivateMemberDialog` **stating the auto-end count** (US-MEM-01…05, 07)
-- [ ] `projects/` — list, form, detail, `ProjectStaffingPanel` **grouping multiple rows per member with a subtotal** (BR-P-11), `CloseProjectDialog` (US-PRJ-01…05)
-
-### Step 20 — Frontend: Assignments, Views, Admin
-- [ ] `assignments/` — `AssignmentForm`, **`OverAllocationDialog` blocking modal** naming member, sub-period, total, and contributors (US-ASN-05, Q14:A), `AssignmentConflictNotice` as a non-blocking inline warning, `EndAssignmentDialog`
-- [ ] `views/` — `AllocationViewPage`, **`AvailabilitySearchPage` with "next month" preset and prominent skill filter** (US-VIS-02, 03), `MyAssignmentsPage`, `HistoricalAllocationPage` **with its as-of notice** (US-ASN-07)
-- [ ] `admin/` — `ReferenceDataPage`, `RetireReferenceDialog` **offering deactivate when delete is refused**, `OrgUnitPage`, `OrgUnitTree` (US-ADM-01, 02, 03)
-
 ### Step 21 — Frontend Unit Tests ✅
 63 tests across 5 suites.
 - [x] `AllocationBar` renders over-allocation distinctly from fully-allocated — asserts all THREE cues (a distinct colour token that cannot converge with `full`, the overflow tail present only when over, and a never-clamped negative remainder), plus the accessible text for readers who see neither colour nor shape
@@ -323,33 +298,47 @@ Also confirmed during the audit: `SECRET_KEYS` covers all three secret-bearing v
 **KNOWN, UNRESOLVED — act warnings.** The suite prints React "update was not wrapped in act" warnings, one per keystroke (~200 lines). Four fixes were attempted: act-wrapping the clicks, act-wrapping the render so the provider's mount-time session probe settles inside it, flushing macrotasks inside act, and moving from user-event's legacy API to `setup()`. None silenced them. The tests are correct and deterministic — every one passes repeatedly — but the output is noisy, and noisy output trains people to stop reading it. Left rather than suppressing `console.error`, which would also hide genuine failures. Worth revisiting; not worth more time now.
 
 ### Step 22 — Frontend Summary
-- [ ] Write `aidlc-docs/construction/core-domain/code/frontend-summary.md`
+- [x] Write `aidlc-docs/construction/core-domain/code/frontend-summary.md`
 
-### Step 23 — First-Run Bootstrap
-- [ ] Migration runner invoked at startup **before listening** (deployment-architecture §2)
-- [ ] Idempotent seed: one department org unit, starter roles/skills/project types — **generic vocabulary only** (FR-C-01)
-- [ ] Idempotent initial admin from `INITIAL_ADMIN_USERNAME`/`INITIAL_ADMIN_PASSWORD`, Argon2id hashed
-- [ ] Log the instruction to change the password and remove the bootstrap secret
+### Step 23 — First-Run Bootstrap ✅
+- [x] Migration runner invoked at startup **before listening** — the process never serves traffic against a half-upgraded schema, and a failed migration refuses to start rather than continuing
+- [x] Idempotent seed (`shared/repository/seed.ts`): one org unit named **Organisation**, four generic roles (Team Member, Team Lead, Manager, Specialist), three generic project types (Project, Internal Initiative, Support) — **FR-C-01 vocabulary discipline**: nothing mentions sprints, tickets, deals or shifts, because seeding "Backend Engineer" would silently make this an engineering tool and every later screenshot would reinforce it
+- [x] **Skills deliberately NOT seeded** — a skill list is entirely organisation-specific and any guess would be wrong for most teams. The member form already tells the user what to do when a skill is missing (BR-M-11), which is a better first encounter than a misleading list.
+- [x] Idempotent initial admin, Argon2id hashed, created **only when no accounts exist at all** — so a lingering `INITIAL_ADMIN_PASSWORD` cannot silently reset a real admin's credentials
+- [x] Logs the instruction to change the password and remove the bootstrap secret; the password itself is never logged
+- [x] **Verified by running it twice against a fresh database**: first start created 1 org unit / 7 reference entries / 1 account and logged both notices; second start logged neither and created nothing. Guards are per-item, so an admin who deletes a starter role does not get it re-added.
 
-### Step 24 — Deployment Artifacts
-- [ ] `Dockerfile` — three-stage build per deployment-architecture §3
-- [ ] `docker-compose.yml` — `app`, `db`, `proxy`; only 80/443 published; named volumes; healthchecks; `depends_on` conditions
-- [ ] `docker/Caddyfile` — TLS termination, reverse proxy to `app:3000`
-- [ ] `.dockerignore`
+### Step 24 — Deployment Artifacts ✅
+- [x] `Dockerfile` — three stages (frontend build → backend build → runtime). **Verified by building**: 310 MB image, runs as `node` (uid 1000), and `tsc`/`vite`/`jest` are all absent from the runtime image
+- [x] `docker-compose.yml` — `app`, `db`, `proxy`; named volumes; healthchecks on both `db` (`pg_isready` with the real user/database) and `app` (its own `/health`, so an app that is listening but cannot reach the database reports unhealthy); `depends_on: condition: service_healthy` so the app does not start-fail-exit in a loop
+- [x] **Only 80/443 published** — verified from `docker compose config`: the app's 3000 and PostgreSQL's 5432 have no host binding at all
+- [x] `docker/Caddyfile` — TLS termination with automatic certificates (local CA for `localhost`, Let's Encrypt for a real hostname), reverse proxy to `app:3000`, CSP/HSTS/nosniff/frame-deny headers, `-Server`
+- [x] `.dockerignore` — excludes `node_modules`, `dist`, `.env*` (but keeps `.env.example`), and `aidlc-docs`
+- [x] **Runtime image verified end to end**: `/health` 200 with `database: true`, SPA served, client route falls back to index.html, bootstrap admin login succeeded, seeded reference data readable through the API, and the exact compose healthcheck command exits 0 inside the container
 
-### Step 25 — Documentation
-- [ ] `README.md` — what it is, prerequisites, first-run setup, local development modes, operational runbook, **the `down -v` warning**, backup/restore commands
-- [ ] `aidlc-docs/construction/core-domain/code/api-documentation.md` — all 37 endpoints with request/response shapes
-- [ ] `aidlc-docs/construction/core-domain/code/code-generation-summary.md` — full file inventory
+**Two defects the container build caught that nothing else had.** `@testing-library/user-event` was present in `node_modules` but **not declared in `package.json`** — so a fresh clone, or any clean build, would fail. And the production `tsc -b` was typechecking test files, coupling the release build to devDependencies. Both fixed; the second by excluding tests from the build tsconfig, with the tradeoff that `tsc --noEmit` no longer covers tests (ts-jest typechecks them at run time instead).
 
-### Step 26 — Final Verification
-- [ ] `npm run build` succeeds in both workspaces
-- [ ] `npx tsc --noEmit` clean in both workspaces
-- [ ] `npm test` runs (results reported honestly, pass or fail)
-- [ ] All 30 story checkboxes marked `[x]`
-- [ ] No application code written under `aidlc-docs/`
-- [ ] No secret in any committed file
-- [ ] Mark every step in this plan `[x]`
+Also removed the `# syntax=docker/dockerfile:1` directive: it forces a registry pull of the frontend parser image, which failed with 403 in this environment, and no BuildKit-specific syntax is used.
+
+### Step 25 — Documentation ✅
+- [x] `README.md` — what it is and why, prerequisites, first-run setup, what the seed creates, the post-first-sign-in checklist, day-to-day runbook, update procedure, backup/restore, **the `down -v` warning as its own section**, ports and exposure, local development, the `npm test` vs `npx jest` trap, configuration table, architecture sketch, and an explicit **known limitations** section including the unenforced org scope and that no screen has been visually verified
+- [x] `api-documentation.md` — **all 50 endpoints** (49 + `/health`), with the error envelope, date/percentage conventions, the surprising status codes and why, and the full two-step override and two-phase close protocols
+- [x] `code-generation-summary.md` — verification table, mechanical file inventory, all 17 defects with how each was found, interface deviations, security posture table, and what is NOT done
+
+**Count correction**: the plan said "all 37 endpoints" and a Step 15 summary said 47. The real figure is **50**, produced by enumerating the route registrations mechanically rather than counting by hand. The extra 13 over the design are reactivate/reopen counterparts, reference-count endpoints and `/members/me`, `/members/assignable`, `/projects/open` — all needed to make the refusal rules actionable rather than dead ends.
+
+### Step 26 — Final Verification ✅
+Every item below was executed, not asserted. Output recorded in `audit.md`.
+
+- [x] `npm run build` succeeds in both workspaces — backend emits `dist/src/server.js` + `dist/migrations/*.js` with **no tests in `dist`**; frontend emits 291 kB JS / 16.8 kB CSS
+- [x] `npx tsc --noEmit` clean in both workspaces (exit 0 each)
+- [x] `npm test` — **backend 387 passed / 17 suites** with PostgreSQL 16; **frontend 63 passed / 5 suites**. **450 tests, 0 failures.** Without `TEST_DATABASE_URL` the backend reports 296 passed + 91 skipped, and skipped is reported as skipped — never as passing.
+- [x] All 30 story checkboxes marked `[x]` (§1)
+- [x] No application code under `aidlc-docs/` — `find` for `.ts`/`.tsx`/`.js` returns **0 files**
+- [x] No secret in any committed file — `.env` is git-ignored and uncommitted; every secret-bearing key in `.env.example` is empty; a scan for the five development passwords used during this build found **one** hit, `ADMIN_PASSWORD` in `api.test.ts`, which is a **test fixture** for accounts that exist only in a throwaway database, not a secret. Stated precisely rather than claimed as zero.
+- [x] Mark every step in this plan `[x]`
+
+**A documentation defect found while doing this**: Steps 9, 10, 19 and 20 each appeared **twice** in this plan — my completed version plus a stale un-ticked original, because earlier edits inserted new step text while replacing a preceding step's block. Four duplicate sections removed. Found by counting the remaining `- [ ]` items and reading every one rather than assuming they were all genuinely outstanding.
 
 ---
 

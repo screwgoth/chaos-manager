@@ -586,3 +586,43 @@ The replacement forces the interleaving explicitly: transaction A takes the lock
 **Next step**: Step 22 — frontend summary document.
 
 ---
+
+## Code Generation Part 2 — Steps 22-26 COMPLETE: Unit 1 `core-domain` finished
+**Timestamp**: 2026-07-26T09:40:00Z
+**User Input**: "Continue to Steps 22 to 26"
+**AI Response**: "Completed the frontend summary (22), first-run bootstrap seed (23), deployment artifacts (24), documentation (25) and final verification (26). All 26 plan steps are now complete. Verified by execution: both workspaces typecheck and build; 450 tests pass with 0 failures; the Docker image builds and the container works end to end; compose publishes only 80/443; the seed is idempotent across two starts; no application code lives under aidlc-docs/; no secret is committed."
+**Context**: CONSTRUCTION phase, Unit 1 `core-domain`, Steps 22-26 of 26, branch `aidlc/construction-core-domain`.
+
+**Delivered**: `frontend-summary.md`, `shared/repository/seed.ts` (+ wired into startup), `Dockerfile`, `docker-compose.yml`, `docker/Caddyfile`, `.dockerignore`, a full `README.md`, `api-documentation.md`, `code-generation-summary.md`.
+
+**Verification actually run** (each command executed, output observed):
+- backend `npx tsc --noEmit` → exit 0; frontend `npx tsc --noEmit` → exit 0
+- backend `npm run build` → OK (`dist/src/server.js`, `dist/migrations/001_initial_schema.js`, and confirmed **no** `dist/tests`); frontend `npm run build` → 291.14 kB JS / 16.81 kB CSS
+- backend `npm test` with TEST_DATABASE_URL → **387 passed / 17 suites**; without → 296 passed + 91 skipped
+- frontend `npm test` → **63 passed / 5 suites**. Total **450 tests, 0 failures**
+- `docker build` → succeeds, **310 MB**; `id` inside the image → uid 1000(node); `tsc`/`vite`/`jest` → none present; `dist/migrations/001_initial_schema.js` and `public/index.html` present
+- container run with a published port → `/health` `{"status":"ok","database":true}`, `GET /` 200, `GET /members` 200 (SPA fallback), admin login returned the user and scope, seeded ROLE list readable via the API, and the exact compose healthcheck command exited 0 inside the container
+- `docker compose config` → valid; published ports = **only 80 and 443**; `app` and `db` have no `ports` section
+- seed idempotency → two consecutive starts against a fresh database: first logged both notices and produced 1 org unit / 7 reference entries / 1 account; second logged neither and changed nothing
+- `find aidlc-docs -name '*.ts' -o -name '*.tsx' -o -name '*.js'` → **0 files**
+- secrets → `.env` git-ignored and uncommitted; secret keys in `.env.example` all empty; scan for five development passwords found ONE hit, a test fixture in `api.test.ts`
+
+**THREE DEFECTS FOUND IN THESE STEPS, all by running things rather than reading them.**
+
+1. **`@testing-library/user-event` was in `node_modules` but NOT declared in `package.json`.** The earlier `npm install -D` did not persist to the manifest, so local tests passed while a fresh clone or clean build would fail. Found by `docker build`, which is the first thing in this project to install dependencies from the manifest alone. Declared properly and the lockfile updated.
+2. **The production `tsc -b` was typechecking test files**, coupling the release build to devDependencies — which is why defect 1 broke the *image* build rather than only the test run. Tests excluded from the build tsconfig. Tradeoff recorded: `tsc --noEmit` no longer covers test files; ts-jest typechecks them at run time instead.
+3. **Steps 9, 10, 19 and 20 each appeared TWICE in the code generation plan** — my completed version plus a stale un-ticked original, because earlier edits inserted new step text while replacing a preceding step's block. Found by counting the remaining `- [ ]` items and reading every one rather than assuming they were genuinely outstanding. Four duplicate sections removed.
+
+**Also**: removed the `# syntax=docker/dockerfile:1` directive after it failed with a registry 403 in this environment; no BuildKit-specific syntax is used, so the built-in parser is equivalent.
+
+**COUNT CORRECTION, recorded because I have made count errors in this project before**: the endpoint total is **50** (49 under `/api` plus `/health`), not the 37 the design specified nor the 47 a Step 15 summary claimed. The figure was produced by enumerating route registrations mechanically. The 13 additions over the design are reactivate/reopen counterparts, reference-count endpoints, and `/members/me`, `/members/assignable`, `/projects/open` — needed to make the refusal rules actionable.
+
+**FR-C-01 discipline in the seed**: starter roles are Team Member / Team Lead / Manager / Specialist and project types are Project / Internal Initiative / Support. Nothing mentions sprints, tickets, deals or shifts. Skills are deliberately NOT seeded, because a skill list is entirely organisation-specific and any guess would be wrong for most teams — the member form already handles a missing skill (BR-M-11), which is a better first encounter than a misleading list.
+
+**LARGEST OPEN RISK, restated**: no screen has been visually verified. Playwright has no Chromium in this environment. The SPA typechecks, builds, is unit-tested and is served correctly by the production container, but nobody has looked at it. Layout, spacing and colour rendering are unchecked, and the AllocationBar overflow treatment is asserted by CSS class and accessible text rather than appearance.
+
+**Unit 1 `core-domain` totals**: 133 files, 24,220 lines (excluding lockfiles), 450 tests, 50 endpoints, 30 stories, 17 defects found and fixed during generation.
+
+**Next stage**: Unit 2 `supporting-platform` — Functional Design → NFR Requirements → Infrastructure Design → Code Generation. Then Build and Test, once, after both units.
+
+---
