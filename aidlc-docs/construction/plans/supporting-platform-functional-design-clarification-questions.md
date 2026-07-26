@@ -44,7 +44,7 @@ scope). Confidentiality is weaker but the write boundary is tight.
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: A
 
 ---
 
@@ -82,7 +82,7 @@ restrictive, and makes org-scope enforcement meaningful for two roles rather tha
 
 D) Other (please describe after [Answer]: tag below)
 
-[Answer]:
+[Answer]: B
 
 ---
 

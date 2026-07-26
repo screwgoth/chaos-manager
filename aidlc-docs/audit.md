@@ -652,3 +652,34 @@ Consequence: Unit 1's stated story count of 30 is understated by two, and Unit 2
 **Four items recorded without a question** (stated so nothing is implicit): (1) Q7:A downgrades Must requirement FR-I-01 — CSV-only will be recorded as PARTIALLY satisfied with Excel deferred, not as complete; (2) Q5:A's fail-closed NULL-home-org-unit rule is meaningful only for TEAM_LEAD under Q2:C; (3) Q1:A means RolePermission is not a database entity, so Unit 2 owns NO database entity and needs no migration — unit-of-work.md to be corrected; (4) Q10:A means a bulk import leaves no persisted audit trail, accepted as a Phase 2 revisit.
 
 ---
+## Construction — Unit 2 `supporting-platform` — Functional Design (Part 2: Artifacts generated)
+**Timestamp**: 2026-07-26T14:15:00Z
+**User Input**: "Answered"
+**AI Response**: "Read both clarification answers: CQ1:A (Q3:C wins — full visibility for an in-scope member's out-of-scope-project assignments; Q4:A's redaction is superseded and will NOT be built) and CQ2:B (Resource Manager is root-wide only when attached to a root org unit; FR-R-07 and FR-R-03 are NOT amended). Re-validated the full answer set: no remaining contradictions. Generated all 4 functional design artifacts, ticked 34/34 plan steps, and applied the artifact corrections Q15:A authorised."
+**Context**: CONSTRUCTION phase, Unit 2 of 2, Functional Design Part 2 complete; awaiting explicit user approval before NFR Requirements.
+
+**Artifacts created** at `aidlc-docs/construction/supporting-platform/functional-design/`:
+- `business-rules.md` — BR-R-05 and BR-R-07 change status from unenforced to ENFORCED (the X-1 resolution); 11 new BR-R rules; 7 new BR-L linkage rules; 27 new BR-IM import rules; a section on rules deliberately NOT added.
+- `domain-entities.md` — Unit 2 owns NO database entity; the 80-cell permission matrix; the member and project column contracts; corrections to approved artifacts.
+- `business-logic-model.md` — scope resolution algorithm; the 22-row enforcement point enumeration (R2 obligation 4); the worked example and its counter-example; the 5-phase import pipeline; the exact X-1 replacement procedure with its verification table; the client-agnostic API check (R2 obligation 5); 7 open gaps carried forward.
+- `frontend-components.md` — 5 new screens, 2 modified; role-conditional rendering stated as courtesy not control; 7 things deliberately not built; 9 testing obligations.
+
+**R2 folded-in obligations discharged**: obligation 4 (server-side authorization enforcement points) via the 22-row enumeration in business-logic-model.md §3, which lists every data-egress path and its enforcing mechanism, plus the stated invariant that no route handler builds a ScopeFilter. Obligation 5 (client-agnostic API boundary, US-ENB-04) via the 7-property verification in §8; the multipart upload and text/csv template are the only departures from Unit 1's all-JSON surface and both are justified in place.
+
+**Corrections applied to approved artifacts (authorised by Q15:A)**:
+- `unit-of-work.md`: Unit 2 "Database entities owned" corrected from "`RolePermission` (configuration)" to "owns NO database entity, requires NO migration" (Q1:A). Unit 1 story count 30→32; Unit 2 13→11.
+- `aidlc-state.md`: unit story count table corrected to 32 / 11.
+- `core-domain/code/code-generation-summary.md` §8: 30→32 stories, crediting US-ASN-04 and US-VIS-05 to Unit 1 with the reason (allocation component by-product), and naming the three stories that have backend endpoints but no consuming screen.
+- `requirements.md`: FR-I-01 annotated as ⚠️ PARTIALLY SATISFIED with a note explaining CSV-only, that the requirement is NOT amended and remains Must, and that the gap is recorded rather than counted as delivered.
+
+**Design decisions worth recording beyond the answers themselves**:
+1. BR-R-13 — scope selects which MEMBERS are visible and must never reduce a visible member's allocation total. The tempting wrong implementation filters assignments then sums, reporting "80% booked, 20% free" for a member at 130% — free capacity on someone who has none, the exact failure the application exists to prevent. Flagged as the rule most likely to be got wrong, with a counter-example in business-logic-model.md §4 and a mandatory test.
+2. BR-R-11 — a NULL home_org_unit_id resolves to an EMPTY org list, never 'ALL'. A naive "IS NULL means no filter" would grant a misconfigured account everything. Same trap Unit 1 already hit and documented for the unlinked TEAM_MEMBER.
+3. BR-R-09 — a rooted RESOURCE_MANAGER gets 'ALL', not subtree(root); the two differ once a second root unit exists.
+4. Derived consequence of Q3:C recorded rather than left to be discovered: a TEAM_LEAD can learn the names of members OUTSIDE their org unit when those members are staffed on projects their unit owns. Bounded to that case. Judged the right price — you cannot staff a project you own without seeing who is on it.
+5. The X-1 verification table marks which enforcement tests must FAIL against the stand-in and which are merely regression tests, applying the method Unit 1 adopted after the BR-A-24 false positive. Labelling an already-enforced rule as proof of the X-1 fix would be a false claim about what was verified.
+6. One legitimate exception to "no Unit 1 caller changes": `shared/repository/assignment-repository.ts` scopePredicates must widen from member-org-only to member OR project (BR-R-12), and its existing comment justifying member-only scoping must be rewritten rather than left contradicting the code.
+7. Import writes through Unit 1's components inside a transaction via `createRepositories(tx)` — the seam already exists because Unit 1 put transaction boundaries in the service layer. No Unit 1 code changes for import.
+8. BR-IM-04 — unknown import columns are ignored and named in a notice. This is what keeps BR-M-09 safe: a day_rate or po_number column has no field to land in, and the admin is told it was dropped rather than assuming it imported.
+
+---

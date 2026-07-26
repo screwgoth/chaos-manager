@@ -39,57 +39,59 @@ See **Question 15** for how you want the already-complete stories recorded.
 
 ## 1. Plan Steps
 
+**All steps complete 2026-07-26.** Answers applied: Q1:A, Q2→**CQ2:B**, Q3:C, Q4→**superseded by CQ1:A**, Q5:A, Q6:A, Q7:A, Q8:A, Q9:A, Q10:A, Q11:A, Q12:A, Q13:A, Q14:A, Q15:A.
+
 ### Part A — Authorization (C-09, S-02) — the X-1 resolution
 
-- [ ] A1. Define the role → permission matrix for all 5 roles × 8 `ResourceKind` values × read/write
-- [ ] A2. Define org-scope resolution: session identity → `AccessScope` (two-level org unit subtree)
-- [ ] A3. Define `AccessScope` → `ScopeFilter` derivation per role, including fail-closed cases
-- [ ] A4. Define the governing org unit for each resource kind (member, project, assignment, allocation)
-- [ ] A5. Define allocation-total behaviour when a member has assignments outside the caller's scope
-- [ ] A6. Define the 404-vs-403 rule for out-of-scope records (Unit 1 chose 404; confirm it holds)
-- [ ] A7. Specify the stand-in deletion procedure and the "no Unit 1 caller changed" verification
-- [ ] A8. Specify `RolePermission` persistence (or its deliberate absence) and any migration needed
+- [x] A1. Define the role → permission matrix for all 5 roles × 8 `ResourceKind` values × read/write
+- [x] A2. Define org-scope resolution: session identity → `AccessScope` (two-level org unit subtree)
+- [x] A3. Define `AccessScope` → `ScopeFilter` derivation per role, including fail-closed cases
+- [x] A4. Define the governing org unit for each resource kind (member, project, assignment, allocation)
+- [x] A5. Define allocation-total behaviour when a member has assignments outside the caller's scope
+- [x] A6. Define the 404-vs-403 rule for out-of-scope records (Unit 1 chose 404; confirm it holds)
+- [x] A7. Specify the stand-in deletion procedure and the "no Unit 1 caller changed" verification
+- [x] A8. Specify `RolePermission` persistence (or its deliberate absence) and any migration needed
 
 ### Part B — Account-to-member linkage (US-ACC-04)
 
-- [ ] B1. Define link, relink and unlink rules, including the one-account-per-member constraint
-- [ ] B2. Define the interaction between `linked_member_id`, `home_org_unit_id` and `ownMemberId`
-- [ ] B3. Define what a TEAM_MEMBER account with no link can and cannot do (currently refused)
+- [x] B1. Define link, relink and unlink rules, including the one-account-per-member constraint
+- [x] B2. Define the interaction between `linked_member_id`, `home_org_unit_id` and `ownMemberId`
+- [x] B3. Define what a TEAM_MEMBER account with no link can and cannot do (currently refused)
 
 ### Part C — Import (C-10, S-09)
 
-- [ ] C1. Define accepted file formats, encoding, size and row limits
-- [ ] C2. Define the member column contract and the project column contract
-- [ ] C3. Define natural keys and duplicate detection, including in-file duplicates
-- [ ] C4. Define per-row validation reusing Unit 1's business rules rather than restating them
-- [ ] C5. Define reference-data resolution by name and the unmatched-value report
-- [ ] C6. Define transaction granularity and the partial-success guarantee
-- [ ] C7. Define the result report structure — counts, per-row errors, per-row conflicts
-- [ ] C8. Define the template contract (US-IMP-05) and its coupling to C2
-- [ ] C9. Define who may import, and the org scope applied to imported rows
-- [ ] C10. Define logging obligations — row counts and failure reasons, **never row contents**
+- [x] C1. Define accepted file formats, encoding, size and row limits
+- [x] C2. Define the member column contract and the project column contract
+- [x] C3. Define natural keys and duplicate detection, including in-file duplicates
+- [x] C4. Define per-row validation reusing Unit 1's business rules rather than restating them
+- [x] C5. Define reference-data resolution by name and the unmatched-value report
+- [x] C6. Define transaction granularity and the partial-success guarantee
+- [x] C7. Define the result report structure — counts, per-row errors, per-row conflicts
+- [x] C8. Define the template contract (US-IMP-05) and its coupling to C2
+- [x] C9. Define who may import, and the org scope applied to imported rows
+- [x] C10. Define logging obligations — row counts and failure reasons, **never row contents**
 
 ### Part D — Frontend (F-07 import + three Should extensions)
 
-- [ ] D1. Import screen: upload, progress, result report, template download
-- [ ] D2. Bench screen (US-VIS-06) — consumes the existing endpoint
-- [ ] D3. Over-allocated review list (US-VIS-07) — beyond the existing banner
-- [ ] D4. Expiring-contracts surface (US-MEM-06)
-- [ ] D5. Define role-conditional UI rendering, and state that it is presentation only, never the control
+- [x] D1. Import screen: upload, progress, result report, template download
+- [x] D2. Bench screen (US-VIS-06) — consumes the existing endpoint
+- [x] D3. Over-allocated review list (US-VIS-07) — beyond the existing banner
+- [x] D4. Expiring-contracts surface (US-MEM-06)
+- [x] D5. Define role-conditional UI rendering, and state that it is presentation only, never the control
 
 ### Part E — Cross-cutting obligations
 
-- [ ] E1. R2 obligation 4: enumerate every enforcement point and prove none is bypassable
-- [ ] E2. R2 obligation 5: verify Unit 2's endpoints uphold the client-agnostic API invariant (US-ENB-04)
-- [ ] E3. Confirm FR-C-01 vocabulary discipline in all new import and authorization vocabulary
-- [ ] E4. Confirm BR-M-09 — no contractor commercial field enters via import
+- [x] E1. R2 obligation 4: enumerate every enforcement point and prove none is bypassable
+- [x] E2. R2 obligation 5: verify Unit 2's endpoints uphold the client-agnostic API invariant (US-ENB-04)
+- [x] E3. Confirm FR-C-01 vocabulary discipline in all new import and authorization vocabulary
+- [x] E4. Confirm BR-M-09 — no contractor commercial field enters via import
 
 ### Part F — Artifact generation
 
-- [ ] F1. `business-logic-model.md`
-- [ ] F2. `business-rules.md`
-- [ ] F3. `domain-entities.md`
-- [ ] F4. `frontend-components.md`
+- [x] F1. `business-logic-model.md`
+- [x] F2. `business-rules.md`
+- [x] F3. `domain-entities.md`
+- [x] F4. `frontend-components.md`
 
 ---
 

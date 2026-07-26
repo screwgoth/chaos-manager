@@ -180,8 +180,19 @@ All three deliberate and recorded, not silently applied.
 
 ## 8. Story coverage
 
-All 30 stories assigned to this unit are implemented end to end — domain rule, API endpoint, and
+**32 stories** are implemented end to end (corrected 2026-07-26 at Unit 2 Functional Design, Q15:A —
+this section previously said 30). All stories assigned to this unit are implemented end to end — domain rule, API endpoint, and
 screen. Marked `[x]` in the code generation plan §1.
 
 `US-ACC-01/02/03` · `US-MEM-01/02/03/04/05/07` · `US-PRJ-01/02/03/04/05` ·
 `US-ASN-01/02/03/05/06/07` · `US-VIS-01/02/03/04` · `US-ADM-01/02/03` · `US-ENB-02/03/04`
+
+Plus two stories **originally assigned to Unit 2** that this unit in fact completed, because the
+allocation component produced them as a by-product:
+
+- **US-ASN-04** — role on a project. Schema column, service validation, and the form field.
+- **US-VIS-05** — member assignment timeline. Endpoint plus the segment strip on the member detail page.
+
+Three further Unit 2 stories have tested backend endpoints here but **no consuming screen**, so they
+remain Unit 2 work: US-VIS-06 (bench), US-VIS-07 (over-allocated review), US-MEM-06 (expiring
+contracts). Recorded so the two units' story counts reconcile against what was actually built.

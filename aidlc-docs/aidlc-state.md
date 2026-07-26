@@ -4,7 +4,7 @@
 - **Project Name**: chaos-manager (C.H.A.O.S — Centralized Hub for Aligning Organizational Squads)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-25T08:32:00Z
-- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` Functional Design **Part 1 (Planning) — awaiting answers to 15 questions** in `aidlc-docs/construction/plans/supporting-platform-functional-design-plan.md`. Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
+- **Current Stage**: CONSTRUCTION - Unit 2 `supporting-platform` Functional Design **COMPLETE, awaiting user approval** (4 artifacts generated; 15 questions + 2 clarifications answered; R2 obligations 4 and 5 discharged). Unit 1 `core-domain` COMPLETE (all 26 code generation steps verified).
 
 ## Workspace State
 - **Existing Code**: No at detection; a complete application now exists under `backend/`, `frontend/` and `docker/`
@@ -56,8 +56,8 @@ requirements independent of the disabled security extension.
 ## Units of Work
 | # | Unit name | Stories | Must | Should | Slice 1 | Demonstrable alone |
 |---|---|---|---|---|---|---|
-| 1 | `core-domain` | 30 | 29 | 1 | All 6 | Yes |
-| 2 | `supporting-platform` | 13 | 6 | 7 | 0 | No — by design |
+| 1 | `core-domain` | **32** | 29 | **3** | All 6 | Yes |
+| 2 | `supporting-platform` | **11** | 6 | **5** | 0 | No — by design |
 
 - **Deployment**: single deployable monolith; units are logical modules
 - **Code layout**: `backend/src/{unit-name}/`, `backend/tests/{unit-name}/`, `frontend/src/{unit-name}/`, plus a `shared/` module in each tree
@@ -75,8 +75,13 @@ requirements independent of the disabled security extension.
 **🟢 UNIT 1 `core-domain` COMPLETE** — 133 files, 24,220 lines, 450 tests, 50 endpoints, 30 stories.
 
 ### 🟢 CONSTRUCTION PHASE — Unit 2: `supporting-platform`
-- [ ] Functional Design — **IN PROGRESS** (+ R2 folded-in obligations 4, 5). Branch `aidlc/construction-supporting-platform`. Part 1 plan created 2026-07-26 with 15 questions; awaiting user answers before Part 2 artifact generation.
-  - ⚠️ **Scope reconciliation finding**: verification against Unit 1's shipped code (not its stated scope) shows Unit 1 incidentally **completed** US-ASN-04 and US-VIS-05, and shipped backend-only for US-VIS-06, US-VIS-07 and US-MEM-06. Unit 2's real burden is authorization + import. Question 15 asks how to record this; Unit 1's story count of 30 is understated by two pending that answer.
+- [ ] Functional Design — **ARTIFACTS COMPLETE 2026-07-26, AWAITING APPROVAL** (+ R2 folded-in obligations 4, 5 both discharged). Branch `aidlc/construction-supporting-platform`. 34/34 plan steps ticked. 4 artifacts at `aidlc-docs/construction/supporting-platform/functional-design/`.
+  - **Decisions**: Q1:A code-constant permission matrix · Q2→**CQ2:B** Resource Manager root-wide only when attached to a root org unit (FR-R-07 **not** amended) · Q3:C assignment in scope via member **OR** project · Q4→**superseded by CQ1:A** (no redaction; full visibility) · Q5:A fail closed on NULL home org unit · Q6:A no assignment-request mechanism · Q7:A CSV only · Q8:A external_ref else email · Q9:A one transaction for all valid rows · Q10:A response-only report · Q11:A never create reference data · Q12:A Admin-only import · Q13:A 2,000 rows / 5 MB synchronous · Q14:A three dedicated pages · Q15:A correct the story counts
+  - **Two contradictions were detected and resolved before design, not absorbed**: Q3:C vs Q4:A were mutually exclusive (Q4:A's redaction would have been unreachable code); Q2:C conflicted with approved Must requirement FR-R-07. See `supporting-platform-functional-design-clarification-questions.md`.
+  - ✅ **Scope reconciliation applied**: Unit 1 incidentally completed US-ASN-04 and US-VIS-05. Story counts corrected 30→32 (Unit 1) and 13→11 (Unit 2) in `unit-of-work.md`, `aidlc-state.md` and Unit 1's `code-generation-summary.md`. US-VIS-06, US-VIS-07, US-MEM-06 need **frontend only**.
+  - ✅ **Unit 2 owns NO database entity and needs NO migration** (Q1:A + Q10:A remove both candidates). `001_initial_schema.ts` is the final Phase 1 schema.
+  - ⚠️ **FR-I-01 recorded as PARTIALLY SATISFIED** — CSV yes, Excel deferred (Q7:A). Annotated in `requirements.md`. The first Must requirement in the project not fully delivered; recorded as a visible gap rather than counted as complete.
+  - ⚠️ **No import audit trail** (Q10:A) — a 2,000-row bulk write leaves only log counts and failure reasons, never row contents. Accepted Phase 2 revisit.
 - [ ] NFR Requirements — EXECUTE
 - [ ] NFR Design — SKIPPED (R2)
 - [ ] Infrastructure Design — EXECUTE

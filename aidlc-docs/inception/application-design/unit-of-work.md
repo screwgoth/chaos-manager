@@ -61,7 +61,13 @@ the highest-risk code in the project and benefits from being built while attenti
 
 ### Stories
 
-30 stories — 29 Must, 1 Should. Full list in `unit-of-work-story-map.md`.
+**32 stories — 29 Must, 3 Should** (corrected 2026-07-26 at Unit 2 Functional Design, Q15:A). Full list
+in `unit-of-work-story-map.md`.
+
+Originally scoped at 30. Verification against shipped code found that Unit 1 also completed
+**US-ASN-04** (project role on assignment) and **US-VIS-05** (member assignment timeline), both
+originally assigned to Unit 2 — the allocation component produced them as a by-product. They are
+credited here rather than left claimed by a unit that did not build them.
 **Contains all six Slice 1 stories**: US-ACC-01, US-ENB-02, US-MEM-01, US-PRJ-01, US-ASN-01, US-VIS-01.
 
 ### Independently demonstrable
@@ -101,7 +107,12 @@ Should-priority refinements.
 
 ### Database entities owned
 
-`RolePermission` (configuration). Unit 2 **writes** Unit 1's entities through Unit 1's published
+**CORRECTED 2026-07-26 at Unit 2 Functional Design (Q1:A)**: ~~`RolePermission` (configuration)~~ →
+**Unit 2 owns NO database entity and requires NO migration.** The role→permission matrix is a code
+constant (BR-R-14), and per Q10:A no `ImportRun` record is persisted. `001_initial_schema.ts` is
+therefore the final Phase 1 schema.
+
+Unit 2 **writes** Unit 1's entities through Unit 1's published
 interfaces; it does not own them.
 
 ### Interfaces consumed from Unit 1
@@ -114,7 +125,12 @@ interfaces; it does not own them.
 
 ### Stories
 
-13 stories — 6 Must, 7 Should. Full list in `unit-of-work-story-map.md`.
+**11 stories outstanding — 6 Must, 5 Should** (corrected 2026-07-26, Q15:A). Full list in
+`unit-of-work-story-map.md`.
+
+Originally 13. **US-ASN-04 and US-VIS-05 were completed during Unit 1** and are credited there. Of the
+5 remaining Should stories, three (US-VIS-06, US-VIS-07, US-MEM-06) already have tested backend
+endpoints and need **frontend only**. Unit 2's genuine design burden is authorization and import.
 
 ### Independently demonstrable
 

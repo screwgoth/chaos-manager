@@ -182,11 +182,17 @@ A manager can answer **"who is available next month?"** in under a minute.
 
 | ID | Requirement | Priority |
 |---|---|---|
-| FR-I-01 | The system shall accept CSV/Excel uploads for members and projects. (CQ3:A) | Must |
+| FR-I-01 | The system shall accept CSV/Excel uploads for members and projects. (CQ3:A) | Must — ⚠️ **PARTIALLY SATISFIED**: see note below |
 | FR-I-02 | Import shall validate each row and report failures per row with a reason, without aborting valid rows. | Must |
 | FR-I-03 | Import shall provide a downloadable template describing expected columns. | Should |
 | FR-I-04 | Import shall not create duplicate records where a natural key (e.g. employee ID, project code) already exists; such rows shall be reported as conflicts. | Must |
 | FR-I-05 | Historical allocation migration is **not** required. (Q22:B) | N/A |
+
+> ⚠️ **FR-I-01 deviation, recorded 2026-07-26 at Unit 2 Functional Design (Q7:A).** Phase 1 accepts
+> **CSV only**. Excel (`.xlsx`) is deferred to avoid a spreadsheet-parsing dependency and its file-handling
+> surface. An Excel upload is refused with a message telling the user to save as CSV. The requirement is
+> **not amended** and remains Must — it is recorded as partially satisfied so the gap stays visible
+> rather than being counted as delivered. FR-I-02, FR-I-03 and FR-I-04 are unaffected.
 
 ---
 
