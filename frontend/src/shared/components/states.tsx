@@ -19,11 +19,11 @@ export function EmptyState({
 }): JSX.Element {
   return (
     <div
-      className="rounded border border-dashed border-slate-300 px-6 py-10 text-center"
+      className="rounded-card border border-dashed border-line-strong bg-white/60 px-6 py-10 text-center"
       data-testid={testId}
     >
-      <p className="text-sm font-medium text-slate-700">{message}</p>
-      {hint ? <p className="mt-1 text-sm text-slate-500">{hint}</p> : null}
+      <p className="text-[13.5px] font-medium text-ink">{message}</p>
+      {hint ? <p className="mt-1 text-[13px] text-faded">{hint}</p> : null}
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
     </div>
   );
@@ -48,16 +48,16 @@ export function ErrorState({
 
   return (
     <div
-      className="rounded border border-allocation-over/30 bg-allocation-over/5 px-4 py-3"
+      className="rounded-card border border-allocation-over/25 bg-allocation-over/[.06] px-4 py-3"
       role="alert"
       data-testid="error-state"
     >
-      <p className="text-sm text-allocation-over">{message}</p>
+      <p className="text-[13px] text-danger-700">{message}</p>
       {onRetry ? (
         <button
           type="button"
           onClick={onRetry}
-          className="mt-2 text-sm font-medium text-slate-700 underline hover:no-underline"
+          className="mt-2 text-[13px] font-semibold text-brand-600 underline hover:no-underline"
         >
           Try again
         </button>
@@ -68,7 +68,7 @@ export function ErrorState({
 
 export function LoadingState({ label = 'Loading' }: { label?: string }): JSX.Element {
   return (
-    <div className="px-4 py-10 text-center text-sm text-slate-500" data-testid="loading-state">
+    <div className="px-4 py-10 text-center text-[13px] text-faded" data-testid="loading-state">
       {label}…
     </div>
   );

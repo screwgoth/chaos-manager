@@ -125,11 +125,11 @@ export function MemberFormPage(): JSX.Element {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="mb-5 text-xl font-semibold tracking-tight text-slate-900">
+      <h1 className="mb-5 text-[19px] font-semibold leading-tight text-ink">
         {editing ? 'Edit person' : 'Add person'}
       </h1>
 
-      <form onSubmit={onSubmit} noValidate className="rounded border border-slate-200 bg-white p-6">
+      <form onSubmit={onSubmit} noValidate className="rounded-card bg-white shadow-card p-6">
         <FormErrors error={error} />
 
         <Field label="Full name" htmlFor="fullName" required>
@@ -251,11 +251,11 @@ function ContractFieldset({
 }): JSX.Element {
   return (
     <fieldset
-      className="mb-4 rounded border border-slate-200 bg-slate-50 p-4"
+      className="mb-4 rounded-card border border-line bg-canvas p-4"
       data-testid="contract-fieldset"
     >
-      <legend className="px-1 text-sm font-medium text-slate-700">Contract</legend>
-      <p className="mb-3 text-xs text-slate-500">
+      <legend className="px-1 text-sm font-medium text-ink">Contract</legend>
+      <p className="mb-3 text-xs text-faded">
         Required for off-roll people. Commercial terms are not held in C.H.A.O.S.
       </p>
 
@@ -338,21 +338,21 @@ function SkillTagEditor({
     <Field label="Skills" hint="Chosen from the managed skill list.">
       <div className="mb-2 flex flex-wrap gap-2" data-testid="skill-tags">
         {selected.length === 0 ? (
-          <span className="text-sm text-slate-500">None yet.</span>
+          <span className="text-sm text-faded">None yet.</span>
         ) : (
           selected.map((skillId) => {
             const skill = skills?.find((entry) => entry.id === skillId);
             return (
               <span
                 key={skillId}
-                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-700"
+                className="inline-flex items-center gap-1 rounded-full bg-line-soft px-2.5 py-1 text-xs text-ink"
                 data-testid={`skill-tag-${skillId}`}
               >
                 {skill?.name ?? skillId}
                 <button
                   type="button"
                   onClick={() => onChange(selected.filter((id) => id !== skillId))}
-                  className="text-slate-500 hover:text-allocation-over"
+                  className="text-faded hover:text-allocation-over"
                   aria-label={`Remove ${skill?.name ?? 'skill'}`}
                 >
                   ×

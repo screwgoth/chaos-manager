@@ -69,14 +69,14 @@ export function OrgUnitPage(): JSX.Element {
   return (
     <div className="max-w-3xl">
       <div className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">Org units</h1>
-        <p className="mt-0.5 text-sm text-slate-500">
+        <h1 className="text-[19px] font-semibold leading-tight text-ink">Org units</h1>
+        <p className="mt-0.5 text-sm text-faded">
           Departments contain teams. Two levels, no deeper.
         </p>
       </div>
 
       <form
-        className="mb-6 rounded border border-slate-200 bg-white p-4"
+        className="mb-6 rounded-card bg-white shadow-card p-4"
         onSubmit={(event) => {
           event.preventDefault();
           void create
@@ -166,13 +166,13 @@ export function OrgUnitPage(): JSX.Element {
             </>
           }
         >
-          <p className="text-sm text-slate-700">It cannot be deleted while these point at it:</p>
-          <ul className="mt-2 space-y-1 text-sm text-slate-700">
+          <p className="text-sm text-ink">It cannot be deleted while these point at it:</p>
+          <ul className="mt-2 space-y-1 text-sm text-ink">
             <li>{blocked.result.blockedBy?.memberCount ?? 0} people</li>
             <li>{blocked.result.blockedBy?.projectCount ?? 0} projects</li>
             <li>{blocked.result.blockedBy?.childOrgUnitCount ?? 0} teams inside it</li>
           </ul>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-ink-muted">
             Move them elsewhere first, or deactivate the unit so it stops appearing in new
             selections.
           </p>
@@ -195,7 +195,7 @@ function OrgUnitTree({
 }): JSX.Element {
   if (nodes.length === 0) {
     return (
-      <p className="rounded border border-dashed border-slate-300 px-6 py-8 text-center text-sm text-slate-600">
+      <p className="rounded-card border border-dashed border-line-strong px-6 py-8 text-center text-sm text-ink-muted">
         No org units yet. Add a department above to begin.
       </p>
     );
@@ -206,7 +206,7 @@ function OrgUnitTree({
       {nodes.map((node) => (
         <li
           key={node.orgUnit.id}
-          className="rounded border border-slate-200 bg-white p-4"
+          className="rounded-card bg-white shadow-card p-4"
           data-testid={`org-unit-${node.orgUnit.id}`}
         >
           <OrgUnitRow
@@ -219,7 +219,7 @@ function OrgUnitTree({
 
           {/* Depth stops here, always: a team cannot parent another unit (BR-O-01). */}
           {node.children.length > 0 ? (
-            <ul className="mt-3 space-y-2 border-l border-slate-200 pl-4">
+            <ul className="mt-3 space-y-2 border-l border-line pl-4">
               {node.children.map((child) => (
                 <li key={child.orgUnit.id} data-testid={`org-unit-${child.orgUnit.id}`}>
                   <OrgUnitRow
@@ -233,7 +233,7 @@ function OrgUnitTree({
               ))}
             </ul>
           ) : (
-            <p className="mt-2 pl-4 text-xs text-slate-400">No teams inside it yet.</p>
+            <p className="mt-2 pl-4 text-xs text-faded-soft">No teams inside it yet.</p>
           )}
         </li>
       ))}
@@ -257,12 +257,12 @@ function OrgUnitRow({
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div>
-        <span className={unit.isActive ? 'font-medium text-slate-900' : 'text-slate-500'}>
+        <span className={unit.isActive ? 'font-medium text-ink' : 'text-faded'}>
           {unit.name}
         </span>
-        <span className="ml-2 text-xs uppercase tracking-wide text-slate-400">{kind}</span>
+        <span className="ml-2 text-xs uppercase tracking-wide text-faded-soft">{kind}</span>
         {!unit.isActive ? (
-          <span className="ml-2 text-xs font-medium text-slate-500">Deactivated</span>
+          <span className="ml-2 text-xs font-medium text-faded">Deactivated</span>
         ) : null}
       </div>
 

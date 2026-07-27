@@ -79,7 +79,7 @@ export function ReferenceDataPage(): JSX.Element {
       key: 'name',
       header: 'Name',
       render: (entry) => (
-        <span className={entry.isActive ? 'text-slate-900' : 'text-slate-500'}>{entry.name}</span>
+        <span className={entry.isActive ? 'text-ink' : 'text-faded'}>{entry.name}</span>
       ),
     },
     {
@@ -87,9 +87,9 @@ export function ReferenceDataPage(): JSX.Element {
       header: 'Status',
       render: (entry) =>
         entry.isActive ? (
-          <span className="text-xs text-slate-600">In use</span>
+          <span className="text-xs text-ink-muted">In use</span>
         ) : (
-          <span className="text-xs font-medium text-slate-500">Retired</span>
+          <span className="text-xs font-medium text-faded">Retired</span>
         ),
     },
     {
@@ -129,8 +129,8 @@ export function ReferenceDataPage(): JSX.Element {
   return (
     <div className="max-w-3xl">
       <div className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">Lists</h1>
-        <p className="mt-0.5 text-sm text-slate-500">
+        <h1 className="text-[19px] font-semibold leading-tight text-ink">Lists</h1>
+        <p className="mt-0.5 text-sm text-faded">
           Roles, skills and project types. New entries are selectable immediately.
         </p>
       </div>
@@ -143,8 +143,8 @@ export function ReferenceDataPage(): JSX.Element {
             onClick={() => setType(candidate)}
             className={
               candidate === type
-                ? 'border-b-2 border-slate-900 pb-1 text-sm font-medium text-slate-900'
-                : 'pb-1 text-sm text-slate-600 hover:text-slate-900'
+                ? 'border-b-2 border-ink pb-1 text-sm font-medium text-ink'
+                : 'pb-1 text-sm text-ink-muted hover:text-ink'
             }
             data-testid={`tab-${candidate}`}
           >
@@ -153,7 +153,7 @@ export function ReferenceDataPage(): JSX.Element {
         ))}
       </div>
 
-      <p className="mb-4 text-sm text-slate-500">{TYPE_LABELS[type].hint}</p>
+      <p className="mb-4 text-sm text-faded">{TYPE_LABELS[type].hint}</p>
 
       <form
         className="mb-4 flex gap-2"
@@ -242,11 +242,11 @@ function RetireReferenceDialog({
         </>
       }
     >
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-ink">
         {referenceCount} record{referenceCount === 1 ? '' : 's'} still reference it, so it cannot be
         deleted.
       </p>
-      <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-2 text-sm text-ink-muted">
         Retiring it removes it from new selections while leaving those records untouched — they
         keep showing “{entry.name}”, and you can bring it back at any time.
       </p>

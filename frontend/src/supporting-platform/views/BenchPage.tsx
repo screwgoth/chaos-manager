@@ -48,7 +48,7 @@ export function BenchPage(): JSX.Element {
       key: 'name',
       header: 'Person',
       render: (row) => (
-        <Link className="font-medium text-sky-700 underline" to={`/members/${row.id}`}>
+        <Link className="font-medium text-brand-600 underline" to={`/members/${row.id}`}>
           {row.fullName}
         </Link>
       ),
@@ -63,10 +63,10 @@ export function BenchPage(): JSX.Element {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4 px-4 py-8">
+    <div className="space-y-4">
       <header>
-        <h1 className="text-lg font-semibold text-slate-900">Bench</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-[19px] font-semibold leading-tight text-ink">Bench</h1>
+        <p className="mt-1 text-sm text-ink-muted">
           People with nothing booked for any part of the selected period.
         </p>
       </header>
@@ -79,14 +79,14 @@ export function BenchPage(): JSX.Element {
         <ErrorState error={bench.error} />
       ) : (bench.data?.items ?? []).length === 0 ? (
         <p
-          className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
+          className="rounded-md border border-good-500/30 bg-good-500/[.08] px-4 py-3 text-sm text-good-700"
           data-testid="bench-empty"
         >
           Everyone has work booked in this period. Nobody is on the bench.
         </p>
       ) : (
         <>
-          <p className="text-sm text-slate-600" data-testid="bench-count">
+          <p className="text-sm text-ink-muted" data-testid="bench-count">
             {bench.data?.items.length} on the bench.
           </p>
           <DataTable

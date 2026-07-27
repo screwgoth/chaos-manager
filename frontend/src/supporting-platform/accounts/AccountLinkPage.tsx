@@ -82,7 +82,7 @@ export function AccountLinkPage(): JSX.Element {
       render: (row) =>
         row.linkedMember === null ? (
           // BR-L-07: a member with no account is a complete, normal state — not a warning.
-          <span className="text-slate-400">—</span>
+          <span className="text-faded-soft">—</span>
         ) : (
           <span data-testid={`account-link-${row.id}`}>{row.linkedMember.fullName}</span>
         ),
@@ -123,10 +123,10 @@ export function AccountLinkPage(): JSX.Element {
   const rows = accounts.data?.items ?? [];
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 px-4 py-8">
+    <div className="mx-auto max-w-5xl space-y-4 px-4 py-8">
       <header>
-        <h1 className="text-lg font-semibold text-slate-900">Accounts</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-[19px] font-semibold leading-tight text-ink">Accounts</h1>
+        <p className="mt-1 text-sm text-ink-muted">
           Link a login to the person it belongs to, so that person can see their own assignments. A
           person without a login is still tracked and assignable.
         </p>
@@ -206,7 +206,7 @@ export function AccountLinkPage(): JSX.Element {
         >
           {error !== null && <FormErrors error={error} />}
 
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-ink">
             {unlinking.linkedMember?.fullName} will no longer be connected to this login.
           </p>
 
@@ -217,7 +217,7 @@ export function AccountLinkPage(): JSX.Element {
            */}
           {unlinking.role === 'TEAM_MEMBER' && (
             <p
-              className="mt-3 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900"
+              className="mt-3 rounded-card border border-danger-500/30 bg-danger-500/[.06] px-3 py-2 text-sm text-danger-700"
               data-testid="account-unlink-warning"
             >
               This account will lose access to all data until it is linked again. A team member can

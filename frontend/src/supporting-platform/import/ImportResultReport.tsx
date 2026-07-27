@@ -25,14 +25,14 @@ function Section({
 }): JSX.Element {
   const border =
     tone === 'good'
-      ? 'border-emerald-200 bg-emerald-50'
+      ? 'border-good-500/30 bg-good-500/[.08]'
       : tone === 'warn'
-        ? 'border-amber-200 bg-amber-50'
-        : 'border-rose-200 bg-rose-50';
+        ? 'border-flag-400/45 bg-flag-400/[.12]'
+        : 'border-danger-500/30 bg-danger-500/[.06]';
   return (
     <section className={`rounded-md border px-4 py-3 ${border}`} data-testid={testId}>
-      <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-      <div className="mt-2 text-sm text-slate-700">{children}</div>
+      <h3 className="text-sm font-semibold text-ink">{title}</h3>
+      <div className="mt-2 text-sm text-ink">{children}</div>
     </section>
   );
 }
@@ -86,7 +86,7 @@ export function ImportResultReport({ result }: { result: ImportResult }): JSX.El
             <span className="font-medium">{result.ignoredColumns.join(', ')}</span>.
           </p>
           {/* BR-M-09: this is how a dropped `day_rate` becomes visible rather than assumed. */}
-          <p className="mt-1 text-slate-600">
+          <p className="mt-1 text-ink-muted">
             Nothing from them was saved. Remove them from the file if that was not intended.
           </p>
         </Section>
@@ -98,7 +98,7 @@ export function ImportResultReport({ result }: { result: ImportResult }): JSX.El
           tone="warn"
           testId="import-conflicts"
         >
-          <p className="mb-2 text-slate-600">
+          <p className="mb-2 text-ink-muted">
             These were not imported because a record with the same identifier is already present.
             That is expected when re-running an import — delete these rows from your file.
           </p>
@@ -123,7 +123,7 @@ export function ImportResultReport({ result }: { result: ImportResult }): JSX.El
           tone="bad"
           testId="import-failures"
         >
-          <p className="mb-2 text-slate-600">
+          <p className="mb-2 text-ink-muted">
             Correct these rows and upload them again — the rows that succeeded will not be
             duplicated.
           </p>
@@ -134,7 +134,7 @@ export function ImportResultReport({ result }: { result: ImportResult }): JSX.El
                   {failure.lineNumber === 0 ? 'The whole import' : `Row ${failure.lineNumber}`}
                 </span>
                 {/* BR-IM-12: ALL reasons, not just the first. */}
-                <ul className="ml-4 list-disc text-slate-700">
+                <ul className="ml-4 list-disc text-ink">
                   {failure.reasons.map((reason, index) => (
                     <li key={index}>{reason}</li>
                   ))}
@@ -149,7 +149,7 @@ export function ImportResultReport({ result }: { result: ImportResult }): JSX.El
        * Q10:A — the report is not persisted. Saying so BEFORE the admin navigates away is the
        * difference between an accepted limitation and a trap.
        */}
-      <p className="text-xs text-slate-500" data-testid="import-not-saved-notice">
+      <p className="text-xs text-faded" data-testid="import-not-saved-notice">
         This report is not saved. Copy anything you need before leaving this page.
       </p>
     </div>

@@ -53,15 +53,15 @@ export function DataTable<T>({
 
   return (
     <div data-testid={testId}>
-      <div className="overflow-x-auto rounded border border-slate-200">
+      <div className="scroll-x rounded-card bg-white shadow-card">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left">
+            <tr className="border-b border-line text-left">
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
-                  className={`px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 ${
+                  className={`label-micro whitespace-nowrap px-4 py-2.5 ${
                     column.numeric ? 'text-right' : ''
                   }`}
                 >
@@ -76,14 +76,14 @@ export function DataTable<T>({
                 key={rowKey(row)}
                 data-testid={`row-${rowKey(row)}`}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                className={`border-b border-slate-100 last:border-b-0 ${
-                  onRowClick ? 'cursor-pointer hover:bg-slate-50' : ''
+                className={`border-b border-line-faint last:border-b-0 ${
+                  onRowClick ? 'cursor-pointer transition-colors hover:bg-canvas' : ''
                 }`}
               >
                 {columns.map((column) => (
                   <td
                     key={column.key}
-                    className={`px-3 py-2 align-middle ${column.numeric ? 'text-right tabular-nums' : ''} ${column.className ?? ''}`}
+                    className={`px-4 py-3 align-middle text-[13px] ${column.numeric ? 'text-right tabular-nums' : ''} ${column.className ?? ''}`}
                   >
                     {column.render(row)}
                   </td>
@@ -118,7 +118,7 @@ function Pagination({
   const hasNext = last < total;
 
   return (
-    <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
+    <div className="mt-3 flex items-center justify-between text-[13px] text-ink-muted">
       <span className="tabular-nums">
         {first}–{last} of {total}
       </span>
@@ -127,7 +127,7 @@ function Pagination({
           type="button"
           disabled={!hasPrevious}
           onClick={() => onOffsetChange(Math.max(0, offset - limit))}
-          className="rounded border border-slate-300 px-2 py-1 disabled:opacity-40"
+          className="rounded-card border border-line-strong bg-white px-2.5 py-1 font-medium transition-colors hover:border-brand-500/60 hover:text-brand-600 disabled:opacity-40"
         >
           Previous
         </button>
@@ -135,7 +135,7 @@ function Pagination({
           type="button"
           disabled={!hasNext}
           onClick={() => onOffsetChange(offset + limit)}
-          className="rounded border border-slate-300 px-2 py-1 disabled:opacity-40"
+          className="rounded-card border border-line-strong px-2 py-1 disabled:opacity-40"
         >
           Next
         </button>

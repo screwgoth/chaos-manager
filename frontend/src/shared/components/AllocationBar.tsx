@@ -10,7 +10,7 @@
  * say — about the single state that most needs attention. So over-allocation is encoded three
  * ways at once, because any one of them can fail a given reader:
  *
- *   1. COLOUR — a distinct red, not the amber of "full".
+ *   1. COLOUR — a distinct red, not the teal of "full".
  *   2. SHAPE — the overflow breaks out past the track with a hatched tail, so the bar is
  *      visibly the wrong size for its container. This survives greyscale and colour blindness,
  *      which colour alone does not.
@@ -39,15 +39,15 @@ function stateOf(total: number): 'free' | 'partial' | 'full' | 'over' {
 }
 
 const FILL_CLASS: Record<ReturnType<typeof stateOf>, string> = {
-  free: 'bg-slate-200',
+  free: 'bg-heat-0',
   partial: 'bg-allocation-partial',
   full: 'bg-allocation-full',
   over: 'bg-allocation-over',
 };
 
 const LABEL_CLASS: Record<ReturnType<typeof stateOf>, string> = {
-  free: 'text-slate-500',
-  partial: 'text-slate-700',
+  free: 'text-faded',
+  partial: 'text-brand-700',
   full: 'text-allocation-full',
   over: 'text-allocation-over font-semibold',
 };
@@ -79,7 +79,7 @@ export function AllocationBar({
   return (
     <div className="flex items-center gap-3" data-testid={testId}>
       <div className="relative flex-1 min-w-[6rem]">
-        <div className={`${TRACK_HEIGHT} w-full rounded-full bg-slate-100 overflow-hidden`}>
+        <div className={`${TRACK_HEIGHT} w-full rounded-full bg-heat-0 overflow-hidden`}>
           <div
             className={`${TRACK_HEIGHT} ${FILL_CLASS[state]} transition-[width] duration-200 motion-reduce:transition-none`}
             style={{ width: `${insideWidth}%` }}
@@ -109,7 +109,7 @@ export function AllocationBar({
           <span className={LABEL_CLASS[state]}>{formatPercentage(totalPercentage)}</span>
           <span
             className={
-              remainder < 0 ? 'text-allocation-over text-xs font-medium' : 'text-slate-500 text-xs'
+              remainder < 0 ? 'text-allocation-over text-xs font-semibold' : 'text-faded text-xs'
             }
           >
             {/* Never clamped: "-20% left" and "0% left" mean very different things. */}

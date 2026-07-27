@@ -26,7 +26,7 @@ function toneOf(segment: { totalPercentage: number; isOverAllocated: boolean }):
   if (segment.totalPercentage > 0) return 'bg-allocation-partial';
   // A gap is deliberately a light hatch rather than a colour: "nothing booked" is an absence,
   // and colouring it green would read as a positive state competing for attention.
-  return 'bg-slate-100';
+  return 'bg-heat-0';
 }
 
 export interface AllocationSegmentStripProps {
@@ -44,7 +44,7 @@ export function AllocationSegmentStrip({
 
   if (segments.length === 0) {
     return (
-      <div className="h-6 rounded bg-slate-100" data-testid={testId}>
+      <div className="h-6 rounded-cell bg-heat-0" data-testid={testId}>
         <span className="sr-only">No allocation data for this period.</span>
       </div>
     );
@@ -52,7 +52,7 @@ export function AllocationSegmentStrip({
 
   return (
     <div data-testid={testId}>
-      <div className="flex h-6 w-full overflow-hidden rounded border border-slate-200">
+      <div className="flex h-6 w-full overflow-hidden rounded-cell">
         {segments.map((segment) => {
           const share = (inclusiveDays(segment.period) / totalDays) * 100;
           return (
@@ -73,7 +73,7 @@ export function AllocationSegmentStrip({
         })}
       </div>
 
-      <div className="mt-1 flex justify-between text-[11px] tabular-nums text-slate-500">
+      <div className="mt-1 flex justify-between text-[11px] tabular-nums text-faded">
         <span>{range.start}</span>
         <span>{range.end}</span>
       </div>

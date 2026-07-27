@@ -55,7 +55,7 @@ export function OverAllocationDialog({
         </>
       }
     >
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-ink">
         This assignment would take {memberName} to{' '}
         <strong className="text-allocation-over">{formatPercentage(worst)}</strong> at their busiest
         point. You can still save it — it will be flagged as an override everywhere it appears.
@@ -65,12 +65,12 @@ export function OverAllocationDialog({
         {findings.map((finding) => (
           <li
             key={`${finding.period.start}-${finding.period.end}`}
-            className="rounded border border-allocation-over/30 bg-allocation-over/5 p-3"
+            className="rounded-card border border-allocation-over/30 bg-allocation-over/5 p-3"
             data-testid={`finding-${finding.period.start}`}
           >
             <div className="flex items-baseline justify-between">
               {/* The specific sub-period, not the whole range. */}
-              <span className="text-sm font-medium tabular-nums text-slate-800">
+              <span className="text-sm font-medium tabular-nums text-ink">
                 {finding.period.start} → {finding.period.end}
               </span>
               <span className="text-sm font-semibold tabular-nums text-allocation-over">
@@ -78,7 +78,7 @@ export function OverAllocationDialog({
               </span>
             </div>
 
-            <ul className="mt-2 space-y-0.5 text-xs text-slate-600">
+            <ul className="mt-2 space-y-0.5 text-xs text-ink-muted">
               {finding.contributions.map((contribution) => (
                 <li key={contribution.assignmentId} className="flex justify-between tabular-nums">
                   <span>
@@ -91,7 +91,7 @@ export function OverAllocationDialog({
             </ul>
 
             {finding.arisesFromOverride ? (
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-faded">
                 This period was already over capacity before this change.
               </p>
             ) : null}
@@ -118,7 +118,7 @@ export function AssignmentConflictNotice({
 
   return (
     <div
-      className="mb-4 rounded border border-allocation-full/40 bg-allocation-full/5 px-3 py-2"
+      className="mb-4 rounded-card border border-allocation-full/40 bg-allocation-full/5 px-3 py-2"
       role="status"
       data-testid="assignment-conflicts"
     >
@@ -127,7 +127,7 @@ export function AssignmentConflictNotice({
       </p>
       <ul className="mt-1 space-y-1">
         {conflicts.map((conflict) => (
-          <li key={conflict.detail} className="text-sm text-slate-700">
+          <li key={conflict.detail} className="text-sm text-ink">
             {conflict.detail}
           </li>
         ))}

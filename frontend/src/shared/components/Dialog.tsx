@@ -39,7 +39,7 @@ export function Dialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 px-4"
       role="presentation"
       onClick={(event) => {
         // Only a click on the backdrop itself closes — not one that bubbled from the panel.
@@ -53,18 +53,18 @@ export function Dialog({
         aria-label={title}
         tabIndex={-1}
         data-testid={testId}
-        className="w-full max-w-xl rounded-lg bg-white shadow-xl focus:outline-none"
+        className="w-full max-w-xl rounded-card bg-white shadow-modal focus:outline-none"
       >
         <div
           className={`rounded-t-lg border-b px-5 py-3 ${
             tone === 'warning'
-              ? 'border-allocation-over/30 bg-allocation-over/5'
-              : 'border-slate-200'
+              ? 'border-allocation-over/25 bg-allocation-over/[.06]'
+              : 'border-line'
           }`}
         >
           <h2
             className={`text-base font-semibold ${
-              tone === 'warning' ? 'text-allocation-over' : 'text-slate-900'
+              tone === 'warning' ? 'text-danger-700' : 'text-ink'
             }`}
           >
             {title}
@@ -73,7 +73,7 @@ export function Dialog({
 
         <div className="px-5 py-4">{children}</div>
 
-        <div className="flex justify-end gap-2 rounded-b-lg border-t border-slate-200 bg-slate-50 px-5 py-3">
+        <div className="flex justify-end gap-2 rounded-b-card border-t border-line bg-canvas px-5 py-3">
           {footer}
         </div>
       </div>

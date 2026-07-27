@@ -34,7 +34,7 @@ type Status = 'idle' | 'uploading' | 'done';
 function Problem({ message, testId }: { message: string; testId: string }): JSX.Element {
   return (
     <p
-      className="rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900"
+      className="rounded-card border border-danger-500/30 bg-danger-500/[.06] px-3 py-2 text-sm text-danger-700"
       data-testid={testId}
     >
       {message}
@@ -60,8 +60,8 @@ export function ImportPage(): JSX.Element {
   if (user !== null && user.role !== 'ADMIN') {
     return (
       <div className="mx-auto max-w-2xl px-4 py-10" data-testid="import-forbidden">
-        <h1 className="text-lg font-semibold text-slate-900">Import</h1>
-        <p className="mt-2 text-sm text-slate-700">
+        <h1 className="text-[19px] font-semibold leading-tight text-ink">Import</h1>
+        <p className="mt-2 text-sm text-ink">
           Only an administrator can import data. Ask an administrator if you need a spreadsheet
           loaded.
         </p>
@@ -95,14 +95,14 @@ export function ImportPage(): JSX.Element {
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
       <header>
-        <h1 className="text-lg font-semibold text-slate-900">Import from a spreadsheet</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-[19px] font-semibold leading-tight text-ink">Import from a spreadsheet</h1>
+        <p className="mt-1 text-sm text-ink-muted">
           Load people or projects from a CSV file. Existing records are reported rather than
           duplicated, so it is safe to re-run an import.
         </p>
       </header>
 
-      <div className="space-y-4 rounded-md border border-slate-200 bg-white px-4 py-4">
+      <div className="space-y-4 rounded-md border border-line bg-white px-4 py-4">
         <Field label="What are you importing?" htmlFor="import-kind">
           <Select
             id="import-kind"
@@ -123,9 +123,9 @@ export function ImportPage(): JSX.Element {
 
         {kind !== '' && (
           <>
-            <p className="text-sm text-slate-700">
+            <p className="text-sm text-ink">
               <a
-                className="font-medium text-sky-700 underline"
+                className="font-medium text-brand-600 underline"
                 href={templateUrl(kind)}
                 data-testid="import-template-link"
               >
@@ -139,7 +139,7 @@ export function ImportPage(): JSX.Element {
              * vocabulary. Saying so here prevents the worst first experience, which is a file
              * where every row fails on an org unit that was never created.
              */}
-            <p className="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+            <p className="rounded-card border border-line bg-canvas px-3 py-2 text-xs text-ink-muted">
               Org units{kind === 'MEMBER' ? ', roles and skills' : ' and project types'} must
               already exist. Values in the file are matched by name — unmatched values are reported,
               never created.
@@ -151,7 +151,7 @@ export function ImportPage(): JSX.Element {
                 data-testid="import-file-input"
                 type="file"
                 accept=".csv,text/csv"
-                className="block w-full text-sm text-slate-700"
+                className="block w-full text-sm text-ink"
                 onChange={(event) => chooseFile(event.target.files?.[0] ?? null)}
               />
             </Field>
@@ -170,7 +170,7 @@ export function ImportPage(): JSX.Element {
             </Button>
 
             {status === 'uploading' && (
-              <p className="text-sm text-slate-600" data-testid="import-pending">
+              <p className="text-sm text-ink-muted" data-testid="import-pending">
                 Reading the file and checking every row. A large file can take up to half a minute.
               </p>
             )}

@@ -67,24 +67,24 @@ export function MyAssignmentsPage(): JSX.Element {
   return (
     <div>
       <div className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">
+        <h1 className="text-[19px] font-semibold leading-tight text-ink">
           {member?.fullName ?? user?.username}
         </h1>
-        <p className="mt-0.5 text-sm text-slate-500">
+        <p className="mt-0.5 text-sm text-faded">
           {member ? roleName(member.roleId) : null} · your work this quarter
         </p>
       </div>
 
-      <section className="mb-5 rounded border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">Your quarter</h2>
+      <section className="mb-5 rounded-card bg-white shadow-card p-4">
+        <h2 className="mb-3 text-sm font-semibold text-ink">Your quarter</h2>
         <AllocationSegmentStrip segments={timeline ?? []} range={range} testId="own-timeline" />
       </section>
 
-      <section className="rounded border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">Assignments</h2>
+      <section className="rounded-card bg-white shadow-card p-4">
+        <h2 className="mb-3 text-sm font-semibold text-ink">Assignments</h2>
 
         {activeAssignments.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-faded">
             You have no current assignments. Your resource manager assigns work here.
           </p>
         ) : (
@@ -111,18 +111,18 @@ function AssignmentRow({ assignment }: { assignment: Assignment }): JSX.Element 
 
   return (
     <li
-      className="flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-100 pb-2 last:border-b-0 last:pb-0"
+      className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line-soft pb-2 last:border-b-0 last:pb-0"
       data-testid={`own-assignment-${assignment.id}`}
     >
       <div>
-        <span className="text-sm font-medium text-slate-900">
+        <span className="text-sm font-medium text-ink">
           {project ? `${project.code} · ${project.name}` : assignment.projectId}
         </span>
-        <span className="ml-2 text-xs tabular-nums text-slate-500">
+        <span className="ml-2 text-xs tabular-nums text-faded">
           {assignment.startDate} → {assignment.endDate}
         </span>
       </div>
-      <span className="text-sm font-semibold tabular-nums text-slate-800">
+      <span className="text-sm font-semibold tabular-nums text-ink">
         {formatPercentage(assignment.allocationTenths / 10)}
       </span>
     </li>

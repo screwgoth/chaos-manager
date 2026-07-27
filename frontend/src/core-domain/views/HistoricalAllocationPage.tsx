@@ -68,7 +68,7 @@ export function HistoricalAllocationPage(): JSX.Element {
       key: 'period',
       header: 'Period',
       render: (row) => (
-        <span className="tabular-nums text-slate-600">
+        <span className="tabular-nums text-ink-muted">
           {row.startDate} → {row.endDate}
         </span>
       ),
@@ -83,7 +83,7 @@ export function HistoricalAllocationPage(): JSX.Element {
       key: 'recorded',
       header: 'Recorded',
       render: (row) => (
-        <span className="text-xs tabular-nums text-slate-500">
+        <span className="text-xs tabular-nums text-faded">
           {row.recordedAt.slice(0, 10)} · rev {row.revisionNumber} · {row.operation.toLowerCase()}
         </span>
       ),
@@ -93,15 +93,15 @@ export function HistoricalAllocationPage(): JSX.Element {
   return (
     <div>
       <div className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">History</h1>
-        <p className="mt-0.5 text-sm text-slate-500">
+        <h1 className="text-[19px] font-semibold leading-tight text-ink">History</h1>
+        <p className="mt-0.5 text-sm text-faded">
           What the plan looked like on a past date.
         </p>
       </div>
 
-      <div className="mb-4 flex flex-wrap items-end gap-3 rounded border border-slate-200 bg-white p-4">
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-card bg-white shadow-card p-4">
         <div>
-          <label htmlFor="member" className="mb-1 block text-xs font-medium text-slate-600">
+          <label htmlFor="member" className="mb-1 block text-xs font-medium text-ink-muted">
             Person
           </label>
           <Select id="member" value={memberId} onChange={(event) => setMemberId(event.target.value)} data-testid="history-member">
@@ -115,7 +115,7 @@ export function HistoricalAllocationPage(): JSX.Element {
           </Select>
         </div>
         <div>
-          <label htmlFor="asOfDate" className="mb-1 block text-xs font-medium text-slate-600">
+          <label htmlFor="asOfDate" className="mb-1 block text-xs font-medium text-ink-muted">
             As the records stood on
           </label>
           <TextInput
@@ -134,7 +134,7 @@ export function HistoricalAllocationPage(): JSX.Element {
       {/* The notice that makes the figures interpretable. */}
       {data ? (
         <div
-          className="mb-4 rounded border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700"
+          className="mb-4 rounded-card border border-line-strong bg-canvas px-3 py-2 text-sm text-ink"
           role="note"
           data-testid="as-of-notice"
         >

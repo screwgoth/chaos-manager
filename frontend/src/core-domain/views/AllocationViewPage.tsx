@@ -53,7 +53,7 @@ export function AllocationViewPage(): JSX.Element {
       key: 'member',
       header: 'Person',
       render: (row) => (
-        <Link to={`/members/${row.member.id}`} className="font-medium text-slate-900 hover:underline">
+        <Link to={`/members/${row.member.id}`} className="font-medium text-ink hover:underline">
           {row.member.fullName}
         </Link>
       ),
@@ -75,9 +75,9 @@ export function AllocationViewPage(): JSX.Element {
       header: 'On',
       render: (row) =>
         row.contributions.length === 0 ? (
-          <span className="text-xs text-slate-400">Nothing booked</span>
+          <span className="text-xs text-faded-soft">Nothing booked</span>
         ) : (
-          <ul className="space-y-0.5 text-xs text-slate-600">
+          <ul className="space-y-0.5 text-xs text-ink-muted">
             {row.contributions.map((contribution) => (
               <li key={contribution.assignmentId}>
                 {contribution.projectCode} · {formatPercentage(contribution.allocationPercentage)}
@@ -97,13 +97,13 @@ export function AllocationViewPage(): JSX.Element {
   return (
     <div>
       <div className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">Allocation</h1>
-        <p className="mt-0.5 text-sm text-slate-500">Who is booked, and how much room is left.</p>
+        <h1 className="text-[19px] font-semibold leading-tight text-ink">Allocation</h1>
+        <p className="mt-0.5 text-sm text-faded">Who is booked, and how much room is left.</p>
       </div>
 
-      <div className="mb-4 flex flex-wrap items-end gap-3 rounded border border-slate-200 bg-white p-4">
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-card bg-white shadow-card p-4">
         <div>
-          <label htmlFor="asOf" className="mb-1 block text-xs font-medium text-slate-600">
+          <label htmlFor="asOf" className="mb-1 block text-xs font-medium text-ink-muted">
             On
           </label>
           <TextInput
@@ -115,7 +115,7 @@ export function AllocationViewPage(): JSX.Element {
           />
         </div>
         <div>
-          <label htmlFor="orgUnit" className="mb-1 block text-xs font-medium text-slate-600">
+          <label htmlFor="orgUnit" className="mb-1 block text-xs font-medium text-ink-muted">
             Org unit
           </label>
           <Select id="orgUnit" value={orgUnitId} onChange={(event) => setOrgUnitId(event.target.value)}>
@@ -128,7 +128,7 @@ export function AllocationViewPage(): JSX.Element {
           </Select>
         </div>
         <div>
-          <label htmlFor="skill" className="mb-1 block text-xs font-medium text-slate-600">
+          <label htmlFor="skill" className="mb-1 block text-xs font-medium text-ink-muted">
             Skill
           </label>
           <Select id="skill" value={skillId} onChange={(event) => setSkillId(event.target.value)}>
@@ -147,7 +147,7 @@ export function AllocationViewPage(): JSX.Element {
 
       {overAllocatedCount > 0 ? (
         <div
-          className="mb-4 rounded border border-allocation-over/30 bg-allocation-over/5 px-3 py-2 text-sm text-allocation-over"
+          className="mb-4 rounded-card border border-allocation-over/30 bg-allocation-over/5 px-3 py-2 text-sm text-allocation-over"
           role="status"
           data-testid="over-allocated-banner"
         >

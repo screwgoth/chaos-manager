@@ -57,10 +57,10 @@ export function OverAllocatedPage(): JSX.Element {
   const items = findings.data?.items ?? [];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4 px-4 py-8">
+    <div className="space-y-4">
       <header>
-        <h1 className="text-lg font-semibold text-slate-900">Over capacity</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-[19px] font-semibold leading-tight text-ink">Over capacity</h1>
+        <p className="mt-1 text-sm text-ink-muted">
           Each entry is a specific date range in which someone is booked above 100%, with the
           assignments that add up to it.
         </p>
@@ -74,7 +74,7 @@ export function OverAllocatedPage(): JSX.Element {
         <ErrorState error={findings.error} />
       ) : items.length === 0 ? (
         <p
-          className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
+          className="rounded-md border border-good-500/30 bg-good-500/[.08] px-4 py-3 text-sm text-good-700"
           data-testid="over-allocated-empty"
         >
           Nobody is over capacity in this period.
@@ -84,7 +84,7 @@ export function OverAllocatedPage(): JSX.Element {
           {items.map((finding) => (
             <li
               key={`${finding.memberId}-${finding.period.start}-${finding.period.end}`}
-              className="rounded-md border border-slate-200 bg-white px-4 py-3"
+              className="rounded-md border border-line bg-white px-4 py-3"
               data-testid={`over-allocation-${finding.memberId}-${finding.period.start}`}
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -95,12 +95,12 @@ export function OverAllocatedPage(): JSX.Element {
                   ONCE below.
                 */}
                 <Link
-                  className="font-medium text-sky-700 underline"
+                  className="font-medium text-brand-600 underline"
                   to={`/members/${finding.memberId}`}
                 >
                   {memberNames.get(finding.memberId) ?? 'View person'}
                 </Link>
-                <span className="text-sm text-slate-600">
+                <span className="text-sm text-ink-muted">
                   {finding.period.start} → {finding.period.end}
                 </span>
               </div>
@@ -117,12 +117,12 @@ export function OverAllocatedPage(): JSX.Element {
                 />
               </div>
 
-              <p className="mt-1 text-sm font-medium text-rose-800">
+              <p className="mt-1 text-sm font-medium text-danger-700">
                 {formatPercentage(finding.totalPercentage)} booked
                 {finding.arisesFromOverride && ' (saved as an override)'}
               </p>
 
-              <ul className="mt-2 space-y-1 text-sm text-slate-700">
+              <ul className="mt-2 space-y-1 text-sm text-ink">
                 {finding.contributions.map((contribution) => (
                   <li key={contribution.assignmentId}>
                     <span className="font-mono text-xs">{contribution.projectCode}</span>{' '}

@@ -40,7 +40,7 @@ export function FormErrors({ error }: { error: ApiError | null }): JSX.Element |
 
   return (
     <div
-      className="mb-4 rounded border border-allocation-over/30 bg-allocation-over/5 px-3 py-2"
+      className="mb-4 rounded-card border border-allocation-over/30 bg-allocation-over/5 px-3 py-2"
       role="alert"
       data-testid="form-errors"
     >

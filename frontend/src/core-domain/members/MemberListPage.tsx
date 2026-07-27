@@ -10,6 +10,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   AllocationBar,
+  Avatar,
+  Badge,
   Button,
   DataTable,
   ErrorState,
@@ -57,15 +59,18 @@ export function MemberListPage(): JSX.Element {
       key: 'name',
       header: 'Name',
       render: (member) => (
-        <div>
-          <Link
-            to={`/members/${member.id}`}
-            className="font-medium text-slate-900 hover:underline"
-            onClick={(event) => event.stopPropagation()}
-          >
-            {member.fullName}
-          </Link>
-          <div className="text-xs text-slate-500">{member.email}</div>
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Avatar name={member.fullName} id={member.id} size={32} />
+          <div className="min-w-0">
+            <Link
+              to={`/members/${member.id}`}
+              className="block truncate font-medium text-ink hover:text-brand-600 hover:underline"
+              onClick={(event) => event.stopPropagation()}
+            >
+              {member.fullName}
+            </Link>
+            <div className="truncate text-[11.5px] text-faded">{member.email}</div>
+          </div>
         </div>
       ),
     },
@@ -75,9 +80,9 @@ export function MemberListPage(): JSX.Element {
       key: 'employment',
       header: 'Engagement',
       render: (member) => (
-        <span className="text-xs uppercase tracking-wide text-slate-600">
+        <Badge tone={member.employmentType === 'ON_ROLL' ? 'brand' : 'neutral'}>
           {member.employmentType === 'ON_ROLL' ? 'On roll' : 'Off roll'}
-        </span>
+        </Badge>
       ),
     },
     {
@@ -85,9 +90,9 @@ export function MemberListPage(): JSX.Element {
       header: 'Status',
       render: (member) =>
         member.status === 'ACTIVE' ? (
-          <span className="text-xs text-slate-600">Active</span>
+          <span className="text-xs text-ink-muted">Active</span>
         ) : (
-          <span className="text-xs font-medium text-slate-500">Deactivated</span>
+          <span className="text-xs font-medium text-faded">Deactivated</span>
         ),
     },
     {
@@ -95,7 +100,7 @@ export function MemberListPage(): JSX.Element {
       header: 'Booked today',
       render: (member) => {
         const row = allocationFor(member.id);
-        if (!row) return <span className="text-xs text-slate-400">—</span>;
+        if (!row) return <span className="text-xs text-faded-soft">—</span>;
         return (
           <AllocationBar
             totalPercentage={row.totalPercentage}
@@ -112,8 +117,8 @@ export function MemberListPage(): JSX.Element {
     <div>
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-slate-900">People</h1>
-          <p className="mt-0.5 text-sm text-slate-500">
+          <h1 className="text-[19px] font-semibold leading-tight text-ink">People</h1>
+          <p className="mt-0.5 text-sm text-faded">
             Everyone in your scope, on roll and off roll.
           </p>
         </div>
@@ -179,7 +184,7 @@ function MemberFilterBar({
 
   return (
     <form
-      className="mb-4 rounded border border-slate-200 bg-white p-4"
+      className="mb-4 rounded-card bg-white shadow-card p-4"
       onSubmit={(event) => {
         event.preventDefault();
         onApply();

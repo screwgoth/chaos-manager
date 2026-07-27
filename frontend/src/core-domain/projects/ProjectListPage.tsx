@@ -30,7 +30,7 @@ export function ProjectListPage(): JSX.Element {
     {
       key: 'code',
       header: 'Code',
-      render: (project) => <span className="tabular-nums text-slate-600">{project.code}</span>,
+      render: (project) => <span className="tabular-nums text-ink-muted">{project.code}</span>,
     },
     {
       key: 'name',
@@ -38,7 +38,7 @@ export function ProjectListPage(): JSX.Element {
       render: (project) => (
         <Link
           to={`/projects/${project.id}`}
-          className="font-medium text-slate-900 hover:underline"
+          className="font-medium text-ink hover:underline"
           onClick={(event) => event.stopPropagation()}
         >
           {project.name}
@@ -55,9 +55,9 @@ export function ProjectListPage(): JSX.Element {
       header: 'Status',
       render: (project) =>
         project.status === 'ACTIVE' ? (
-          <span className="text-xs text-slate-600">Active</span>
+          <span className="text-xs text-ink-muted">Active</span>
         ) : (
-          <span className="text-xs font-medium text-slate-500">Closed</span>
+          <span className="text-xs font-medium text-faded">Closed</span>
         ),
     },
   ];
@@ -66,8 +66,8 @@ export function ProjectListPage(): JSX.Element {
     <div>
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-slate-900">Projects</h1>
-          <p className="mt-0.5 text-sm text-slate-500">Work people can be assigned to.</p>
+          <h1 className="text-[19px] font-semibold leading-tight text-ink">Projects</h1>
+          <p className="mt-0.5 text-sm text-faded">Work people can be assigned to.</p>
         </div>
         {canWrite ? (
           <Button onClick={() => navigate('/projects/new')} data-testid="add-project">
@@ -77,7 +77,7 @@ export function ProjectListPage(): JSX.Element {
       </div>
 
       <form
-        className="mb-4 rounded border border-slate-200 bg-white p-4"
+        className="mb-4 rounded-card bg-white shadow-card p-4"
         onSubmit={(event) => {
           event.preventDefault();
           setApplied({ ...draft, offset: 0 });

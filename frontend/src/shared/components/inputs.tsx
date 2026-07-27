@@ -24,18 +24,18 @@ export function Field({
 }): JSX.Element {
   return (
     <div className="mb-4">
-      <label htmlFor={htmlFor} className="mb-1 block text-sm font-medium text-slate-700">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-[12.5px] font-medium text-ink-muted">
         {label}
         {required ? <span className="ml-0.5 text-allocation-over">*</span> : null}
       </label>
       {children}
-      {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-[11.5px] text-faded">{hint}</p> : null}
     </div>
   );
 }
 
 const inputClass =
-  'w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400/40';
+  'w-full rounded-card border border-line-strong bg-white px-3 py-2 text-[13.5px] text-ink transition-colors placeholder:text-faded-soft hover:border-faded-soft focus:border-brand-500';
 
 export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>): JSX.Element {
   return <input {...props} className={`${inputClass} ${props.className ?? ''}`} />;
@@ -88,7 +88,7 @@ export function PercentageInput({
         }}
         className={`${inputClass} pr-8 tabular-nums`}
       />
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-faded">
         %
       </span>
     </div>
@@ -154,7 +154,7 @@ export function DateRangePicker({
     <div data-testid={testId}>
       <div className="flex flex-wrap items-end gap-3">
         <div>
-          <label htmlFor={startId} className="mb-1 block text-xs font-medium text-slate-600">
+          <label htmlFor={startId} className="label-micro mb-1 block">
             From
           </label>
           <input
@@ -166,7 +166,7 @@ export function DateRangePicker({
           />
         </div>
         <div>
-          <label htmlFor={endId} className="mb-1 block text-xs font-medium text-slate-600">
+          <label htmlFor={endId} className="label-micro mb-1 block">
             To (included)
           </label>
           <input
@@ -186,7 +186,7 @@ export function DateRangePicker({
               key={preset}
               type="button"
               onClick={() => onChange(presetRange(preset))}
-              className="rounded-full border border-slate-300 px-3 py-1 text-xs text-slate-600 hover:border-slate-500 hover:text-slate-900"
+              className="rounded-full border border-line-strong bg-white px-3 py-1 text-[11.5px] font-medium text-ink-muted transition-colors hover:border-brand-500/60 hover:text-brand-600"
             >
               {PRESET_LABELS[preset]}
             </button>

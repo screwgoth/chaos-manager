@@ -63,16 +63,16 @@ export function ProjectDetailPage(): JSX.Element {
     <div>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+          <p className="text-xs font-medium uppercase tracking-wide text-faded">
             {project.code}
           </p>
-          <h1 className="text-xl font-semibold tracking-tight text-slate-900">{project.name}</h1>
-          <p className="mt-0.5 text-sm text-slate-500">
+          <h1 className="text-[19px] font-semibold leading-tight text-ink">{project.name}</h1>
+          <p className="mt-0.5 text-sm text-faded">
             {orgUnitName(project.owningOrgUnitId)} · {typeName(project.projectTypeId)} ·{' '}
             {project.startDate} → {project.plannedEndDate}
           </p>
           {project.status === 'CLOSED' ? (
-            <p className="mt-1 text-sm font-medium text-slate-600" data-testid="closed-notice">
+            <p className="mt-1 text-sm font-medium text-ink-muted" data-testid="closed-notice">
               Closed on {project.closedOn}. Kept for historical views.
             </p>
           ) : null}
@@ -102,12 +102,12 @@ export function ProjectDetailPage(): JSX.Element {
       </div>
 
       {project.description ? (
-        <p className="mb-5 max-w-3xl text-sm text-slate-700">{project.description}</p>
+        <p className="mb-5 max-w-3xl text-sm text-ink">{project.description}</p>
       ) : null}
 
       {notice ? (
         <div
-          className="mb-4 rounded border border-allocation-full/40 bg-allocation-full/5 px-3 py-2 text-sm text-slate-700"
+          className="mb-4 rounded-card border border-allocation-full/40 bg-allocation-full/5 px-3 py-2 text-sm text-ink"
           role="status"
           data-testid="close-result"
         >
@@ -204,25 +204,25 @@ function StaffingGroup({
   testId: string;
 }): JSX.Element {
   return (
-    <section className="rounded border border-slate-200 bg-white p-4" data-testid={testId}>
-      <h2 className="mb-3 text-sm font-semibold text-slate-700">{title}</h2>
+    <section className="rounded-card bg-white shadow-card p-4" data-testid={testId}>
+      <h2 className="mb-3 text-sm font-semibold text-ink">{title}</h2>
 
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-500">{emptyMessage}</p>
+        <p className="text-sm text-faded">{emptyMessage}</p>
       ) : (
         <ul className="space-y-3">
           {rows.map((row) => (
             <li key={row.memberId} data-testid={`staffed-${row.memberId}`}>
               <div className="flex items-baseline justify-between">
-                <span className="text-sm font-medium text-slate-900">{nameOf(row.memberId)}</span>
+                <span className="text-sm font-medium text-ink">{nameOf(row.memberId)}</span>
                 {/* The SUBTOTAL is the point of the grouping (BR-P-11). */}
-                <span className="text-sm font-semibold tabular-nums text-slate-800">
+                <span className="text-sm font-semibold tabular-nums text-ink">
                   {formatPercentage(row.subtotalTenths / 10)}
                 </span>
               </div>
 
               {/* Individual assignments listed beneath, so the subtotal is explainable. */}
-              <ul className="mt-1 space-y-0.5 pl-3 text-xs text-slate-500">
+              <ul className="mt-1 space-y-0.5 pl-3 text-xs text-faded">
                 {row.assignments.map((assignment) => (
                   <li key={assignment.id} className="flex justify-between tabular-nums">
                     <span>
@@ -290,24 +290,24 @@ function CloseProjectDialog({
         </>
       }
     >
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-ink">
         {preview.openAssignments.length} assignment
         {preview.openAssignments.length === 1 ? '' : 's'} run past today and will be ended as of
         today:
       </p>
 
-      <ul className="mt-3 space-y-1 rounded border border-slate-200 bg-slate-50 p-3 text-sm">
+      <ul className="mt-3 space-y-1 rounded-card border border-line bg-canvas p-3 text-sm">
         {preview.openAssignments.map((assignment) => (
           <li key={assignment.id} className="flex justify-between tabular-nums">
-            <span className="text-slate-800">{nameOf(assignment.memberId)}</span>
-            <span className="text-slate-600">
+            <span className="text-ink">{nameOf(assignment.memberId)}</span>
+            <span className="text-ink-muted">
               {formatPercentage(assignment.allocationTenths / 10)} · to {assignment.endDate}
             </span>
           </li>
         ))}
       </ul>
 
-      <p className="mt-3 text-sm text-slate-600">
+      <p className="mt-3 text-sm text-ink-muted">
         Reopening the project later <strong>does not</strong> restore these assignments.
       </p>
     </Dialog>

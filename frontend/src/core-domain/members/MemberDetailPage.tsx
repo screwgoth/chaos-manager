@@ -72,12 +72,12 @@ export function MemberDetailPage(): JSX.Element {
     <div>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-slate-900">{member.fullName}</h1>
-          <p className="mt-0.5 text-sm text-slate-500">
+          <h1 className="text-[19px] font-semibold leading-tight text-ink">{member.fullName}</h1>
+          <p className="mt-0.5 text-sm text-faded">
             {member.email} · {orgUnitName(member.orgUnitId)} · {roleName(member.roleId)}
           </p>
           {member.status === 'INACTIVE' ? (
-            <p className="mt-1 text-sm font-medium text-slate-600" data-testid="deactivated-notice">
+            <p className="mt-1 text-sm font-medium text-ink-muted" data-testid="deactivated-notice">
               Deactivated on {member.deactivatedOn}. Kept for historical views.
             </p>
           ) : null}
@@ -111,7 +111,7 @@ export function MemberDetailPage(): JSX.Element {
 
       {cascadeMessage ? (
         <div
-          className="mb-4 rounded border border-allocation-full/40 bg-allocation-full/5 px-3 py-2 text-sm text-slate-700"
+          className="mb-4 rounded-card border border-allocation-full/40 bg-allocation-full/5 px-3 py-2 text-sm text-ink"
           role="status"
           data-testid="cascade-result"
         >
@@ -120,8 +120,8 @@ export function MemberDetailPage(): JSX.Element {
       ) : null}
 
       <div className="grid gap-5 lg:grid-cols-3">
-        <section className="lg:col-span-2 rounded border border-slate-200 bg-white p-4">
-          <h2 className="mb-3 text-sm font-semibold text-slate-700">
+        <section className="lg:col-span-2 rounded-card bg-white shadow-card p-4">
+          <h2 className="mb-3 text-sm font-semibold text-ink">
             Allocation this quarter
           </h2>
           <AllocationSegmentStrip
@@ -134,9 +134,9 @@ export function MemberDetailPage(): JSX.Element {
             {(timeline ?? []).map((segment) => (
               <li
                 key={segment.period.start}
-                className="flex items-baseline justify-between border-b border-slate-100 pb-1 last:border-b-0"
+                className="flex items-baseline justify-between border-b border-line-soft pb-1 last:border-b-0"
               >
-                <span className="tabular-nums text-slate-600">
+                <span className="tabular-nums text-ink-muted">
                   {segment.period.start} → {segment.period.end}
                 </span>
                 <span
@@ -144,8 +144,8 @@ export function MemberDetailPage(): JSX.Element {
                     segment.isOverAllocated
                       ? 'font-semibold text-allocation-over'
                       : segment.isGap
-                        ? 'text-slate-400'
-                        : 'text-slate-800'
+                        ? 'text-faded-soft'
+                        : 'text-ink'
                   }
                 >
                   {segment.isGap ? 'Nothing booked' : formatPercentage(segment.totalPercentage)}
@@ -157,16 +157,16 @@ export function MemberDetailPage(): JSX.Element {
         </section>
 
         <aside className="space-y-5">
-          <section className="rounded border border-slate-200 bg-white p-4">
-            <h2 className="mb-2 text-sm font-semibold text-slate-700">Engagement</h2>
+          <section className="rounded-card bg-white shadow-card p-4">
+            <h2 className="mb-2 text-sm font-semibold text-ink">Engagement</h2>
             <dl className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <dt className="text-slate-500">Type</dt>
+                <dt className="text-faded">Type</dt>
                 <dd>{member.employmentType === 'ON_ROLL' ? 'On roll' : 'Off roll'}</dd>
               </div>
               {member.externalRef ? (
                 <div className="flex justify-between">
-                  <dt className="text-slate-500">Employee ID</dt>
+                  <dt className="text-faded">Employee ID</dt>
                   <dd className="tabular-nums">{member.externalRef}</dd>
                 </div>
               ) : null}
@@ -175,21 +175,21 @@ export function MemberDetailPage(): JSX.Element {
             {/* Shown whenever a contract exists, including after an OFF_ROLL → ON_ROLL
                 conversion, because BR-M-10 retains it as history. */}
             {member.contract ? (
-              <div className="mt-3 border-t border-slate-100 pt-3" data-testid="contract-summary">
-                <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <div className="mt-3 border-t border-line-soft pt-3" data-testid="contract-summary">
+                <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-faded">
                   Contract{member.employmentType === 'ON_ROLL' ? ' (retained)' : ''}
                 </h3>
                 <dl className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-slate-500">Vendor</dt>
+                    <dt className="text-faded">Vendor</dt>
                     <dd>{member.contract.vendorName}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-slate-500">Runs to</dt>
+                    <dt className="text-faded">Runs to</dt>
                     <dd className="tabular-nums">{member.contract.endDate}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-slate-500">Status</dt>
+                    <dt className="text-faded">Status</dt>
                     <dd>{member.contract.status}</dd>
                   </div>
                 </dl>
@@ -197,16 +197,16 @@ export function MemberDetailPage(): JSX.Element {
             ) : null}
           </section>
 
-          <section className="rounded border border-slate-200 bg-white p-4">
-            <h2 className="mb-2 text-sm font-semibold text-slate-700">Skills</h2>
+          <section className="rounded-card bg-white shadow-card p-4">
+            <h2 className="mb-2 text-sm font-semibold text-ink">Skills</h2>
             {member.skillIds.length === 0 ? (
-              <p className="text-sm text-slate-500">None recorded.</p>
+              <p className="text-sm text-faded">None recorded.</p>
             ) : (
               <ul className="flex flex-wrap gap-2">
                 {member.skillIds.map((skillId) => (
                   <li
                     key={skillId}
-                    className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-700"
+                    className="rounded-full bg-line-soft px-2.5 py-1 text-xs text-ink"
                   >
                     {skillName(skillId)}
                   </li>
@@ -274,12 +274,12 @@ function DeactivateMemberDialog({
         </>
       }
     >
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-ink">
         {openAssignmentCount === 0
           ? 'They have no assignments running past today, so nothing will be ended.'
           : `${openAssignmentCount} assignment${openAssignmentCount === 1 ? '' : 's'} running past today will be ended as of today.`}
       </p>
-      <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-2 text-sm text-ink-muted">
         Their history stays intact and they remain visible in past views. Reactivating later
         restores their availability but <strong>does not</strong> restore ended assignments —
         those must be created again.

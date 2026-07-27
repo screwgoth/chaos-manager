@@ -108,13 +108,13 @@ export function AssignmentFormPage(): JSX.Element {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="mb-5 text-xl font-semibold tracking-tight text-slate-900">
+      <h1 className="mb-5 text-[19px] font-semibold leading-tight text-ink">
         {editing ? 'Edit assignment' : 'Assign someone to a project'}
       </h1>
 
       <form
         noValidate
-        className="rounded border border-slate-200 bg-white p-6"
+        className="rounded-card bg-white shadow-card p-6"
         onSubmit={(event) => {
           event.preventDefault();
           void submit(false).catch(() => {

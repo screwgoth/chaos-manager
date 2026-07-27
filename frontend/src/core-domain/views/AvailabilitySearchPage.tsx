@@ -16,12 +16,18 @@ import { api, query } from '../../shared/api/client';
 import { queryKeys } from '../../shared/api/queries';
 import {
   AllocationSegmentStrip,
+  Avatar,
+  Badge,
   Button,
+  Card,
   DateRangePicker,
   EmptyState,
   ErrorState,
+  HEAT_LEGEND,
   LoadingState,
+  PageHeader,
   Select,
+  Toolbar,
   formatPercentage,
   presetRange,
 } from '../../shared/components';
@@ -56,16 +62,17 @@ export function AvailabilitySearchPage(): JSX.Element {
 
   return (
     <div>
-      <div className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">Availability</h1>
-        <p className="mt-0.5 text-sm text-slate-500">Who has room, and when.</p>
-      </div>
+      <PageHeader
+        title="Availability"
+        subtitle="Who has room, and when."
+        actions={<HeatLegend />}
+      />
 
-      <div className="mb-5 rounded border border-slate-200 bg-white p-4">
+      <Toolbar>
         {/* Skill first: it is the question people arrive with. */}
-        <div className="mb-4 grid gap-3 sm:grid-cols-3">
+        <div className="grid w-full gap-3 sm:grid-cols-3">
           <div>
-            <label htmlFor="skill" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+            <label htmlFor="skill" className="label-micro mb-1 block">
               Skill
             </label>
             <Select
@@ -84,7 +91,7 @@ export function AvailabilitySearchPage(): JSX.Element {
           </div>
 
           <div>
-            <label htmlFor="orgUnit" className="mb-1 block text-xs font-medium text-slate-600">
+            <label htmlFor="orgUnit" className="label-micro mb-1 block">
               Org unit
             </label>
             <Select id="orgUnit" value={orgUnitId} onChange={(event) => setOrgUnitId(event.target.value)}>
@@ -98,7 +105,7 @@ export function AvailabilitySearchPage(): JSX.Element {
           </div>
 
           <div>
-            <label htmlFor="minAvailable" className="mb-1 block text-xs font-medium text-slate-600">
+            <label htmlFor="minAvailable" className="label-micro mb-1 block">
               At least this free
             </label>
             <Select
@@ -115,13 +122,15 @@ export function AvailabilitySearchPage(): JSX.Element {
           </div>
         </div>
 
-        <DateRangePicker
-          value={range}
-          onChange={setRange}
-          presets={['nextMonth', 'thisMonth', 'thisQuarter', 'nextQuarter']}
-          testId="availability-range"
-        />
-      </div>
+        <div className="w-full">
+          <DateRangePicker
+            value={range}
+            onChange={setRange}
+            presets={['nextMonth', 'thisMonth', 'thisQuarter', 'nextQuarter']}
+            testId="availability-range"
+          />
+        </div>
+      </Toolbar>
 
       {error ? (
         <ErrorState error={error} onRetry={() => void refetch()} />
@@ -136,36 +145,32 @@ export function AvailabilitySearchPage(): JSX.Element {
       ) : (
         <ul className="space-y-3" data-testid="availability-results">
           {(data?.items ?? []).map((row) => (
-            <li
-              key={row.member.id}
-              className="rounded border border-slate-200 bg-white p-4"
-              data-testid={`availability-${row.member.id}`}
-            >
-              <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                <Link
-                  to={`/members/${row.member.id}`}
-                  className="font-medium text-slate-900 hover:underline"
-                >
-                  {row.member.fullName}
-                </Link>
+            <li key={row.member.id}>
+              <Card testId={`availability-${row.member.id}`}>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <Avatar name={row.member.fullName} id={row.member.id} size={30} />
+                  <Link
+                    to={`/members/${row.member.id}`}
+                    className="truncate text-[13.5px] font-medium text-ink hover:text-brand-600 hover:underline"
+                  >
+                    {row.member.fullName}
+                  </Link>
+                </div>
 
-                <div className="flex items-baseline gap-4 text-sm tabular-nums">
-                  <span className={row.minAvailablePercentage < 0 ? 'text-allocation-over' : 'text-slate-600'}>
-                    <span className="text-xs text-slate-500">least free </span>
+                <div className="flex items-baseline gap-4 text-[13px] tabular-nums">
+                  <span className={row.minAvailablePercentage < 0 ? 'font-semibold text-allocation-over' : 'text-ink-muted'}>
+                    <span className="label-micro mr-1">least free</span>
                     {formatPercentage(row.minAvailablePercentage)}
                   </span>
-                  <span className="text-slate-800">
-                    <span className="text-xs text-slate-500">most free </span>
+                  <span className="text-ink">
+                    <span className="label-micro mr-1">most free</span>
                     {formatPercentage(row.maxAvailablePercentage)}
                   </span>
                   {row.isOverAllocated ? (
-                    <span className="rounded-full bg-allocation-over/10 px-2 py-0.5 text-xs font-medium text-allocation-over">
-                      Over capacity
-                    </span>
+                    <Badge tone="danger">Over capacity</Badge>
                   ) : row.isFullyAllocated ? (
-                    <span className="rounded-full bg-allocation-full/10 px-2 py-0.5 text-xs font-medium text-allocation-full">
-                      Fully booked
-                    </span>
+                    <Badge tone="brand">Fully booked</Badge>
                   ) : null}
                 </div>
               </div>
@@ -176,10 +181,30 @@ export function AvailabilitySearchPage(): JSX.Element {
                 range={range}
                 testId={`strip-${row.member.id}`}
               />
+              </Card>
             </li>
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+/**
+ * The heat legend.
+ *
+ * A colour-coded strip is undecodable without this, and it belongs beside the data rather than in
+ * documentation nobody opens. Five swatches is small enough to sit in the page header.
+ */
+function HeatLegend(): JSX.Element {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      {HEAT_LEGEND.map((step) => (
+        <span key={step.label} className="flex items-center gap-1.5 text-[11.5px] text-faded">
+          <span aria-hidden="true" className={`h-[13px] w-[13px] rounded-[3px] ${step.className}`} />
+          {step.label}
+        </span>
+      ))}
     </div>
   );
 }

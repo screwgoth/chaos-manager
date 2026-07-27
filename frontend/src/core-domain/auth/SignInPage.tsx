@@ -56,18 +56,31 @@ export function SignInPage(): JSX.Element {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    /*
+     * The one screen with the dark brand ground. Everywhere else the ink colour is confined to the
+     * sidebar; here it fills the viewport, because sign-in is the only moment with no navigation to
+     * anchor the page and the brand has to do that job instead.
+     */
+    <div className="flex min-h-screen items-center justify-center bg-ink px-4 py-10">
       <div className="w-full max-w-sm">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">C.H.A.O.S</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Centralized Hub for Aligning Organizational Squads
-          </p>
+        <div className="mb-7 flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="flex h-11 w-11 flex-none items-center justify-center rounded-[10px] bg-brand-500 text-lg font-bold text-white"
+          >
+            C
+          </span>
+          <div>
+            <h1 className="text-xl font-semibold tracking-wide text-white">C.H.A.O.S</h1>
+            <p className="text-[12.5px] text-white/50">
+              Centralized Hub for Aligning Organizational Squads
+            </p>
+          </div>
         </div>
 
         {expiredNotice ? (
           <div
-            className="mb-4 rounded border border-allocation-full/40 bg-allocation-full/5 px-3 py-2 text-sm text-slate-700"
+            className="mb-4 rounded-card border border-flag-400/45 bg-flag-400/[.14] px-3 py-2 text-[13px] text-white"
             role="status"
             data-testid="session-expired-notice"
           >
@@ -75,10 +88,10 @@ export function SignInPage(): JSX.Element {
           </div>
         ) : null}
 
-        <form onSubmit={onSubmit} noValidate className="rounded-lg border border-slate-200 bg-white p-6">
+        <form onSubmit={onSubmit} noValidate className="rounded-card bg-white p-6 shadow-modal">
           {message ? (
             <div
-              className="mb-4 rounded border border-allocation-over/30 bg-allocation-over/5 px-3 py-2 text-sm text-allocation-over"
+              className="mb-4 rounded-card border border-allocation-over/25 bg-allocation-over/[.06] px-3 py-2 text-[13px] text-danger-700"
               role="alert"
               data-testid="signin-error"
             >
@@ -95,7 +108,7 @@ export function SignInPage(): JSX.Element {
               onChange={(event) => setUsername(event.target.value)}
             />
             {missing.username ? (
-              <p className="mt-1 text-xs text-allocation-over" data-testid="username-required">
+              <p className="mt-1 text-[11.5px] font-medium text-danger-700" data-testid="username-required">
                 Enter your username.
               </p>
             ) : null}
@@ -111,7 +124,7 @@ export function SignInPage(): JSX.Element {
               onChange={(event) => setPassword(event.target.value)}
             />
             {missing.password ? (
-              <p className="mt-1 text-xs text-allocation-over" data-testid="password-required">
+              <p className="mt-1 text-[11.5px] font-medium text-danger-700" data-testid="password-required">
                 Enter your password.
               </p>
             ) : null}

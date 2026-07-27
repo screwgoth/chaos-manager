@@ -54,7 +54,7 @@ export function ExpiringContractsPage(): JSX.Element {
       key: 'name',
       header: 'Person',
       render: (row) => (
-        <Link className="font-medium text-sky-700 underline" to={`/members/${row.member.id}`}>
+        <Link className="font-medium text-brand-600 underline" to={`/members/${row.member.id}`}>
           {row.member.fullName}
         </Link>
       ),
@@ -71,7 +71,7 @@ export function ExpiringContractsPage(): JSX.Element {
       numeric: true,
       render: (row) => (
         <span
-          className={row.daysRemaining <= 7 ? 'font-semibold text-amber-800' : undefined}
+          className={row.daysRemaining <= 7 ? 'font-semibold text-flag-800' : undefined}
           data-testid={`expiring-days-${row.member.id}`}
         >
           {/* 0 means it ends today, which is worth saying in words rather than as a bare zero. */}
@@ -84,10 +84,10 @@ export function ExpiringContractsPage(): JSX.Element {
   const items = expiring.data?.items ?? [];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4 px-4 py-8">
+    <div className="space-y-4">
       <header>
-        <h1 className="text-lg font-semibold text-slate-900">Contracts ending soon</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-[19px] font-semibold leading-tight text-ink">Contracts ending soon</h1>
+        <p className="mt-1 text-sm text-ink-muted">
           Off-roll people whose contract ends within the window below, soonest first. Assignments
           reaching past a contract end are allowed — this is a heads-up, not a block.
         </p>
@@ -112,7 +112,7 @@ export function ExpiringContractsPage(): JSX.Element {
         <ErrorState error={expiring.error} />
       ) : items.length === 0 ? (
         <p
-          className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
+          className="rounded-md border border-good-500/30 bg-good-500/[.08] px-4 py-3 text-sm text-good-700"
           data-testid="expiring-empty"
         >
           No contracts end within the next {effective} days.

@@ -15,3 +15,14 @@ export {
   type RangePreset,
 } from './inputs';
 export { EmptyState, ErrorState, LoadingState } from './states';
+export {
+  Avatar,
+  Badge,
+  Card,
+  CardHeader,
+  PageHeader,
+  StatCard,
+  Toolbar,
+  type BadgeTone,
+} from './surfaces';
+export { HEAT_LEGEND, heatClass, heatLabel, heatStep, type HeatStep } from './heat';
