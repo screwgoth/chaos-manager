@@ -1,0 +1,61 @@
+/**
+ * Global base layer.
+ *
+ * Jost is imported from @fontsource, which SELF-HOSTS the woff2 files through the Vite bundle.
+ * A `<link>` to Google Fonts was the obvious alternative and is wrong here: this app is served by
+ * Caddy on a LAN with no guarantee of outbound internet, so a CDN font would silently fall back to
+ * Arial on exactly the deployment it ships to. Self-hosting also keeps a strict CSP intact.
+ *
+ * Only the three weights the design uses are imported — 400 body, 500 emphasis, 600 headings.
+ * Pulling the full 100–900 range would ship six files nobody renders.
+ */
+
+@import '@fontsource/jost/400.css';
+@import '@fontsource/jost/500.css';
+@import '@fontsource/jost/600.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    /* Jost ships proportional numerals, which makes a column of percentages visibly wobble.
+       Tabular figures keep the heatmap and every numeric table aligned. */
+    font-feature-settings: 'tnum' 1;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+
+  /*
+   * A visible, brand-coloured focus ring on every interactive element.
+   *
+   * `:focus-visible` rather than `:focus`, so a mouse click does not leave a ring behind but
+   * keyboard navigation always shows where it is. Deleting this to tidy the design makes the app
+   * unusable without a mouse.
+   */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white;
+  }
+}
+
+@layer utilities {
+  /* The recurring small-caps column label: "TEAM MEMBER", "ALLOC", "WINDOW". */
+  .label-micro {
+    @apply text-[11px] font-normal uppercase tracking-label text-faded-soft;
+  }
+
+  /*
+   * Horizontal scroll for the wide grids.
+   *
+   * A 12-week heatmap is legitimately wider than a laptop viewport. It scrolls INSIDE its own card
+   * so the sidebar and page header stay put — a body-level horizontal scrollbar on a dashboard is
+   * a bug, not a layout.
+   */
+  .scroll-x {
+    @apply overflow-x-auto;
+    scrollbar-width: thin;
+  }
+}

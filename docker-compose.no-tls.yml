@@ -1,0 +1,28 @@
+# ⚠️ LOCAL TESTING ONLY — NOT FOR DEPLOYMENT.
+#
+# Runs `app` and `db` without the Caddy proxy, publishing the app directly on 3000 over plain HTTP.
+# Use ONLY when you cannot run the proxy (for example, this environment cannot pull the Caddy image).
+#
+# Deliberately NOT named `docker-compose.override.yml`, because that filename is loaded
+# automatically and would silently strip TLS from a real deployment. It must be passed explicitly:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.no-tls.yml up -d
+#
+# WHAT YOU LOSE, and it matters:
+#   • No TLS. Credentials cross the wire in cleartext. Never point real data at this.
+#   • SESSION_COOKIE_SECURE must be false, or the browser refuses to store the session cookie over
+#     plain HTTP — sign-in would appear to succeed and then behave as if signed out.
+#   • The app's port is published to the host, which the production topology deliberately avoids.
+
+services:
+  app:
+    environment:
+      # Required over plain HTTP. In production this stays true.
+      SESSION_COOKIE_SECURE: 'false'
+    ports:
+      - '3000:3000'
+
+  # The proxy is not started in this configuration. `docker compose ... up -d db app` selects
+  # services explicitly; this profile keeps it out of the default set as well.
+  proxy:
+    profiles: ['tls-only']

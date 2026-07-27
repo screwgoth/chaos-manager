@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk '/^\\\\+---/,0' aidlc-docs/inception/application-design/application-design.md)",
+      "Bash(awk '/^[+|]/ {print length\\($0\\)\"\\\\t\"$0}')",
+      "Bash(uniq -c -f0)",
+      "Bash(awk '/^[+|]/ && length\\($0\\)!=65 {print \"MISMATCH \"length\\($0\\)\": \"$0}')",
+      "Bash(awk '/^```$/{f=!f;next} f && /^[+|]/ {if \\(length\\($0\\)!=65\\) print \"MISMATCH \"length\\($0\\)\": \"$0; else c++} END{print \"uniform lines: \"c}' aidlc-docs/inception/application-design/application-design.md)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git --no-pager log --oneline -3)",
+      "Bash(grep -cE '\\\\| Must \\\\|$' aidlc-docs/inception/requirements/requirements.md)",
+      "Bash(grep -cE '\\\\| Should \\\\|$' aidlc-docs/inception/requirements/requirements.md)",
+      "Bash(grep -cE '\\\\| N/A \\\\|$' aidlc-docs/inception/requirements/requirements.md)",
+      "Bash(perl -0pi -e 's/\\\\*\\\\*Total\\\\*\\\\*: 42 stories\\\\./**Total**: 43 stories./' aidlc-docs/inception/user-stories/stories.md)",
+      "Bash(perl -0pi -e 's/all 44 Must-priority functional requirements are covered/all 49 Must-priority functional requirements are covered/' aidlc-docs/inception/user-stories/stories.md)",
+      "Bash(perl -0pi -e 's/42 stories, 5 personas/43 stories, 5 personas/' aidlc-docs/aidlc-state.md)",
+      "Bash(perl -0pi -e 's/55 functional requirements across 9 groups/59 functional requirements across 9 groups/' aidlc-docs/inception/plans/user-stories-assessment.md)",
+      "Bash(perl -0pi -e 's/All 42 stories supported/All 43 stories supported/' aidlc-docs/inception/application-design/application-design.md)",
+      "Bash(perl -0pi -e 's/^- \\\\[ \\\\] /- [x] /gm' aidlc-docs/inception/plans/unit-of-work-plan.md)",
+      "Bash(perl -0pi -e 's/Awaiting approval to proceed to Part 2 Generation\\\\./Part 1 APPROVED 2026-07-25T11:15:00Z. Part 2 Generation COMPLETE — all checklist steps [x]./' aidlc-docs/inception/plans/unit-of-work-plan.md)",
+      "Bash(sed -n '/### Step 24/,$p' aidlc-docs/construction/plans/core-domain-code-generation-plan.md | head -60)",
+      "Bash(npm install *)"
+    ],
+    "additionalDirectories": [
+      "/home/raseel/code/github/screwgoth/chaos-manager/aidlc-docs/construction/plans"
+    ]
+  }
+}

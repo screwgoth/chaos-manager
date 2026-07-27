@@ -1,0 +1,51 @@
+# Caddy — TLS termination and reverse proxy.
+#
+# WHY A PROXY AT ALL, for a single-process app: Caddy obtains and renews certificates
+# automatically, which is the one piece of TLS operations nobody should hand-roll. The app itself
+# speaks plain HTTP on an internal network and is never published to the host.
+#
+# Set CHAOS_HOSTNAME in .env. With a real hostname Caddy provisions a Let's Encrypt certificate on
+# first start; with the default `localhost` it uses its own local CA, so a LAN or laptop
+# deployment gets working HTTPS without any certificate configuration.
+
+{$CHAOS_HOSTNAME:localhost} {
+	# Import uploads a CSV (BR-IM-02: 5 MB). Caddy 2's default is NO request body limit, so
+	# before this an arbitrarily large POST would be streamed into Node and refused only after
+	# transfer. Added at Unit 2 as a FIX to a pre-existing gap.
+	#
+	# 6 MB, deliberately ABOVE the app's 5 MB. Setting them equal would mean a 5.1 MB file gets
+	# Caddy's bare 413 instead of the app's message naming both the row and byte limits — at
+	# exactly the boundary a user is most likely to hit. The proxy limit exists to stop the absurd
+	# case, not to be the limit users meet.
+	request_body {
+		max_size 6MB
+	}
+
+	# `app` resolves on the compose network. Port 3000 is never published to the host.
+	#
+	# NO response timeout is set, and that is deliberate rather than an omission: Caddy 2's
+	# reverse_proxy has none by default, and a synchronous 2,000-row import (U2-NFR-P-03, under
+	# 30 s) must not be aborted mid-transaction by the proxy.
+	reverse_proxy app:3000
+
+	encode zstd gzip
+
+	header {
+		# Defence in depth. The app is same-origin and serves its own SPA, so a strict policy costs
+		# nothing here — there are no third-party scripts to accommodate.
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Sends the session cookie only over HTTPS from the browser's side, complementing the
+		# cookie's own Secure flag (SESSION_COOKIE_SECURE).
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		# The server's identity is not the client's business.
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
