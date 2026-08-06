@@ -29,6 +29,8 @@ types are lists you manage, not values baked into the code.
 ## Requirements
 
 - Docker and Docker Compose (the only requirement for running it)
+- `./app.sh`, the control script, additionally needs **bash 4.4+** — present on any Linux host and
+  in WSL. Without it, every command it wraps is a plain `docker compose` command shown below.
 - For development: Node.js 22 LTS and a PostgreSQL 16 you can reach
 
 ## First run
@@ -52,10 +54,13 @@ Now **edit `.env`**. At minimum set:
 Then:
 
 ```bash
-docker compose build
-docker compose up -d
-docker compose logs -f app     # watch for "migrations applied" and "listening"
+./app.sh start --build         # builds the images, starts the stack, waits until it is healthy
+./app.sh logs app -f           # watch for "migrations applied" and "listening"
 ```
+
+`app.sh` is a wrapper around `docker compose` — see [Day-to-day operation](#day-to-day-operation).
+The equivalent raw commands are `docker compose build && docker compose up -d`, and everything
+below works either way.
 
 Open `https://<CHAOS_HOSTNAME>` and sign in.
 
@@ -85,52 +90,90 @@ never re-adds something you deleted.
 
 ## Day-to-day operation
 
+`./app.sh` covers the whole lifecycle. Run `./app.sh --help` for the full list.
+
+```bash
+./app.sh start               # start the stack, wait until the app reports healthy
+./app.sh stop                # stop the containers; data, volumes and certificates are kept
+./app.sh restart             # after editing .env
+./app.sh status              # containers, /health, PostgreSQL, migration state, row counts
+./app.sh logs app -f         # application log (one line per request)
+./app.sh migrate             # apply pending migrations without starting the app
+./app.sh backup              # ./backups/chaos-<UTC timestamp>.sql.gz
+./app.sh restore <file>      # replace the database with a dump
+./app.sh purge               # DESTROY containers, volumes and all data
+./app.sh reset               # purge, then start from an empty database
+```
+
+It is a wrapper, not a replacement: it echoes every `docker compose` command it runs, so you can
+always drop down to compose directly.
+
 ```bash
 docker compose ps                    # what is running, and health status
 docker compose logs -f app           # application log (one line per request)
-docker compose restart app           # after changing .env
 docker compose exec db psql -U chaos -d chaos    # a database shell
 ```
+
+Two flags worth knowing:
+
+| Flag | Effect |
+|---|---|
+| `--no-tls` | Adds `docker-compose.no-tls.yml`: no proxy, app on `:3000` over plain HTTP. **Local testing only.** |
+| `-y`, `--yes` | Skips the confirmation prompts. Required for `purge`, `reset` and `restore` when run unattended. |
 
 ### Updating
 
 ```bash
 cd /opt/chaos-manager
 git pull
-docker compose build
-docker compose up -d
+./app.sh restart --build     # or: docker compose build && docker compose up -d
 ```
 
 Migrations run automatically at startup, **before** the app accepts traffic. If a migration fails
 the app refuses to start rather than serving against a half-upgraded schema — check
-`docker compose logs app` and fix forward.
+`./app.sh logs app` and fix forward.
 
 ### Backup
 
 ```bash
-docker compose exec -T db pg_dump -U chaos -d chaos --clean --if-exists \
-  | gzip > "chaos-$(date +%F).sql.gz"
+./app.sh backup                                  # ./backups/chaos-20260806T140700Z.sql.gz
+./app.sh backup /mnt/nas/chaos-nightly.sql.gz    # or an explicit path
 ```
 
 Restore:
 
 ```bash
+./app.sh restore backups/chaos-20260806T140700Z.sql.gz
+```
+
+The dump is taken with `--clean --if-exists`, so a restore replaces the current schema and data
+without needing a purge first. `restore` stops the app for the duration — restoring underneath a
+live app means requests hitting tables that are being dropped — and starts it again afterwards.
+
+The equivalent raw commands, if you would rather not use the script:
+
+```bash
+docker compose exec -T db pg_dump -U chaos -d chaos --clean --if-exists \
+  | gzip > "chaos-$(date +%F).sql.gz"
+
 gunzip -c chaos-2026-07-26.sql.gz | docker compose exec -T db psql -U chaos -d chaos
 ```
 
 Test a restore before you need one. A backup you have never restored is a hypothesis.
 
-### ⚠️ `docker compose down -v` DELETES YOUR DATA
+### ⚠️ `purge`, `reset` and `docker compose down -v` DELETE YOUR DATA
 
-`down` alone stops the containers and keeps everything. **`down -v` also removes the named
-volumes**, which is where the entire database lives. There is no undo and no confirmation prompt.
+`stop` keeps everything. **`purge` and `reset` remove the named volumes**, which is where the entire
+database lives, along with the TLS certificates. There is no undo.
 
 ```bash
-docker compose down          # safe: stops containers, data intact
-docker compose down -v       # DESTROYS the database and all TLS certificates
+./app.sh stop                # safe: stops containers, data intact
+./app.sh purge               # DESTROYS the database and all TLS certificates
+docker compose down -v       # the same destruction, with no confirmation prompt at all
 ```
 
-Take a backup before any command with `-v` in it.
+`purge` and `reset` make you type the word to confirm, and offer to take a backup first. Raw
+`docker compose down -v` asks nothing — take a backup before any command with `-v` in it.
 
 ## Ports and exposure
 
